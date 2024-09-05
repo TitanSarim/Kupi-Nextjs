@@ -37,6 +37,49 @@
   right: 145px;
 }
 
-.setting-radio input[type='radio'] {
-  accent-color: #FFC107 !important;
+
+/* From Uiverse.io by JaydipPrajapati1910 */ 
+.radio-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.radio-input input {
+  appearance: none;
+  width: 1.2em;
+  height: 1.2em;
+  background-color: transparent;
+  border: 1px solid gray;
+  border-radius: 50%;
+  transition: .4s ease-in-out;
+}
+
+.radio-input input:hover {
+  scale: 1.2;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.radio-input .circle {
+  position: relative;
+  top: 0.0em;
+  left: -.95em;
+  width: 0.7em;
+  height: 0.7em;
+  background-color: #FFC107;
+  scale: 0;
+  border-radius: 10px;
+  transition: .4s ease-in-out;
+}
+
+.radio-input input:checked {
+  box-shadow: none;
+  border: 1px solid #FFC107;
+}
+
+.radio-input input:checked + .circle {
+  transform: rotate(360deg);
+  scale: 1;
+}
+

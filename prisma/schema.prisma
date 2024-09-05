@@ -163,7 +163,7 @@ model Discounts {
 model Settings {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   key         String
-  value       Json
+  value       AdminSetting
   operatorsId String    @db.ObjectId
   operator    Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
 }
@@ -281,4 +281,13 @@ enum TicketSources {
 enum BusClass {
   STANDARD
   LUXURY
+}
+
+
+enum AdminSetting {
+  EXCHANGE_RATE
+  COMMISSION
+  TICKETS
+  BOOKING_AT
+  REMINDER
 }

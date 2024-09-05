@@ -1,10 +1,8 @@
 import Loading from "@/components/Loading";
 import Image from "next/image";
-import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 import { getProfile } from "@/actions/user.actions";
 import UserProfile from "@/components/UserProfile";
-import { useSession } from "next-auth/react";
 
 const Profile = async () => {
 

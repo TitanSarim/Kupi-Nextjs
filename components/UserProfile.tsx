@@ -54,8 +54,6 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
       number: formData.number,
     };
 
-    console.log("formValues", formValues);
-
     try {
       const res = await updateProfile(formValues);
       if (res) {

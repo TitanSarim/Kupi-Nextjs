@@ -7,6 +7,7 @@ import "/public/css/style.css";
 import "/public/css/custom.css";
 import "/global.css";
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
