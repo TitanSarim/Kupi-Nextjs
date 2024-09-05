@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "/public/css/style.css";
+@import "/public/css/custom.css";
+@layer base {
+  :root {
+    --radius: 0.5rem}
+}
+
+.primaryYellow{
+  background-color: #FFC107;
+}
+
+.lightGray{
+  background-color: #EDEDED;
+}
+
+.midGray-text{
+  color: #57707A;
+}
+
+.darkGray-text{
+  color: #292724;
+}
+
+.kupi-login-globe{
+  top: -70px;
+  width: 190px;
+  right: 50px;
+}
+
+.profile-camera{
+  position:absolute;
+  top: 320px;
+  right: 145px;
+}
+
+.setting-radio input[type='radio'] {
+  accent-color: #FFC107 !important;
+}
