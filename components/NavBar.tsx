@@ -77,7 +77,7 @@ const NavBar = async () => {
               <button className="bg-kupi-yellow	w-full rounded-md mt-3 py-2 px-3 relative flex flex-row items-center justify-between">
                 <p className="text-black text-base font-normal">Logout</p>
                 <Image
-                  src="/img/icons/logout-icon.png"
+                  src="/img/icons/logout-icon.svg"
                   alt="logout"
                   width={20}
                   height={20}
