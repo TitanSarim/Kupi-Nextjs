@@ -4,7 +4,7 @@ import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
 
-const SideBar = () => {
+const SideBar : React.FC = () => {
   const pathname = usePathname();
 
   return (

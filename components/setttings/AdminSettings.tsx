@@ -6,7 +6,7 @@ import { AdminSetting, getAdminSetting } from '@/actions/settings.action'
 import { AdminSettingValue } from '@/types/settings'
 
 
-const AdminSettings = () => {
+const AdminSettings : React.FC = () => {
 
   const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [commission, setCommission] = useState<number>(0);
