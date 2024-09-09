@@ -3,11 +3,13 @@ import { Input } from '../ui/input'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 import Image from 'next/image'
 import { AdminSetting, getAdminSetting } from '@/actions/settings.action'
-import { AdminSettingValue } from '@/types/settings'
+import { AdminSettingValue, SettingsFormData } from '@/types/settings'
+import Rates from '@/libs/Rates'
 
 
 const AdminSettings : React.FC = () => {
 
+  const { currency, amount, equivalent, unit } =  Rates.globalExchangeRate;
   const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [commission, setCommission] = useState<number>(0);
   const [tickets, setTickets] = useState<number>(0);
@@ -51,16 +53,24 @@ const AdminSettings : React.FC = () => {
 
     e.preventDefault();
     setLoading(true);
-    const formData = {
-      key: 'admin setting',
-      adminSetting: {
-        exchangeRate,
-        commission,
-        tickets,
-        bookingAt,
-        reminder,
-      },
-    };
+    const formData: SettingsFormData[] = [
+      {
+        key: 'EXCHANGE_RATE',
+        value: exchangeRate
+      },{
+        key: 'COMMISSION_PERCENTAGE',
+        value: commission
+      },{
+        key: 'NUM_OF_TICKETS',
+        value: tickets
+      },{
+        key: 'TIMEOUT_BOOKING',
+        value: bookingAt
+      },{
+        key: 'EMAIL_REMINDER',
+        value: reminder
+      }
+    ];
 
     try {
       await AdminSetting(formData);
@@ -75,17 +85,45 @@ const AdminSettings : React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       
-      const settings = await getAdminSetting('admin setting');
-      if (settings && settings.value) {
+      const settings = await getAdminSetting();
+      if (settings && Array.isArray(settings)) {
         try {
-          const data: AdminSettingValue = JSON.parse(settings.value as string) as AdminSettingValue;
-          setExchangeRate(data.exchangeRate)
-          setCommission(data.commission);
-          setTickets(data.tickets);
-          setBookingAt(data.bookingAt);
-          setReminder(data.reminder);
+          let exchangeRate = '';
+          let commission = '';
+          let tickets = '';
+          let bookingAt = '';
+          let reminder = '';
+      
+          settings.forEach((setting: any) => {
+            switch (setting.key) {
+              case 'EXCHANGE_RATE':
+                exchangeRate = setting.value;
+                break;
+              case 'COMMISSION_PERCENTAGE':
+                commission = setting.value;
+                break;
+              case 'NUM_OF_TICKETS':
+                tickets = setting.value;
+                break;
+              case 'TIMEOUT_BOOKING':
+                bookingAt = setting.value;
+                break;
+              case 'EMAIL_REMINDER':
+                reminder = setting.value;
+                break;
+              default:
+                break;
+            }
+          });
+      
+          setExchangeRate(parseInt(exchangeRate));
+          setCommission(parseInt(commission));
+          setTickets(parseInt(tickets));
+          setBookingAt(parseInt(bookingAt));
+          setReminder(parseInt(reminder));
+      
         } catch (error) {
-          setError(true)
+          setError(true);
         }
       }
     }
@@ -101,7 +139,7 @@ const AdminSettings : React.FC = () => {
 
             <div className="w-5/12 mb-5">
               <p className="mb-1 darkGray-text font-normal pb-1">
-              Global Exchange Rate<span className="text-gray-500"> [20 USD = 2500ZiG]</span>
+              Global Exchange Rate<span className="text-gray-500"> [{amount} {currency} = {equivalent}{unit}]</span>
               </p>
               <Input
                 type="text"
@@ -135,7 +173,7 @@ const AdminSettings : React.FC = () => {
                   <Tooltip>
                     <TooltipTrigger><Image src='/img/settings/question-icon.svg' alt='toot tip' width={20} height={20}/></TooltipTrigger>
                     <TooltipContent className='bg-white border-2 px-2 py-2'>
-                      Here is a tool tip
+                      How many tickets per route you want to add
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -161,7 +199,7 @@ const AdminSettings : React.FC = () => {
                   <Tooltip>
                     <TooltipTrigger><Image src='/img/settings/question-icon.svg' alt='toot tip' width={20} height={20}/></TooltipTrigger>
                     <TooltipContent className='bg-white border-2 px-2 py-2'>
-                      Here is a tool tip
+                      Ensure all bookings are closed 30 minutes prior to the departure time to avoid last-minute issues.
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

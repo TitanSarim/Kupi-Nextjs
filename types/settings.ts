@@ -1,8 +1,8 @@
 
 export interface SettingsFormData {
     key: string;
-    adminSetting: object;
-}
+    value: string | number; // Adjust based on the possible types for value
+  }
 
 export interface AdminSettingValue {
     exchangeRate: number

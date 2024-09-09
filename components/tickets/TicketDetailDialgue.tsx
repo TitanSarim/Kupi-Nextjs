@@ -1,13 +1,12 @@
 import React, { ReactNode } from 'react';
-import { TicketType } from '@/types/ticket';
-import { } from "lucide-react"
 import Image from 'next/image';
-
+// import { TicketStatus } from '@/types/ticket';
+import { Tickets } from '@prisma/client';
 
 interface DialogProps {
     open: boolean;
     onClose: () => void;
-    ticket: TicketType | null;
+    ticket: Tickets | null;
 }
 
 
@@ -15,7 +14,6 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) 
 
     if (!open) return null;
 
-    console.log("ticket", ticket)
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 duration-700 ease-out">
@@ -31,8 +29,8 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) 
                 </button>
             </div>
 
-            <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {ticket?.status === "Sold" && <p className='ticket-sold'>Sold</p>}
+            {/* <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+                {ticket?.status === TicketStatus.SOLD && <p className='ticket-sold'>Sold</p>}
                 <p className='text-black font-semibold text-md'>Customer Information</p>
                 <div className='flex flex-wrap justify-between gap-4'>
                     <div>
@@ -48,9 +46,9 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) 
                         <span>{ticket?.PassportNumber}</span>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
-            <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+            {/* <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                 <p className='text-black font-semibold text-md'>Route Information</p>
                 <div className='w-full flex flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>
@@ -78,9 +76,9 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) 
                         <span>{ticket?.ArrivalTime}</span>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
-            <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+            {/* <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                 <p className='text-black font-semibold text-md'>Ticket Price Detail</p>
                 <div className='w-full flex flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>
@@ -114,7 +112,7 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) 
                     <p className='text-gray-600 font-light'>Total Price</p>
                     <p className='text-black font-semibold text-md'>${ticket?.totalPrice}</p>
                 </div>
-            </div>
+            </div> */}
 
             <div className='w-full flex justify-end'>
                 <button onClick={onClose}  className='border-gray-600 py-1 px-8 bg-transparent border-2 rounded-lg text-gray-600'>Close</button>

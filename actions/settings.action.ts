@@ -2,11 +2,11 @@
 
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { Setting, SettingsFormData } from "../types/settings";
+import { SettingsFormData } from "../types/settings";
 import { Settings } from "@prisma/client";
 
 
-export async function getAdminSetting(key: string): Promise<Settings | null> {
+export async function getAdminSetting(): Promise<Settings[] | null> {
 
     try {
         const session = await auth();
@@ -15,9 +15,8 @@ export async function getAdminSetting(key: string): Promise<Settings | null> {
             return null
         }
 
-        const Setting = await db.settings.findFirst({
+        const Setting = await db.settings.findMany({
             where: {
-                key: key,
                 operatorsId: session.userId
             }
         })
@@ -35,7 +34,7 @@ export async function getAdminSetting(key: string): Promise<Settings | null> {
     }
 }
 
-export async function AdminSetting(formData: SettingsFormData): Promise<true | null> {
+export async function AdminSetting(formData: SettingsFormData[]): Promise<true | null> {
     try {
   
         const session = await auth();
@@ -44,31 +43,33 @@ export async function AdminSetting(formData: SettingsFormData): Promise<true | n
             return null
         }
 
-        const existingSetting = await db.settings.findFirst({
-            where: {
-                key: formData.key,
-                operatorsId: session.userId
-            }
-        })
-
-        if(existingSetting){
-            await db.settings.update({
+        for (const setting of formData) {
+            const existingSetting = await db.settings.findFirst({
                 where: {
-                    id: existingSetting.id,
-                    operatorsId: session.userId,
-                },
-                data: {
-                  value: JSON.stringify(formData.adminSetting),
-                },
+                    key: setting.key,
+                    operatorsId: session.userId
+                }
             });
-        }else {
-            await db.settings.create({
-                data: {
-                  key: formData.key,
-                  value: JSON.stringify(formData.adminSetting),
-                  operatorsId: session.userId,
-                },
-            });
+
+            if (existingSetting) {
+                await db.settings.update({
+                    where: {
+                        id: existingSetting.id,
+                        operatorsId: session.userId,
+                    },
+                    data: {
+                        value: JSON.stringify(setting.value), 
+                    },
+                });
+            } else {
+                await db.settings.create({
+                    data: {
+                        key: setting.key,
+                        value: JSON.stringify(setting.value),
+                        operatorsId: session.userId,
+                    },
+                });
+            }
         }
      
         return true

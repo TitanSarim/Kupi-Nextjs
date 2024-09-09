@@ -62,12 +62,36 @@ model Verification {
 }
 
 model Customers {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  email         String
-  number        String          @unique
-  conversations Conversations[]
-  tickets       Tickets[]
-  transactions  Transactions[]
+  id                      String                    @id @default(auto()) @map("_id") @db.ObjectId
+  email                   String?
+  name                    String?
+  number                  String                    @unique
+  language                Languages                 @default(en)
+  createdAt               DateTime
+  conversations           Conversations[]
+  tickets                 Tickets[]
+  transactions            Transactions[]
+  passengers              Passenger[]
+  CustomerLocationHistory CustomerLocationHistory[]
+}
+
+model Passenger {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  passportNumber String?
+  customerId     String    @db.ObjectId
+  customer       Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  @@unique([customerId, name])
+}
+
+
+model CustomerLocationHistory {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  code       String
+  countryId  String    @db.ObjectId
+  customerId String    @db.ObjectId
+  customer   Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
 }
 
 model Operators {
@@ -113,35 +137,42 @@ model Routes {
 }
 
 model Transactions {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  tickets       Tickets[]
-  customerId    String    @db.ObjectId
-  customer      Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  operatorIds   String[]  @db.ObjectId
-  operators     Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
-  paymentMethod String
-  amount        Float
-  currency      String
-  isDeleted     Boolean
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  tickets          Tickets[]
+  customerId       String    @db.ObjectId
+  customer         Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  operatorIds      String[]  @db.ObjectId
+  operators        Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  paymentMethod    String
+  paymentRef       String    @unique
+  totalAmount      Float
+  currency         String
+  paymentReference Json
+  isDeleted        Boolean   @default(false)
 }
+
 
 model Tickets {
   id             String             @id @default(auto()) @map("_id") @db.ObjectId
   ticketId       String             @unique
-  busId          String             @db.ObjectId
-  bus            Busses             @relation(fields: [busId], references: [id], onDelete: Cascade)
+  busId          String?            @db.ObjectId
+  bus            Busses?            @relation(fields: [busId], references: [id], onDelete: Cascade)
   conversationId String             @db.ObjectId
-  discountId     String             @db.ObjectId
-  discount       Discounts          @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  discountId     String?            @db.ObjectId
+  discount       Discounts?         @relation(fields: [discountId], references: [id], onDelete: Cascade)
   routeId        String?            @db.ObjectId
   route          Routes?            @relation(fields: [routeId], references: [id], onDelete: Cascade)
   carmaDetails   CarmaRouteDetails?
-  transactionId  String             @db.ObjectId
-  transaction    Transactions       @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionId  String?            @db.ObjectId
+  transaction    Transactions?      @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   customerId     String             @db.ObjectId
   customer       Customers          @relation(fields: [customerId], references: [id], onDelete: Cascade)
   priceDetails   TicketPriceDetails
+  paymentMethod  String
+  paymentSecret  String
   isDeleted      Boolean
+  seats          String
+  status         TicketStatus
 }
 
 model Discounts {
@@ -169,30 +200,44 @@ model Settings {
 }
 
 model Conversations {
-  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
   lastMessageTime DateTime
   messages        Messages[]
-  customerId      String     @db.ObjectId
-  customer        Customers  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  botStateId      String     @db.ObjectId
-  botState        BotStates  @relation(fields: [botStateId], references: [id], onDelete: Cascade)
+  customerId      String             @db.ObjectId
+  customer        Customers          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  botStateId      String?            @db.ObjectId
+  botState        BotStates?         @relation(fields: [botStateId], references: [id], onDelete: Cascade)
+  status          ConversationStatus
+  bookingDetails  Json?
+  createdAt       DateTime
+  completedAt     DateTime?
 }
 
 model BotStates {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  text            Json
-  preMsgFunction  String
-  postMsgFunction String
-  nextStateConfig NextStateConfig[]
-  conversations   Conversations[]
-  isDeleted       Boolean
+  id                       String            @id @default(auto()) @map("_id") @db.ObjectId
+  friendlyName             String            @unique
+  text                     Json?
+  contentTemplateIds       Json?
+  preMsgFunction           String?
+  postMsgFunction          String?
+  nextStateFunction        String?
+  nextStateConfig          NextStateConfig[]
+  conversations            Conversations[]
+  firstState               Boolean
+  firstStateNewCustomer    Boolean
+  isFinalState             Boolean
+  isContentTemplateMessage Boolean
+  waitForMessageToProceed  Boolean
+  isDeleted                Boolean           @default(false)
 }
 
 model Cities {
   id                 String      @id @default(auto()) @map("_id") @db.ObjectId
   name               String
+  code               String
   countryId          String      @db.ObjectId
   country            Countries   @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  isPopular          Boolean     @default(false)
   departureDiscounts Discounts[] @relation("departureCityDiscount")
   arrivalDiscounts   Discounts[] @relation("arrivalCityDiscount")
 }
@@ -203,24 +248,38 @@ model Countries {
   cities Cities[]
 }
 
+model FAQs {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        Json
+  description Json
+  response    Json
+  enabled     Boolean @default(true)
+}
+
+
 type NextStateConfig {
   nextStateId String   @db.ObjectId
   value       String[]
 }
 
 type Messages {
-  text String
-  date DateTime
-  from MessageFrom
+  body         String
+  to           String
+  number       String
+  date         DateTime
+  from         MessageFrom
+  platform     Platform
+  originalData Json
 }
 
 type TicketPriceDetails {
-  paymentMethod   String
-  totalPrice      Float
-  kupiPrice       Float
-  carmaPrice      Float
-  kupiCommission  Float
-  carmaCommission Float
+  totalPrice                Float
+  kupiProfit                Float
+  carmaProfit               Float
+  kupiMarkup                Float
+  kupiCommissionPercentage  Float @default(8)
+  carmaCommissionPercentage Float @default(2)
+  kupiMarkupPercentage      Float @default(0)
 }
 
 type CarmaRouteDetails {
@@ -258,6 +317,21 @@ enum RouteType {
   DAILY
 }
 
+enum Platform {
+  TWILIO
+}
+
+enum ConversationStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TicketStatus {
+  RESERVED
+  CONFIRMED
+  CANCELED
+}
+
 enum DAYS {
   SUN
   MON
@@ -284,3 +358,9 @@ enum BusClass {
 }
 
 
+
+enum Languages {
+  en
+  sn
+  nd
+}

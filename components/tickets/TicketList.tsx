@@ -1,12 +1,16 @@
 'use client'
-import React, { useMemo, useState } from 'react'
+import React, {useCallback, useEffect, useState } from 'react'
 import { Input } from '../ui/input'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import TicketTable from './TicketTable'
-import { TicketData } from './Data';
+import { Tickets } from '@prisma/client'
+import { useRouter } from 'next/navigation'
+import { searchDelay } from '@/libs/ClientSideHelpers'
+import { TicketsReturn } from '@/types/ticket'
 
-const TicketList: React.FC = () => {
 
+
+const TicketList: React.FC<TicketsReturn> = ({TicketData, paginationData, urlParamName}) => {
 
     const [busOperator, setBusOperator] = useState('');
     const [source, setSource] = useState('');
@@ -14,17 +18,27 @@ const TicketList: React.FC = () => {
     const [arrivalCity, setArrivalCity] = useState('');
     const [onlyPending, setOnlyPending] = useState(false);
 
-    const filteredData = useMemo(() => {
-        return TicketData.filter(ticket => {
-            return (
-                (!busOperator || ticket.BusNumber.toLowerCase().includes(busOperator.toLowerCase())) &&
-                (!source || ticket.source === source) &&
-                (!destinationCity || ticket.DepartureLocation.toLowerCase().includes(destinationCity.toLowerCase())) &&
-                (!arrivalCity || ticket.ArrivalLocation.toLowerCase().includes(arrivalCity.toLowerCase())) &&
-                (!onlyPending || ticket.status === 'Reserved')
-            );
-        });
-    }, [busOperator, source, destinationCity, arrivalCity, onlyPending]);
+    const router = useRouter();
+    const params = new URLSearchParams();
+
+    const updateSearchParams = () => {
+        if (busOperator) params.set('busId', busOperator);
+        if (source) params.set('source', source);
+        if (destinationCity) params.set('destinationCity', destinationCity);
+        if (arrivalCity) params.set('arrivalCity', arrivalCity);
+        if (onlyPending) params.set('onlyPending', String(onlyPending));
+        // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
+        router.push(`?${params.toString()}`, { shallow: true });
+    };
+
+    // const debouncedUpdateSearchParams = useCallback(searchDelay(updateSearchParams, 1500), [
+    //     updateSearchParams,
+    // ]);
+
+    // useEffect(() => {
+    //     debouncedUpdateSearchParams();
+    // }, [busOperator, source, destinationCity, arrivalCity, onlyPending, debouncedUpdateSearchParams]);
+
 
   return (
     <div className='w-full flex items-center mt-10 justify-center'>
@@ -70,7 +84,7 @@ const TicketList: React.FC = () => {
             </div>
 
 
-            <TicketTable TicketData={filteredData}/>
+            <TicketTable TicketData={TicketData} paginationData={paginationData}/>
 
         </div>
 
