@@ -254,7 +254,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
         return (
           <button
             key={page}
-            onClick={() => handlePageChange(page - 1)} 
+            // onClick={() => handlePageChange(page - 1)} 
             className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
           >
             {page}
