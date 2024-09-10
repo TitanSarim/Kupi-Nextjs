@@ -1,4 +1,4 @@
-import { Tickets } from "@prisma/client";
+import { Busses, Customers, Tickets, Transactions } from "@prisma/client";
 
 export enum TicketStatus {
     CONFIRMED = 'CONFIRMED',
@@ -18,9 +18,15 @@ export type TicketQuery = {
 };
 
 
+export type TicketsDataType = {
+    tickets: Tickets;
+    bus?: Busses | null; 
+    customer?: Customers | null; 
+    transaction?: Transactions | null;
+}
 
 export type TicketsReturn = {
-    ticketData: Tickets[],
+    ticketData: TicketsDataType[],
     paginationData: {
         totalCount: number;
         pageSize: number;

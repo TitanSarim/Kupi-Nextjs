@@ -1,15 +1,16 @@
 'use client'
 import React from 'react';
 import Image from 'next/image';
-import { TicketsDataType, TicketStatus } from '@/types/ticket';
+import { Tickets } from '@prisma/client';
+import { TicketStatus } from '@/types/ticket';
 
 interface DialogProps {
     open: boolean;
     onClose: () => void;
-    TicketData: TicketsDataType | null;
+    TicketData: Tickets | null;
 }
 
-const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData }) => {
+const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData }) => {
 
     if (!open) return null;
 
@@ -28,21 +29,21 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
             </div>
 
             <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='ticket-sold'>Sold</p>}
+                {TicketData?.status === TicketStatus.CONFIRMED && <p className='ticket-sold'>Sold</p>}
                 <p className='text-black font-semibold text-md'>Customer Information</p>
-                <div className='flex w-full flex-wrap justify-between gap-4'>
-                    <div className='w-5/12'>
+                <div className='flex flex-wrap justify-between gap-4'>
+                    <div>
                         <p className='text-gray-600 font-light'>Customer Name</p>
-                        <span>{TicketData?.customer?.name}</span>
+                        <span>NA</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div >
                         <p className='text-gray-600 font-light'>Customer Phone</p>
-                        <span>{TicketData?.customer?.number}</span>
+                        <span>NA</span>
                     </div>
-                    {/* <div >
+                    <div >
                         <p className='text-gray-600 font-light'>Passport Number</p>
                         <span>NA</span>
-                    </div> */}
+                    </div>
                 </div>
             </div>
 
@@ -51,11 +52,11 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
                 <div className='w-full flex flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Ticket ID</p>
-                        <span>{TicketData?.tickets.ticketId}</span>
+                        <span>{TicketData?.ticketId}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Bus Number</p>
-                        <span>{TicketData?.tickets.busId}</span>
+                        <span>{TicketData?.busId}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Departure Location</p>
@@ -81,34 +82,34 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
                 <div className='w-full flex flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Payment Method</p>
-                        <span>{TicketData?.tickets.paymentMethod}</span>
+                        <span>{TicketData?.paymentMethod}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Ticket Price</p>
-                        <span>${TicketData?.tickets.priceDetails.totalPrice}</span>
+                        <span>${TicketData?.priceDetails.totalPrice}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Carma Commission</p>
-                        <span>{TicketData?.tickets.priceDetails.carmaCommissionPercentage}%</span>
+                        <span>{TicketData?.priceDetails.carmaCommissionPercentage}%</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Carma Amount</p>
-                        <span>${TicketData?.tickets.priceDetails.carmaProfit}</span>
+                        <span>${TicketData?.priceDetails.carmaProfit}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Kupi Commission</p>
-                        <span>{TicketData?.tickets.priceDetails.kupiCommissionPercentage}%</span>
+                        <span>{TicketData?.priceDetails.kupiCommissionPercentage}%</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Kupi Amount</p>
-                        <span>${TicketData?.tickets.priceDetails.kupiProfit}</span>
+                        <span>${TicketData?.priceDetails.kupiProfit}</span>
                     </div>
                 </div>
                 <div className='w-full hrGap bg-gray-500'>
                 </div>
                 <div className='flex w-full flex-row justify-between'>
                     <p className='text-gray-600 font-light'>Total Price</p>
-                    <p className='text-black font-semibold text-md'>${TicketData?.tickets.priceDetails.totalPrice}</p>
+                    <p className='text-black font-semibold text-md'>${TicketData?.priceDetails.totalPrice}</p>
                 </div>
             </div>
 
@@ -121,4 +122,4 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
   )
 }
 
-export default TransactionDetailDialgue
+export default TicketDetailDialgue

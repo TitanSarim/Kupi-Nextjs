@@ -7,41 +7,39 @@ import { ColumnDef, SortingState,
     getSortedRowModel,
     useReactTable,
   } from "@tanstack/react-table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowUpDown, ChevronRight, ChevronLeft } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import { ArrowUpDown, ChevronRight, ChevronLeft} from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import Image from 'next/image';
-import TicketDetailDialgue from './TicketDetailDialgue'
-import { Tickets } from '@prisma/client'
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { TicketsDataType, TicketsReturn } from '@/types/ticket'
+import TicketDetailDialgue from './TransactionDetailDialgue'
+import { usePathname, useSearchParams, useRouter} from 'next/navigation';
+import { TransactionReturn, TransactionsType } from '@/types/transactions'
 
-const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) => {
+const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, paginationData }) => {
 
     const router = useRouter()
     const searchParams = useSearchParams()
     const pathname = usePathname()
 
+    console.log("transactionData", transactionData)
 
+    const [selectedTicket, setSelectedTicket] = useState<TransactionsType | null>(null);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [sorting, setSorting] = useState<SortingState>([]);
     const [pagination, setPagination] = useState({
-        pageIndex: 0,  
+        pageIndex: paginationData.pageIndex,
         pageSize: paginationData.pageSize,
     });
 
-    const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(null);
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [sorting, setSorting] = useState<SortingState>([]);
-
     const handleShowDetail = (id: string) => {
-        const ticket = ticketData.find(t => t.tickets.id === id) || null;
-        setSelectedTicket(ticket);
+        const transaction = transactionData.find(t => t.transactions.id === id) || null;
+        setSelectedTicket(transaction);
         setDialogOpen(true);
     };
 
     const handleCloseDialog = () => {
         setDialogOpen(false);
     };
-
 
     const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
       const sortingParam = sorting.map(sort => `${sort.id}_${sort.desc ? 'desc' : 'asc'}`).join(',');
@@ -52,90 +50,88 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
-    useEffect(() => {
-      if (pagination.pageIndex >= 0 && pagination.pageSize > 0) {
-        updateUrl(pagination.pageIndex, pagination.pageSize);
-      }
-    }, [pagination]);
-
-    // Table initialization
-    const columns: ColumnDef<TicketsDataType>[] = [
+     // table initalizes here
+     const columns: ColumnDef<TransactionsType>[] = [
         {
-            accessorKey: "busId",
+            accessorKey: "ticketId",
             header: ({ column }) => (
               <button
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
               >
-                Bus Number <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                Ticket ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </button>
             ),
             cell: ({ row }) => (
               <div>
-                {row.original.tickets.busId ? <span>{row.original.tickets.busId}</span> : <span>NA</span>}
+                <span>NA</span>
               </div>
             )
           },
         {
-          accessorKey: "ticketId",
+          accessorKey: "customer",
           header: ({ column }) => (
             <button
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             >
-              Ticket ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+              Customer <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+            </button>
+          ),cell: ({ row }) => {     
+              if(!row.original.customer ){
+                return(
+                  <span>NA</span>
+                )
+              }
+            return (
+              <span>
+                {row.original?.customer.name}
+              </span>
+            )
+          },
+        },
+        {
+          accessorKey: "providerName",
+          header: ({ column }) => (
+            <button
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Payment Method <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+            </button>
+          ),
+          cell: ({ row }) => {     
+            return (
+              <span>{row.original?.paymentReference?.providerName || 'N/A'}</span>
+            );
+          }
+        },
+        {
+          accessorKey: "totalPrice",
+          header: ({ column }) => (
+            <button
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Amount <ArrowUpDown className="ml-2 h-4 w-4 inline" />
             </button>
           ),
           cell: ({ row }) => (
-            <div>
-              <span>{row.original.tickets.ticketId}</span>
-            </div>
+              <div>
+                  ${row.original.transactions.totalAmount}
+              </div>
           )
         },
         {
-          accessorKey: "CustomerName",
-          header: ({ column }) => (
-            <button
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Customer Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-            </button>
-          ),
-          cell: ({ row }) => (
-            <span>{row.original.customer?.name}</span>
-          ),
-        },
-        {
-            accessorKey: 'ArrivalLocation',  
+            accessorKey: 'comission', 
             header: ({ column }) => (
               <button onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Locations <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                Comission <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </button>
             ),
             cell: ({ row }) => (
               <div>
-                <div>
-                  <span className='midGray-text'>Departure:</span>{" "} 
-                    NA
-                </div>
-                <div>
-                  <span className='midGray-text'>Arrival:</span>{" "}
-                    NA
-                </div>
+                <span>{row.original?.paymentReference?.customerCharge}%</span>
               </div>
             ),
         },
-        {
-            accessorKey: "source",
-            header: ({ column }) => (
-              <button
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              >
-                Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-              </button>
-            ),
-            cell: ({ row }) => (
-              <span>NA</span>
-            )
-        },
+        
         {
             accessorKey: "status",
             header: ({ column }) => (
@@ -147,30 +143,29 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
             ),
             cell: ({ row }) => (
                 <div>
-                    {row.original.tickets.status === "CONFIRMED" ? 
-                        <p className='text-green-600'>Confirmed</p>
+                    {row.original?.paymentReference?.status === "paid" ? 
+                        <p className='text-green-600'>Paid</p>
                         : 
-                        <p className='text-kupi-yellow'>{row.original.tickets.status}</p>
+                        <p className='text-kupi-yellow'>{row.original?.paymentReference?.status}</p>
                     }
                 </div>
             )
         },
-    
+
         {
-            accessorKey: "totalPrice",
-            header: ({ column }) => (
-              <button
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-              >
-                Price <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-              </button>
-            ),
-            cell: ({ row }) => (
-                <div>
-                    ${row.original.tickets.priceDetails.totalPrice}
-                </div>
-            )
+          accessorKey: "date",
+          header: ({ column }) => (
+            <button
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+            </button>
+          ),
+          cell: ({ row }) => (
+            <span>12/09/2024</span>
+          )
         },
+    
         {
             accessorKey: "action",
             header: "",
@@ -178,7 +173,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
               <div className="flex justify-end">
                 <button
                   onClick={() => {
-                    handleShowDetail(row.original.tickets.id)
+                    handleShowDetail(row.original.transactions.id)
                   }}
                   className="p-2 rounded-md hover:bg-gray-100"
                 >
@@ -191,26 +186,33 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
     ];
 
     const table = useReactTable({
-        data: ticketData,
+        data: transactionData,
         columns,
-        state: { sorting, pagination},
-        onSortingChange: setSorting,
+        state: { sorting, pagination },
+        onSortingChange: (newSorting) => {
+          setSorting(newSorting);
+          updateUrl();
+        },
+        onPaginationChange: (newPagination) => {
+          setPagination(newPagination);
+          updateUrl(); 
+        },
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        manualPagination: true,  
-        pageCount: Math.ceil(paginationData.totalCount / pagination.pageSize),  
     });
 
     const { pageIndex, pageSize } = pagination;
     const totalCount = paginationData.totalCount;
     const pageCount = Math.ceil(totalCount / pageSize);
-
+    
     const handlePageChange = (newPageIndex: number) => {
       setPagination(prev => ({
         ...prev,
         pageIndex: newPageIndex,
       }));
+    
+      updateUrl(newPageIndex);
     };
 
     const handlePageSizeChange = (size: number) => {
@@ -219,6 +221,8 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
         pageSize: size,
         pageIndex: 0, 
       }));
+    
+      updateUrl(0, size); 
     };
     
     const range = (start: number, end: number): number[] => {
@@ -230,39 +234,14 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
     };
 
     const pageNumbers = (() => {
-      const firstTwoPages = [1, 2];
-      const lastPage = pageCount;
+      const rangeSize = 5; 
+      const start = Math.max(1, Math.min(pageIndex + 1 - Math.floor(rangeSize / 2), pageCount - rangeSize + 1));
+      const end = Math.min(pageCount, start + rangeSize - 1);
   
-      if (pageCount <= 4) {
-        return range(1, pageCount);
-      }
-  
-      if (pageIndex + 1 <= 2) {
-        return [...range(1, 2), '...', lastPage];
-      } else if (pageIndex + 1 >= pageCount - 1) {
-        return [1, '...', ...range(pageCount - 2, pageCount)];
-      } else {
-        return [1, '...', pageIndex + 1, '...', lastPage];
-      }
+      return range(start, end);
     })();
 
-    const renderPageNumbers = () => {
-      return pageNumbers.map((page, index) => {
-        if (page === '...') {
-          return <span key={`ellipsis-${index}`} className="px-3 py-1">...</span>;
-        }
-        return (
-          <button
-            key={page}
-            onClick={() => handlePageChange(page - 1)} 
-            className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
-          >
-            {page}
-          </button>
-        );
-      });
-    };
-
+    // actual table
     return (
         <div className="w-full mt-8">
             <div className='w-full tickettableclass'>
@@ -313,32 +292,41 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
 
                 {/* Pagination buttons */}
                 <div className="flex flex-row items-center gap-2">
-                  <button
-                    onClick={() => handlePageChange(pageIndex - 1)}
-                    disabled={pageIndex === 0}
-                    className={`px-1 py-1 rounded-md ${pageIndex === 0 ? 'bg-gray-300' : 'bg-gray-800'}`}
-                  >
-                    <ChevronLeft style={{ color: pageIndex === 0 ? 'gray' : 'white' }} />
-                  </button>
-                  <div className="flex gap-2">
-                    {renderPageNumbers()}
-                  </div>
-                  <button
-                    onClick={() => handlePageChange(pageIndex + 1)}
-                    disabled={pageIndex >= pageCount - 1}
-                    className={`px-1 py-1 rounded-md ${pageIndex >= pageCount - 1 ? 'bg-gray-300' : 'bg-gray-800'}`}
-                  >
-                    <ChevronRight style={{ color: pageIndex >= pageCount - 1 ? 'gray' : 'white' }} />
-                  </button>
+                    <button
+                        onClick={() => handlePageChange(pageIndex - 1)}
+                        disabled={pageIndex === 0}
+                        className={`px-1 py-1 rounded-md ${pageIndex === 0 ? 'bg-gray-300' : 'bg-gray-800'}`}
+                    >
+                        <ChevronLeft style={{ color: pageIndex === 0 ? 'gray' : 'white' }} />
+                    </button>
+                    <div className="flex gap-2">
+                        {pageNumbers.map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page - 1)}  // Convert to 0-based index
+                              className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                    </div>
+                    <button
+                        onClick={() => handlePageChange(pageIndex + 1)}
+                        disabled={pageIndex >= pageCount - 1}
+                        className={`px-1 py-1 rounded-md ${pageIndex >= pageCount - 1  ? 'bg-gray-300' : 'bg-gray-800'}`}
+                    >
+                        <ChevronRight style={{ color: pageIndex >= pageCount - 1 ? 'gray' : 'white' }} />
+                    </button>
                 </div>
             </div>
 
-            {/* Dialogue */}
+            {/* dialogue */}
             <div className='w-full'>
-                <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/>
+                {/* <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/> */}
             </div>
+            
         </div>
     )
 }
 
-export default TicketTable
+export default TransactionTable

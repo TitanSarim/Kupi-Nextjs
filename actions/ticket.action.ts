@@ -24,7 +24,7 @@ export async function getAllTickets(searchParams: {
             return null
         }
 
-        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 1 } = searchParams;
+        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 2 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
@@ -54,16 +54,28 @@ export async function getAllTickets(searchParams: {
             orderBy: sortOrder,
             skip,
             take,
+            include: {
+                customer: true,
+                transaction: true,
+                bus: true
+            },
         });
 
         if(!ticketData){
             return null
         }
 
+        const wrappedTickets = ticketData.map((ticket) => ({
+            tickets: ticket,
+            customer: ticket.customer || null,
+            bus: ticket.bus || null,
+            transaction: ticket.transaction || null
+        }));
+
         const totalCount = await db.tickets.count({ where: filter });
 
         return {
-            ticketData,
+            ticketData: wrappedTickets,
             paginationData: {
                 totalCount,
                 pageSize,
