@@ -1,7 +1,7 @@
 import { Tickets } from "@prisma/client";
 
 export enum TicketStatus {
-    SOLD = 'SOLD',
+    CONFIRMED = 'CONFIRMED',
     RESERVED = 'RESERVED',
     AVAILABLE = 'AVAILABLE'
 }
@@ -17,10 +17,6 @@ export type TicketQuery = {
     };
 };
 
-export type SortOrder = {
-    asc: string;
-    desc: string;
-}
 
 
 export type TicketsReturn = {
@@ -31,4 +27,16 @@ export type TicketsReturn = {
         pageIndex: number;
     }
     urlParamName?: string;
+}
+
+export interface FilterProps {
+    busId?: string;
+    source?: string;
+    destinationCity?: string;
+    arrivalCity?: string;
+    status?: "RESERVED"; // Since you're setting this explicitly when `onlyPending` is defined
+}
+
+export interface SortOrderProps {
+    [field: string]: 'asc' | 'desc';
 }

@@ -1,19 +1,19 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import Image from 'next/image';
-// import { TicketStatus } from '@/types/ticket';
 import { Tickets } from '@prisma/client';
+import { TicketStatus } from '@/types/ticket';
 
 interface DialogProps {
     open: boolean;
     onClose: () => void;
-    ticket: Tickets | null;
+    TicketData: Tickets | null;
 }
 
-
-const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) => {
+const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData }) => {
 
     if (!open) return null;
 
+    console.log("TicketData", TicketData)
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 duration-700 ease-out">
@@ -29,90 +29,90 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, ticket }) 
                 </button>
             </div>
 
-            {/* <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {ticket?.status === TicketStatus.SOLD && <p className='ticket-sold'>Sold</p>}
+            <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+                {TicketData?.status === TicketStatus.CONFIRMED && <p className='ticket-sold'>Sold</p>}
                 <p className='text-black font-semibold text-md'>Customer Information</p>
                 <div className='flex flex-wrap justify-between gap-4'>
                     <div>
                         <p className='text-gray-600 font-light'>Customer Name</p>
-                        <span>{ticket?.CustomerName}</span>
+                        <span>NA</span>
                     </div>
                     <div >
                         <p className='text-gray-600 font-light'>Customer Phone</p>
-                        <span>{ticket?.CustomerPhone}</span>
+                        <span>NA</span>
                     </div>
                     <div >
                         <p className='text-gray-600 font-light'>Passport Number</p>
-                        <span>{ticket?.PassportNumber}</span>
+                        <span>NA</span>
                     </div>
                 </div>
-            </div> */}
+            </div>
 
-            {/* <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+            <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                 <p className='text-black font-semibold text-md'>Route Information</p>
                 <div className='w-full flex flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Ticket ID</p>
-                        <span>{ticket?.TicketID}</span>
+                        <span>{TicketData?.ticketId}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Bus Number</p>
-                        <span>{ticket?.BusNumber}</span>
+                        <span>{TicketData?.busId}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Departure Location</p>
-                        <span className='break-words'>{ticket?.DepartureLocation}</span>
+                        <span className='break-words'>NA</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Arrival Location</p>
-                        <span>{ticket?.ArrivalLocation}</span>
+                        <span>NA</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Departure Time</p>
-                        <span>{ticket?.DepartureTime}</span>
+                        <span>NA</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Arrival Time</p>
-                        <span>{ticket?.ArrivalTime}</span>
+                        <span>NA</span>
                     </div>
                 </div>
-            </div> */}
+            </div>
 
-            {/* <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+            <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                 <p className='text-black font-semibold text-md'>Ticket Price Detail</p>
                 <div className='w-full flex flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Payment Method</p>
-                        <span>{ticket?.PaymentMethod}</span>
+                        <span>{TicketData?.paymentMethod}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Ticket Price</p>
-                        <span>${ticket?.TicketPrice}</span>
+                        <span>${TicketData?.priceDetails.totalPrice}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Carma Commission</p>
-                        <span>{ticket?.CarmaCommission}%</span>
+                        <span>{TicketData?.priceDetails.carmaCommissionPercentage}%</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Carma Amount</p>
-                        <span>${ticket?.CarmaAmount}</span>
+                        <span>${TicketData?.priceDetails.carmaProfit}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Kupi Commission</p>
-                        <span>{ticket?.KupiCommission}%</span>
+                        <span>{TicketData?.priceDetails.kupiCommissionPercentage}%</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Kupi Amount</p>
-                        <span>${ticket?.KupiAmount}</span>
+                        <span>${TicketData?.priceDetails.kupiProfit}</span>
                     </div>
                 </div>
                 <div className='w-full hrGap bg-gray-500'>
                 </div>
                 <div className='flex w-full flex-row justify-between'>
                     <p className='text-gray-600 font-light'>Total Price</p>
-                    <p className='text-black font-semibold text-md'>${ticket?.totalPrice}</p>
+                    <p className='text-black font-semibold text-md'>${TicketData?.priceDetails.totalPrice}</p>
                 </div>
-            </div> */}
+            </div>
 
             <div className='w-full flex justify-end'>
                 <button onClick={onClose}  className='border-gray-600 py-1 px-8 bg-transparent border-2 rounded-lg text-gray-600'>Close</button>

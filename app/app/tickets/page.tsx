@@ -9,7 +9,13 @@ const Tickets = async ({ searchParams }: { searchParams: TicketQuery['searchPara
   const data = await getAllTickets(searchParams) 
 
   if(!data){
-    return null
+    return (
+      <div className='bg-page-backgound flex items-start justify-center h-screen w-full'>
+          <div className='mt-32'>
+            <p>No Data Found</p>
+          </div>
+      </div>
+    )
   }
 
   return (

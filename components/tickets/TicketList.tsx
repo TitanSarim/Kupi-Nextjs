@@ -1,11 +1,9 @@
 'use client'
-import React, {useCallback, useEffect, useState } from 'react'
+import React, {useEffect, useState } from 'react'
 import { Input } from '../ui/input'
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import TicketTable from './TicketTable'
-import { Tickets } from '@prisma/client'
 import { useRouter } from 'next/navigation'
-import { searchDelay } from '@/libs/ClientSideHelpers'
 import { TicketsReturn } from '@/types/ticket'
 
 
@@ -17,7 +15,7 @@ const TicketList: React.FC<TicketsReturn> = ({TicketData, paginationData, urlPar
     const [destinationCity, setDestinationCity] = useState('');
     const [arrivalCity, setArrivalCity] = useState('');
     const [onlyPending, setOnlyPending] = useState(false);
-
+    
     const router = useRouter();
     const params = new URLSearchParams();
 
@@ -27,18 +25,19 @@ const TicketList: React.FC<TicketsReturn> = ({TicketData, paginationData, urlPar
         if (destinationCity) params.set('destinationCity', destinationCity);
         if (arrivalCity) params.set('arrivalCity', arrivalCity);
         if (onlyPending) params.set('onlyPending', String(onlyPending));
-        // @ts-expect-error 'shallow' does not exist in type 'NavigateOptions'
-        router.push(`?${params.toString()}`, { shallow: true });
+        router.push(`?${params.toString()}`, { scroll: false });
     };
 
-    // const debouncedUpdateSearchParams = useCallback(searchDelay(updateSearchParams, 1500), [
-    //     updateSearchParams,
-    // ]);
+    useEffect(() => {
+        
+        const timer = setTimeout(() => {
+            updateSearchParams();
+        }, 500)
 
-    // useEffect(() => {
-    //     debouncedUpdateSearchParams();
-    // }, [busOperator, source, destinationCity, arrivalCity, onlyPending, debouncedUpdateSearchParams]);
-
+        return () => {
+            clearTimeout(timer)
+        }
+    }, [busOperator, source, destinationCity, arrivalCity, onlyPending]);
 
   return (
     <div className='w-full flex items-center mt-10 justify-center'>
@@ -82,7 +81,6 @@ const TicketList: React.FC<TicketsReturn> = ({TicketData, paginationData, urlPar
                     <Input type='text'  value={arrivalCity}  onChange={(e) => setArrivalCity(e.target.value)} placeholder='Search by city' className="h-12 rounded-lg text-gray-500 border-gray-700"/>
                 </div>
             </div>
-
 
             <TicketTable TicketData={TicketData} paginationData={paginationData}/>
 

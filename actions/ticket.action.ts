@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { auth } from "@/auth";
 import { Tickets } from "@prisma/client";
-import { TicketQuery, TicketsReturn } from "@/types/ticket";
+import { FilterProps, SortOrderProps, TicketQuery, TicketsReturn } from "@/types/ticket";
 
 
 export async function getAllTickets(searchParams: {
@@ -25,23 +25,26 @@ export async function getAllTickets(searchParams: {
             return null
         }
 
-        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex = 0, pageSize = 2 } = searchParams;
+        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 8 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
 
-        
-        const filter: any = {};
+        const filter: FilterProps = {};
         // if (busId) filter.busId = busId;
         // if (source) filter.source = source;
         // if (destinationCity) filter.destinationCity = destinationCity;
         // if (arrivalCity) filter.arrivalCity = arrivalCity;
         if (onlyPending !== undefined) filter.status = "RESERVED";
 
-        const sortOrder: any = {};
+        const sortOrder: SortOrderProps = {};
         if (sort) {
             const [field, order] = sort.split('_');
-            sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
+            if (field === 'priceDetails.totalPrice') {
+                sortOrder['priceDetails.totalPrice'] = order === 'asc' ? 'asc' : 'desc';
+            } else {
+                sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
+            }
         }
         
         const skip = pageIndexNumber * pageSizeNumber;
@@ -54,13 +57,11 @@ export async function getAllTickets(searchParams: {
             take,
         });
 
-
         if(!TicketData){
             return null
         }
 
         const totalCount = await db.tickets.count({ where: filter });
-
 
         return {
             TicketData,

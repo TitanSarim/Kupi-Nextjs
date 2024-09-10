@@ -15,16 +15,11 @@ import { Tickets } from '@prisma/client'
 import { usePathname, useSearchParams, useRouter} from 'next/navigation';
 import { TicketsReturn } from '@/types/ticket'
 
-
-  
 const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) => {
-
 
     const router = useRouter()
     const searchParams = useSearchParams()
     const pathname = usePathname()
-
-    console.log("paginationData", paginationData)
 
     const [selectedTicket, setSelectedTicket] = useState<Tickets | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -33,7 +28,6 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
         pageIndex: paginationData.pageIndex,
         pageSize: paginationData.pageSize,
     });
-
 
     const handleShowDetail = (id: string) => {
         const ticket = TicketData.find(t => t.id === id) || null;
@@ -45,22 +39,14 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
         setDialogOpen(false);
     };
 
-
-
     const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
       const sortingParam = sorting.map(sort => `${sort.id}_${sort.desc ? 'desc' : 'asc'}`).join(',');
       const params = new URLSearchParams(searchParams.toString());
-      console.log("Updated pagination", pagination);
-      // Use passed in values or fallback to current pagination state
       params.set('pageIndex', (newPageIndex !== undefined ? newPageIndex : pagination.pageIndex).toString());
       params.set('pageSize', (newPageSize !== undefined ? newPageSize : pagination.pageSize).toString());
       params.set('sort', sortingParam);
-      console.log("Params after update", params.toString());
-      // Push the updated params to the router without reloading
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
-
-  
 
      // table initalizes here
      const columns: ColumnDef<Tickets>[] = [
@@ -73,6 +59,11 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
                 Bus Number <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </button>
             ),
+            cell: ({ row }) => (
+              <div>
+                {row.original.busId ? <span>{row.original.busId}</span> : <span>NA</span>}
+              </div>
+            )
           },
         {
           accessorKey: "ticketId",
@@ -93,6 +84,9 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
               Customer Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
             </button>
           ),
+          cell: ({ row }) => (
+            <span>NA</span>
+          ),
         },
         {
             accessorKey: 'ArrivalLocation',  // We use one accessor key but render multiple fields
@@ -104,16 +98,12 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
             cell: ({ row }) => (
               <div>
                 <div>
-                  {/* <span className='midGray-text'>Departure:</span>{" "} 
-                    {row.original.DepartureLocation.length > 22
-                    ? row.original.DepartureLocation.slice(0, 22) + "..."
-                    : row.original.DepartureLocation} */}
+                  <span className='midGray-text'>Departure:</span>{" "} 
+                    NA
                 </div>
                 <div>
-                  {/* <span className='midGray-text'>Arrival:</span>{" "}
-                    {row.original.ArrivalLocation.length > 22
-                    ? row.original.ArrivalLocation.slice(0, 22) + "..."
-                    : row.original.ArrivalLocation} */}
+                  <span className='midGray-text'>Arrival:</span>{" "}
+                    NA
                 </div>
               </div>
             ),
@@ -127,6 +117,9 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
                 Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </button>
             ),
+            cell: ({ row }) => (
+              <span>NA</span>
+            )
         },
         {
             accessorKey: "status",
@@ -231,12 +224,12 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
     };
 
     const pageNumbers = (() => {
-      const rangeSize = 5;  // Number of page buttons to show
-      const start = Math.max(1, pageIndex - Math.floor(rangeSize / 2));
+      const rangeSize = 5; 
+      const start = Math.max(1, Math.min(pageIndex + 1 - Math.floor(rangeSize / 2), pageCount - rangeSize + 1));
       const end = Math.min(pageCount, start + rangeSize - 1);
+  
       return range(start, end);
     })();
-
 
     // actual table
     return (
@@ -280,8 +273,8 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
                             <SelectValue placeholder={pageSize.toString()}/>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="8">8</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
                             <SelectItem value="30">30</SelectItem>
                         </SelectContent>
                     </Select>
@@ -299,9 +292,9 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
                     <div className="flex gap-2">
                         {pageNumbers.map((page) => (
                             <button
-                                key={page}
-                                onClick={() => handlePageChange(page - 1)}
-                                className={`px-3 py-1 rounded-md ${pageIndex === page - 1 ? 'bg-kupi-yellow text-gray-800' : ''}`}
+                              key={page}
+                              onClick={() => handlePageChange(page - 1)}  // Convert to 0-based index
+                              className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
                             >
                                 {page}
                             </button>
@@ -310,7 +303,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
                     <button
                         onClick={() => handlePageChange(pageIndex + 1)}
                         disabled={pageIndex >= pageCount - 1}
-                        className={`px-1 py-1 rounded-md ${pageIndex >= pageCount - 1 ? 'bg-gray-300' : 'bg-gray-800'}`}
+                        className={`px-1 py-1 rounded-md ${pageIndex >= pageCount - 1  ? 'bg-gray-300' : 'bg-gray-800'}`}
                     >
                         <ChevronRight style={{ color: pageIndex >= pageCount - 1 ? 'gray' : 'white' }} />
                     </button>
@@ -319,7 +312,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
 
             {/* dialogue */}
             <div className='w-full'>
-                {/* <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} ticket={selectedTicket}/> */}
+                <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/>
             </div>
             
         </div>
