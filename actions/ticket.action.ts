@@ -25,7 +25,7 @@ export async function getAllTickets(searchParams: {
             return null
         }
 
-        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 8 } = searchParams;
+        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 1 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);

@@ -273,7 +273,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
                             <SelectValue placeholder={pageSize.toString()}/>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="8">8</SelectItem>
+                            <SelectItem value="2">2</SelectItem>
                             <SelectItem value="20">20</SelectItem>
                             <SelectItem value="30">30</SelectItem>
                         </SelectContent>
