@@ -21,7 +21,7 @@ const Tickets = async ({ searchParams }: { searchParams: TicketQuery['searchPara
   return (
     <div className='bg-page-backgound flex items-start justify-center h-screen w-full'>
       <div className='w-11/12'>
-        <TicketList TicketData={data?.TicketData} paginationData={data.paginationData}/>
+        <TicketList ticketData={data?.ticketData} paginationData={data.paginationData}/>
       </div>
     </div>
   )

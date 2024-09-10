@@ -20,7 +20,7 @@ export type TicketQuery = {
 
 
 export type TicketsReturn = {
-    TicketData: Tickets[],
+    ticketData: Tickets[],
     paginationData: {
         totalCount: number;
         pageSize: number;

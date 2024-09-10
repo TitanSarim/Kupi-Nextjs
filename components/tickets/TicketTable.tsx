@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useState } from 'react'
 import { ColumnDef, SortingState,
     flexRender,
@@ -15,7 +16,7 @@ import { Tickets } from '@prisma/client'
 import { usePathname, useSearchParams, useRouter} from 'next/navigation';
 import { TicketsReturn } from '@/types/ticket'
 
-const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) => {
+const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) => {
 
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -30,7 +31,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
     });
 
     const handleShowDetail = (id: string) => {
-        const ticket = TicketData.find(t => t.id === id) || null;
+        const ticket = ticketData.find(t => t.id === id) || null;
         setSelectedTicket(ticket);
         setDialogOpen(true);
     };
@@ -176,7 +177,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ TicketData, paginationData }) =>
     ];
 
     const table = useReactTable({
-        data: TicketData,
+        data: ticketData,
         columns,
         state: { sorting, pagination },
         onSortingChange: (newSorting) => {

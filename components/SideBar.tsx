@@ -133,9 +133,9 @@ const SideBar : React.FC = () => {
         </Link>
 
         <Link
-          href={"/app/settings"}
+          href={"/app/settings/admin"}
           className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base 
-            ${pathname === "/app/settings" ? "bg-kupi-yellow" : ""}`}
+            ${pathname === "/app/settings/admin" ? "bg-kupi-yellow" : ""}`}
         >
           <Image
             src="/img/sidebar/settings.svg"

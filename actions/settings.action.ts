@@ -15,17 +15,17 @@ export async function getAdminSetting(): Promise<Settings[] | null> {
             return null
         }
 
-        const Setting = await db.settings.findMany({
+        const settings = await db.settings.findMany({
             where: {
                 operatorsId: session.userId
             }
         })
 
-        if(!Setting){
+        if(!settings){
             return null
         }
 
-        return Setting
+        return settings
 
 
     } catch (error) {
@@ -34,7 +34,7 @@ export async function getAdminSetting(): Promise<Settings[] | null> {
     }
 }
 
-export async function AdminSetting(formData: SettingsFormData[]): Promise<true | null> {
+export async function adminSetting(formData: SettingsFormData[]): Promise<true | null> {
     try {
   
         const session = await auth();

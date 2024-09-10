@@ -56,7 +56,7 @@ const NavBar = async () => {
             </Link>
 
             <Link
-              href={"/app/settings"}
+              href={"/app/settings/admin"}
               className="relative flex flex-row items-center justify-start gap-2 mt-2"
             >
               <Image

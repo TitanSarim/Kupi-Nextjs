@@ -8,7 +8,7 @@ import { TicketsReturn } from '@/types/ticket'
 
 
 
-const TicketList: React.FC<TicketsReturn> = ({TicketData, paginationData, urlParamName}) => {
+const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData, urlParamName}) => {
 
     const [busOperator, setBusOperator] = useState('');
     const [source, setSource] = useState('');
@@ -82,7 +82,7 @@ const TicketList: React.FC<TicketsReturn> = ({TicketData, paginationData, urlPar
                 </div>
             </div>
 
-            <TicketTable TicketData={TicketData} paginationData={paginationData}/>
+            <TicketTable ticketData={ticketData} paginationData={paginationData}/>
 
         </div>
 

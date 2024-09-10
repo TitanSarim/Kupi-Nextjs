@@ -1,13 +1,18 @@
+'use client'
 import React, { useEffect, useState } from 'react'
 import { Input } from '../ui/input'
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip"
 import Image from 'next/image'
-import { AdminSetting, getAdminSetting } from '@/actions/settings.action'
-import { AdminSettingValue, SettingsFormData } from '@/types/settings'
+import { adminSetting } from '@/actions/settings.action'
+import { SettingsFormData } from '@/types/settings'
 import Rates from '@/libs/Rates'
+import { Settings } from '@prisma/client'
 
+interface AdminSettingsProps {
+  settings: Settings[];
+}
 
-const AdminSettings : React.FC = () => {
+const AdminSettings : React.FC<AdminSettingsProps> = (settings) => {
 
   const { currency, amount, equivalent, unit } =  Rates.globalExchangeRate;
   const [exchangeRate, setExchangeRate] = useState<number>(0);
@@ -73,7 +78,7 @@ const AdminSettings : React.FC = () => {
     ];
 
     try {
-      await AdminSetting(formData);
+      await adminSetting(formData);
     } catch (error) {
       setError(true)
     }finally{
@@ -85,8 +90,7 @@ const AdminSettings : React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       
-      const settings = await getAdminSetting();
-      if (settings && Array.isArray(settings)) {
+      if (settings.settings && Array.isArray(settings.settings)) {
         try {
           let exchangeRate = '';
           let commission = '';
@@ -94,7 +98,7 @@ const AdminSettings : React.FC = () => {
           let bookingAt = '';
           let reminder = '';
       
-          settings.forEach((setting: any) => {
+          settings.settings.forEach((setting: any) => {
             switch (setting.key) {
               case 'EXCHANGE_RATE':
                 exchangeRate = setting.value;
@@ -129,7 +133,7 @@ const AdminSettings : React.FC = () => {
     }
 
     fetchData();
-  }, []);
+  }, [settings]);
   return (
 
     <form className='w-full' onSubmit={handleSubmit}>
@@ -236,7 +240,7 @@ const AdminSettings : React.FC = () => {
       </div>
 
       <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
-        <button className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600">Cancel</button>
+        <button type="reset" className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600">Cancel</button>
         <button type='submit' className={`${
             loading ? "opacity-50" : "" } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`} disabled={loading}>{loading ? "Please Wait" : "Save"}</button>
       </div>

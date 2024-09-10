@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import Image from 'next/image';
 import { Tickets } from '@prisma/client';
@@ -12,8 +13,6 @@ interface DialogProps {
 const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData }) => {
 
     if (!open) return null;
-
-    console.log("TicketData", TicketData)
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 duration-700 ease-out">

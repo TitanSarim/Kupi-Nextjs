@@ -8,6 +8,9 @@ type ProfileProps = {
   userData: Users;
 };
 
+const filterAlpha = (value: string) => value.replace(/[^a-zA-Z]/g, '');
+const filterDigits = (value: string) => value.replace(/[^0-9+]/g, '');
+
 const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
   const [formData, setFormData] = useState({
     name: userData.name,
@@ -83,7 +86,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               onChange={(e) =>
                 setFormData((prevData) => ({
                   ...prevData,
-                  name: e.target.value,
+                  name: filterAlpha(e.target.value),
                 }))
               }
               className="h-12 border-gray-400 rounded-lg"
@@ -100,7 +103,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               onChange={(e) =>
                 setFormData((prevData) => ({
                   ...prevData,
-                  surname: e.target.value,
+                  surname: filterAlpha(e.target.value),
                 }))
               }
               className="h-12 border-gray-400 rounded-lg"
@@ -129,7 +132,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               onChange={(e) =>
                 setFormData((prevData) => ({
                   ...prevData,
-                  number: e.target.value,
+                  number: filterDigits(e.target.value),
                 }))
               }
               className="h-12 border-gray-400 rounded-lg"

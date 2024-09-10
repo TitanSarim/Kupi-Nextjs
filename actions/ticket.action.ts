@@ -2,8 +2,7 @@
 
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { Tickets } from "@prisma/client";
-import { FilterProps, SortOrderProps, TicketQuery, TicketsReturn } from "@/types/ticket";
+import { FilterProps, SortOrderProps, TicketsReturn } from "@/types/ticket";
 
 
 export async function getAllTickets(searchParams: {
@@ -50,21 +49,21 @@ export async function getAllTickets(searchParams: {
         const skip = pageIndexNumber * pageSizeNumber;
         const take = pageSizeNumber;
 
-        const TicketData = await db.tickets.findMany({
+        const ticketData = await db.tickets.findMany({
             where: filter,
             orderBy: sortOrder,
             skip,
             take,
         });
 
-        if(!TicketData){
+        if(!ticketData){
             return null
         }
 
         const totalCount = await db.tickets.count({ where: filter });
 
         return {
-            TicketData,
+            ticketData,
             paginationData: {
                 totalCount,
                 pageSize,
