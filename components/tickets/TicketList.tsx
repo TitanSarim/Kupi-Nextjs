@@ -10,8 +10,6 @@ import { TicketsReturn } from '@/types/ticket'
 
 const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData}) => {
 
-    console.log("ticketData", ticketData)
-
     const [busOperator, setBusOperator] = useState('');
     const [source, setSource] = useState('');
     const [destinationCity, setDestinationCity] = useState('');

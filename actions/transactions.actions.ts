@@ -56,12 +56,22 @@ export async function getAllTransactions(searchParams: {
             return null
         }
 
+        const transactionIds = transactionData.map((transaction) => transaction.id);
+        const ticketData = await db.tickets.findMany({
+            where: {
+                transactionId: {
+                    in: transactionIds,
+                },
+            }
+        })
+
         const wrappedTransactionData = transactionData.map((transaction) => ({
             transactions: transaction,
             customer: transaction.customer,
             paymentReference: transaction.paymentReference && typeof transaction.paymentReference === 'object'
             ? (transaction.paymentReference as PaymentReference) 
             : null,
+            // tickets: ticketData || null
         }));
 
         const totalCount = await db.tickets.count({ where: filter });

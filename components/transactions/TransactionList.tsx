@@ -5,25 +5,23 @@ import { Calendar as CalendarIcon } from "lucide-react"
 import TicketTable from './TransactionTable'
 import { useRouter } from 'next/navigation'
 import { TransactionReturn } from '@/types/transactions'
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
-import { addDays, format } from "date-fns"
-import { DateRange } from "react-day-picker"
+import Datepicker from "react-tailwindcss-datepicker";
 
 
 const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginationData}) => {
+
+    const NEXT_MONTH = new Date();
+    NEXT_MONTH.setMonth(NEXT_MONTH.getMonth() + 1);
 
     const [busOperator, setBusOperator] = useState('');
     const [source, setSource] = useState('');
     const [destinationCity, setDestinationCity] = useState('');
     const [arrivalCity, setArrivalCity] = useState('');
     const [onlyPending, setOnlyPending] = useState(false);
-    const [date, setDate] = React.useState<DateRange | undefined>({
-        from: new Date(2022, 0, 20),
-        to: addDays(new Date(2022, 0, 20), 20),
-    })
-
+    const [value, setValue] = useState<{ startDate: Date; endDate: Date }>({
+        startDate: new Date(),
+        endDate: NEXT_MONTH,
+    });
 
     const router = useRouter();
     const params = new URLSearchParams();
@@ -36,7 +34,16 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
         if (onlyPending) params.set('onlyPending', String(onlyPending));
         router.push(`?${params.toString()}`, { scroll: false });
     };
-
+    
+    const handleValueChange = (newValue: { startDate: Date | null; endDate: Date | null } | null) => {
+        // Handle case when newValue is null
+        if (newValue && newValue.startDate && newValue.endDate) {
+            setValue({
+                startDate: new Date(newValue.startDate),
+                endDate: new Date(newValue.endDate),
+            });
+        }
+    };
     useEffect(() => {
         
         const timer = setTimeout(() => {
@@ -77,39 +84,15 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
                     <p className="mb-1 darkGray-text font-normal text-sm">Search Arrival City</p>
                     <Input type='text' value={destinationCity} onChange={(e) => setArrivalCity(e.target.value)} placeholder='Search by city' className="h-12 rounded-lg text-gray-500 border-gray-700"/>
                 </div>
-                <div className='w-3/12 grid gap-2'>
+                <div className='w-3/12'>
                     <p className="mb-1 darkGray-text font-normal text-sm">Select Date</p>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={"outline"}
-                                className="w-full flex flex-row justify-between h-12 rounded-lg text-gray-500 border-gray-700"
-                            >
-                                {date?.from ? (
-                                    date.to ? (
-                                    <>
-                                    {format(date.from, "LLL dd, y")} -{" "}
-                                    {format(date.to, "LLL dd, y")}
-                                    </>
-                                ) : (
-                                    format(date.from, "LLL dd, y")
-                                )
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="range"
-                                defaultMonth={date?.from}
-                                selected={date}
-                                onSelect={setDate}
-                                numberOfMonths={1}
-                            />
-                        </PopoverContent>
-                    </Popover>
+                        <Datepicker
+                            primaryColor={"yellow"}
+                            value={value} 
+                            onChange={handleValueChange}
+                            showShortcuts={true}
+                            inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg"
+                        /> 
                 </div>
             </div>
 

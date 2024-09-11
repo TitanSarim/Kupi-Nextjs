@@ -28,7 +28,7 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
             </div>
 
             <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='ticket-sold'>Sold</p>}
+                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
                 <p className='text-black font-semibold text-md'>Customer Information</p>
                 <div className='flex w-full flex-wrap justify-between gap-4'>
                     <div className='w-5/12'>

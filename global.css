@@ -199,6 +199,16 @@ input:checked + .slider:before {
   padding: 6px 15px;
 }
 
+.transaction-paid{
+  position: absolute;
+  background-color: rgb(14, 231, 32);
+  right :0px;
+  top: -11px;
+  color: white;
+  border-radius: 30px;
+  padding: 6px 15px;
+}
+
 .ticket-table-row{
   border-bottom: 1px  solid rgb(209, 208, 208);
 }

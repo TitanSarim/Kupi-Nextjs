@@ -11,7 +11,7 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/c
 import { ArrowUpDown, ChevronRight, ChevronLeft} from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import Image from 'next/image';
-import TicketDetailDialgue from './TransactionDetailDialgue'
+import TransactionDetailDialgue from './TransactionDetailDialgue'
 import { usePathname, useSearchParams, useRouter} from 'next/navigation';
 import { TransactionReturn, TransactionsType } from '@/types/transactions'
 
@@ -21,9 +21,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
     const searchParams = useSearchParams()
     const pathname = usePathname()
 
-    console.log("transactionData", transactionData)
-
-    const [selectedTicket, setSelectedTicket] = useState<TransactionsType | null>(null);
+    const [selectedTransacction, setSelectedTransaction] = useState<TransactionsType | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [sorting, setSorting] = useState<SortingState>([]);
     const [pagination, setPagination] = useState({
@@ -33,7 +31,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
 
     const handleShowDetail = (id: string) => {
         const transaction = transactionData.find(t => t.transactions.id === id) || null;
-        setSelectedTicket(transaction);
+        setSelectedTransaction(transaction);
         setDialogOpen(true);
     };
 
@@ -322,7 +320,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
 
             {/* dialogue */}
             <div className='w-full'>
-                {/* <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/> */}
+                <TransactionDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TransactionData={selectedTransacction}/>
             </div>
             
         </div>

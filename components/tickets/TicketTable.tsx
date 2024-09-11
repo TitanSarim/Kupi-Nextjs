@@ -11,10 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowUpDown, ChevronRight, ChevronLeft } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Image from 'next/image';
-import TicketDetailDialgue from './TicketDetailDialgue'
-import { Tickets } from '@prisma/client'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { TicketsDataType, TicketsReturn } from '@/types/ticket'
+import TicketOptionDialogue from './TicketOptionDialogue'
 
 const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) => {
 
@@ -22,12 +21,10 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
     const searchParams = useSearchParams()
     const pathname = usePathname()
 
-
     const [pagination, setPagination] = useState({
-        pageIndex: 0,  
-        pageSize: paginationData.pageSize,
-    });
-
+      pageIndex: 0,  
+      pageSize: paginationData.pageSize,
+    });  
     const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [sorting, setSorting] = useState<SortingState>([]);
@@ -43,6 +40,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
     };
 
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
       const sortingParam = sorting.map(sort => `${sort.id}_${sort.desc ? 'desc' : 'asc'}`).join(',');
       const params = new URLSearchParams(searchParams.toString());
@@ -191,15 +189,15 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
     ];
 
     const table = useReactTable({
-        data: ticketData,
-        columns,
-        state: { sorting, pagination},
-        onSortingChange: setSorting,
-        getCoreRowModel: getCoreRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        manualPagination: true,  
-        pageCount: Math.ceil(paginationData.totalCount / pagination.pageSize),  
+      data: ticketData, 
+      columns,
+      state: { sorting, pagination },
+      onSortingChange: setSorting,
+      getCoreRowModel: getCoreRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      manualPagination: true,  
+      pageCount: Math.ceil(paginationData.totalCount / pagination.pageSize),  
     });
 
     const { pageIndex, pageSize } = pagination;
@@ -217,14 +215,14 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
       setPagination(prev => ({
         ...prev,
         pageSize: size,
-        pageIndex: 0, 
+        pageIndex: 0,  
       }));
     };
     
     const range = (start: number, end: number): number[] => {
       let result = [];
       for (let i = start; i <= end; i++) {
-          result.push(i);
+        result.push(i);
       }
       return result;
     };
@@ -251,10 +249,11 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
         if (page === '...') {
           return <span key={`ellipsis-${index}`} className="px-3 py-1">...</span>;
         }
+        const pageNumber = typeof page === 'number' ? page : 0
         return (
           <button
             key={page}
-            // onClick={() => handlePageChange(page - 1)} 
+            onClick={() => handlePageChange(pageNumber - 1)} 
             className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
           >
             {page}
@@ -300,14 +299,14 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
                 <div className='flex flex-row items-center gap-5'>
                     <p>Show Entries</p>
                     <Select onValueChange={(value) => handlePageSizeChange(parseInt(value, 10))}>
-                        <SelectTrigger className="h-10 w-24 rounded-lg text-gray-500 border-gray-700">
-                            <SelectValue placeholder={pageSize.toString()}/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="2">2</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="30">30</SelectItem>
-                        </SelectContent>
+                      <SelectTrigger className="h-10 w-24 rounded-lg text-gray-500 border-gray-700">
+                        <SelectValue placeholder={pageSize.toString()} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                      </SelectContent>
                     </Select>
                 </div>
 
@@ -335,7 +334,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
 
             {/* Dialogue */}
             <div className='w-full'>
-                <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/>
+                <TicketOptionDialogue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/>
             </div>
         </div>
     )

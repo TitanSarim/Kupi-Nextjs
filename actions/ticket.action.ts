@@ -39,11 +39,7 @@ export async function getAllTickets(searchParams: {
         const sortOrder: SortOrderProps = {};
         if (sort) {
             const [field, order] = sort.split('_');
-            if (field === 'priceDetails.totalPrice') {
-                sortOrder['priceDetails.totalPrice'] = order === 'asc' ? 'asc' : 'desc';
-            } else {
-                sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
-            }
+            sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
         }
         
         const skip = pageIndexNumber * pageSizeNumber;

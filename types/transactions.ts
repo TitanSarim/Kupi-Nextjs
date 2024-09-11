@@ -1,5 +1,9 @@
 import { Customers, Operators, Tickets, Transactions } from "@prisma/client";
 
+export enum TransactionStatus {
+    Paid = 'paid',
+}
+
 export type TransactionQuery = {
     searchParams: {
       busId?: string;
@@ -37,6 +41,7 @@ export type TransactionsType = {
     transactions: Transactions
     customer: Customers; 
     paymentReference?: PaymentReference | null; 
+    tickets?: Tickets | null
 };
 
 export type TransactionReturn = {
