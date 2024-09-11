@@ -21,13 +21,14 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
     const searchParams = useSearchParams()
     const pathname = usePathname()
 
-    const [selectedTransacction, setSelectedTransaction] = useState<TransactionsType | null>(null);
+    const [pagination, setPagination] = useState({
+      pageIndex: 0,  
+      pageSize: paginationData.pageSize,
+    });  
+    const [selectedTransaction, setSelectedTransaction] = useState<TransactionsType | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [sorting, setSorting] = useState<SortingState>([]);
-    const [pagination, setPagination] = useState({
-        pageIndex: paginationData.pageIndex,
-        pageSize: paginationData.pageSize,
-    });
+    
 
     const handleShowDetail = (id: string) => {
         const transaction = transactionData.find(t => t.transactions.id === id) || null;
@@ -39,6 +40,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
         setDialogOpen(false);
     };
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
       const sortingParam = sorting.map(sort => `${sort.id}_${sort.desc ? 'desc' : 'asc'}`).join(',');
       const params = new URLSearchParams(searchParams.toString());
@@ -47,6 +49,12 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
       params.set('sort', sortingParam);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     };
+
+    useEffect(() => {
+      if (pagination.pageIndex >= 0 && pagination.pageSize > 0) {
+        updateUrl(pagination.pageIndex, pagination.pageSize);
+      }
+    }, [pagination, updateUrl]);
 
      // table initalizes here
      const columns: ColumnDef<TransactionsType>[] = [
@@ -61,7 +69,9 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
             ),
             cell: ({ row }) => (
               <div>
-                <span>NA</span>
+                  {row.original.tickets?.map((ticket, i) => (
+                    <button key={i}>{ticket.ticketId},</button>
+                  ))}
               </div>
             )
           },
@@ -173,17 +183,12 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
         data: transactionData,
         columns,
         state: { sorting, pagination },
-        onSortingChange: (newSorting) => {
-          setSorting(newSorting);
-          updateUrl();
-        },
-        onPaginationChange: (newPagination) => {
-          setPagination(newPagination);
-          updateUrl(); 
-        },
+        onSortingChange: setSorting,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        manualPagination: true,  
+        pageCount: Math.ceil(paginationData.totalCount / pagination.pageSize),
     });
 
     const { pageIndex, pageSize } = pagination;
@@ -195,35 +200,59 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
         ...prev,
         pageIndex: newPageIndex,
       }));
-    
-      updateUrl(newPageIndex);
     };
 
     const handlePageSizeChange = (size: number) => {
       setPagination(prev => ({
         ...prev,
         pageSize: size,
-        pageIndex: 0, 
+        pageIndex: 0,  
       }));
-    
-      updateUrl(0, size); 
     };
     
     const range = (start: number, end: number): number[] => {
       let result = [];
       for (let i = start; i <= end; i++) {
-          result.push(i);
+        result.push(i);
       }
       return result;
     };
 
+
     const pageNumbers = (() => {
-      const rangeSize = 5; 
-      const start = Math.max(1, Math.min(pageIndex + 1 - Math.floor(rangeSize / 2), pageCount - rangeSize + 1));
-      const end = Math.min(pageCount, start + rangeSize - 1);
+      const firstTwoPages = [1, 2];
+      const lastPage = pageCount;
   
-      return range(start, end);
+      if (pageCount <= 4) {
+        return range(1, pageCount);
+      }
+  
+      if (pageIndex + 1 <= 2) {
+        return [...range(1, 2), '...', lastPage];
+      } else if (pageIndex + 1 >= pageCount - 1) {
+        return [1, '...', ...range(pageCount - 2, pageCount)];
+      } else {
+        return [1, '...', pageIndex + 1, '...', lastPage];
+      }
     })();
+
+    const renderPageNumbers = () => {
+      return pageNumbers.map((page, index) => {
+        if (page === '...') {
+          return <span key={`ellipsis-${index}`} className="px-3 py-1">...</span>;
+        }
+        const pageNumber = typeof page === 'number' ? page : 0
+        return (
+          <button
+            key={page}
+            onClick={() => handlePageChange(pageNumber - 1)} 
+            className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
+          >
+            {page}
+          </button>
+        );
+      });
+    };
 
     // actual table
     return (
@@ -263,50 +292,42 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
                 <div className='flex flex-row items-center gap-5'>
                     <p>Show Entries</p>
                     <Select onValueChange={(value) => handlePageSizeChange(parseInt(value, 10))}>
-                        <SelectTrigger className="h-10 w-24 rounded-lg text-gray-500 border-gray-700">
-                            <SelectValue placeholder={pageSize.toString()}/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="10">10</SelectItem>
-                            <SelectItem value="20">20</SelectItem>
-                            <SelectItem value="30">30</SelectItem>
-                        </SelectContent>
+                      <SelectTrigger className="h-10 w-24 rounded-lg text-gray-500 border-gray-700">
+                        <SelectValue placeholder={pageSize.toString()} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
+                      </SelectContent>
                     </Select>
                 </div>
 
                 {/* Pagination buttons */}
                 <div className="flex flex-row items-center gap-2">
-                    <button
-                        onClick={() => handlePageChange(pageIndex - 1)}
-                        disabled={pageIndex === 0}
-                        className={`px-1 py-1 rounded-md ${pageIndex === 0 ? 'bg-gray-300' : 'bg-gray-800'}`}
-                    >
-                        <ChevronLeft style={{ color: pageIndex === 0 ? 'gray' : 'white' }} />
-                    </button>
-                    <div className="flex gap-2">
-                        {pageNumbers.map((page) => (
-                            <button
-                              key={page}
-                              onClick={() => handlePageChange(page - 1)}  // Convert to 0-based index
-                              className={`px-3 py-1 rounded-md ${pageIndex + 1 === page ? 'bg-kupi-yellow text-gray-800' : 'bg-gray-300'}`}
-                            >
-                                {page}
-                            </button>
-                        ))}
-                    </div>
-                    <button
-                        onClick={() => handlePageChange(pageIndex + 1)}
-                        disabled={pageIndex >= pageCount - 1}
-                        className={`px-1 py-1 rounded-md ${pageIndex >= pageCount - 1  ? 'bg-gray-300' : 'bg-gray-800'}`}
-                    >
-                        <ChevronRight style={{ color: pageIndex >= pageCount - 1 ? 'gray' : 'white' }} />
-                    </button>
+                  <button
+                    onClick={() => handlePageChange(pageIndex - 1)}
+                    disabled={pageIndex === 0}
+                    className={`px-1 py-1 rounded-md ${pageIndex === 0 ? 'bg-gray-300' : 'bg-gray-800'}`}
+                  >
+                    <ChevronLeft style={{ color: pageIndex === 0 ? 'gray' : 'white' }} />
+                  </button>
+                  <div className="flex gap-2">
+                    {renderPageNumbers()}
+                  </div>
+                  <button
+                    onClick={() => handlePageChange(pageIndex + 1)}
+                    disabled={pageIndex >= pageCount - 1}
+                    className={`px-1 py-1 rounded-md ${pageIndex >= pageCount - 1 ? 'bg-gray-300' : 'bg-gray-800'}`}
+                  >
+                    <ChevronRight style={{ color: pageIndex >= pageCount - 1 ? 'gray' : 'white' }} />
+                  </button>
                 </div>
             </div>
 
             {/* dialogue */}
             <div className='w-full'>
-                <TransactionDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TransactionData={selectedTransacction}/>
+                <TransactionDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TransactionData={selectedTransaction}/>
             </div>
             
         </div>

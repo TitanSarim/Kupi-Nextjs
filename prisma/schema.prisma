@@ -228,7 +228,7 @@ model Conversations {
 
 model BotStates {
   id                       String            @id @default(auto()) @map("_id") @db.ObjectId
-  friendlyName             String            
+  friendlyName             String            @unique
   text                     Json?
   contentTemplateIds       Json?
   preMsgFunction           String?

@@ -27,29 +27,30 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
                 </button>
             </div>
 
-            <div className='flex w-full flex-row items-start justify-between gap-2'>
-                <div className='relative w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                    {/* {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>} */}
-                    <p className='text-black font-semibold text-md'>Customer Information</p>
-                    <div className='flex flex-row w-full items-start justify-start gap-10'>
-                        <div className='w-5/12'>
-                            <p className='text-gray-600 font-light'>Name</p>
-                            <span>{TicketData?.customer?.name}</span>
-                        </div>
-                        <div className='w-5/12'>
-                            <p className='text-gray-600 font-light'>Phone</p>
-                            <span>{TicketData?.customer?.number}</span>
-                        </div>
+            <div className='relative w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+                {/* {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>} */}
+                <p className='text-black font-semibold text-md'>Customer Information</p>
+                <div className='flex flex-row w-full items-start justify-start gap-10'>
+                    <div className='w-6/12'>
+                        <p className='text-gray-600 font-light'>Name</p>
+                        <span>{TicketData?.customer?.name}</span>
+                    </div>
+                    <div className='w-6/12'>
+                        <p className='text-gray-600 font-light'>Phone</p>
+                        <span>{TicketData?.customer?.number}</span>
                     </div>
                 </div>
-                <div className='relative w-full passengerDetail bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                    {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
-                    <p className='text-black font-semibold text-md'>Passengers Information</p>
+            </div>
+
+            <div className='relative w-full passengerDetail bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
+                <p className='text-black font-semibold text-md'>Passengers Information</p>
+                <div className='w-full flex flex-row gap-3'>
                     {TicketData?.passengerDetails?.map((passenger, i) => (
-                        <div className='flex w-full flex-wrap justify-between gap-6' key={i}>
-                            <div className='w-5/12'>
+                        <div className='flex 5/12 flex-col justify-start gap-3 border-r-2 px-2' key={i}>
+                            <div className='w-5/12 '>
                                 <p className='text-gray-600 font-light'>Name</p>
-                                <span>{passenger.passport}</span>
+                                <span>{passenger.name}</span>
                             </div>
                             <div className='w-5/12'>
                                 <p className='text-gray-600 font-light'>Passport</p>
@@ -59,43 +60,42 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
                     ))}
                 </div>
             </div>
+               
 
             <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                 <p className='text-black font-semibold text-md'>Route Information</p>
                 <div className='w-full flex flex-wrap justify-between gap-4'>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Ticket ID</p>
                         <span>{TicketData?.tickets.ticketId}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Bus Number</p>
                         <span>{TicketData?.tickets.busIdentifier}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Departure Location</p>
                         <span className='break-words'>{TicketData?.sourceCity.name}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Arrival Location</p>
                         <span>{TicketData?.arrivalCity.name}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Departure Time</p>
                         <span>
                             {TicketData?.tickets.departureTime?.toLocaleTimeString('en-US', {
                                 hour: '2-digit',
                                 minute: '2-digit',
-                                second: '2-digit',
                             })}
                         </span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Arrival Time</p>
                         <span>
                             {TicketData?.tickets.arrivalTime?.toLocaleTimeString('en-US', {
                                 hour: '2-digit',
                                 minute: '2-digit',
-                                second: '2-digit',
                             })}
                         </span>
                     </div>
@@ -105,27 +105,27 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
             <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                 <p className='text-black font-semibold text-md'>Ticket Price Detail</p>
                 <div className='w-full flex flex-wrap justify-between gap-4'>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Payment Method</p>
                         <span>{TicketData?.tickets.paymentMethod}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Ticket Price</p>
                         <span>${TicketData?.tickets.priceDetails.totalPrice}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Carma Commission</p>
                         <span>{TicketData?.tickets.priceDetails.carmaCommissionPercentage}%</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Carma Amount</p>
                         <span>${TicketData?.tickets.priceDetails.carmaProfit}</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Kupi Commission</p>
                         <span>{TicketData?.tickets.priceDetails.kupiCommissionPercentage}%</span>
                     </div>
-                    <div className='w-5/12'>
+                    <div className='w-3/12'>
                         <p className='text-gray-600 font-light'>Kupi Amount</p>
                         <span>${TicketData?.tickets.priceDetails.kupiProfit}</span>
                     </div>

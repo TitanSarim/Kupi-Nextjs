@@ -1,4 +1,5 @@
-import { Customers, Operators, Tickets, Transactions } from "@prisma/client";
+import { Busses, Cities, Customers, Operators, Tickets, Transactions } from "@prisma/client";
+import { PassengerDetails } from "./ticket";
 
 export enum TransactionStatus {
     Paid = 'paid',
@@ -38,12 +39,14 @@ export type PaymentReference = {
 };
 
 export type TransactionsType = {
-    transactions: Transactions
-    customer: Customers; 
-    paymentReference?: PaymentReference | null; 
-    tickets?: Tickets[] | null
-};
-
+    transactions: Transactions;
+    customer: Customers;
+    paymentReference?: PaymentReference | null;
+    tickets?: Tickets[] | null;
+    bus?: Busses | null;
+    sourceCity?: Cities | null;
+    arrivalCity?: Cities | null;
+  };
 export type TransactionReturn = {
     transactionData: TransactionsType[],
     paginationData: {

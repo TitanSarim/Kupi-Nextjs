@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { auth } from "@/auth";
 import { FilterProps, SortOrderProps } from "@/types/ticket";
-import { PaymentReference, TransactionFilterProp, TransactionReturn, TransactionSortOrderProps } from "@/types/transactions";
+import { PaymentReference, TransactionFilterProp, TransactionReturn, TransactionSortOrderProps, TransactionsType } from "@/types/transactions";
 
 
 export async function getAllTransactions(searchParams: {
@@ -25,21 +25,53 @@ export async function getAllTransactions(searchParams: {
             return null
         }
 
-        const { busId, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 10 } = searchParams;
+        const { destinationCity, arrivalCity, sort, pageIndex=0, pageSize = 10 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
 
-
         const skip = pageIndexNumber * pageSizeNumber;
         const take = pageSizeNumber;
 
+        const filter: FilterProps = {};
+        if (destinationCity) filter.sourceCity = { name: { contains: destinationCity, mode: 'insensitive' } };
+        if (arrivalCity) filter.arrivalCity = { name: { contains: arrivalCity, mode: 'insensitive' } };
+
+        const sortOrder: SortOrderProps = {};
+        if (sort) {
+            const [field, order] = sort.split('_');
+            if (field === 'customer') {
+                sortOrder['customer'] = { 
+                    name: order === 'asc' ? 'asc' : 'desc',
+                };
+            }
+            if(field === "totalAmount" || field === 'date'){
+                sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
+            }
+        }
+
         const transactionData = await db.transactions.findMany({
+            where: {
+                tickets: {
+                  some: {
+                    sourceCity: filter.sourceCity || undefined,
+                    arrivalCity: filter.arrivalCity || undefined, 
+                  },
+                },
+            },
+            orderBy: sortOrder,
             skip,
             take,
             include: {
                 customer: true,
-                tickets: true
+                tickets: {
+                    include: {
+                        customer: true,
+                        bus: true,
+                        sourceCity: true,
+                        arrivalCity: true,
+                    }
+                },
             },
         });
 
@@ -47,30 +79,22 @@ export async function getAllTransactions(searchParams: {
             return null
         }
 
-        const transactionIds = transactionData.map((transaction) => transaction.id);
-        const ticketData = await db.tickets.findMany({
-            where: {
-                transactionId: {
-                    in: transactionIds,
-                },
-            }
-        })
-        const transactionsWithTickets = transactionData.map((transaction) => {
-            const matchedTickets = ticketData.filter(ticket => ticket.transactionId === transaction.id);
+
+        const wrappedTransactionData: TransactionsType[] = transactionData.map((transaction) => {
+            const firstTicket = transaction.tickets[0];
             return {
-                ...transaction,
-                tickets: matchedTickets
+              transactions: transaction,
+              customer: transaction.customer,
+              paymentReference:
+                transaction.paymentReference && typeof transaction.paymentReference === 'object'
+                  ? (transaction.paymentReference as PaymentReference)
+                  : null,
+              tickets: transaction.tickets || [],
+              bus: firstTicket?.bus || null, 
+              sourceCity: firstTicket?.sourceCity || null,
+              arrivalCity: firstTicket?.arrivalCity || null,
             };
         });
-
-        const wrappedTransactionData = transactionData.map((transactionsWithTickets) => ({
-            transactions: transactionsWithTickets,
-            customer: transactionsWithTickets.customer,
-            paymentReference: transactionsWithTickets.paymentReference && typeof transactionsWithTickets.paymentReference === 'object'
-            ? (transactionsWithTickets.paymentReference as PaymentReference) 
-            : null,
-            tickets: transactionsWithTickets.tickets || []
-        }));
 
         const totalCount = await db.tickets.count();
 

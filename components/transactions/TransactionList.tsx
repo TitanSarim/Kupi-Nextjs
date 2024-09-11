@@ -14,10 +14,8 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
     NEXT_MONTH.setMonth(NEXT_MONTH.getMonth() + 1);
 
     const [busOperator, setBusOperator] = useState('');
-    const [source, setSource] = useState('');
     const [destinationCity, setDestinationCity] = useState('');
     const [arrivalCity, setArrivalCity] = useState('');
-    const [onlyPending, setOnlyPending] = useState(false);
     const [value, setValue] = useState<{ startDate: Date; endDate: Date }>({
         startDate: new Date(),
         endDate: NEXT_MONTH,
@@ -28,15 +26,12 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
 
     const updateSearchParams = () => {
         if (busOperator) params.set('busId', busOperator);
-        if (source) params.set('source', source);
         if (destinationCity) params.set('destinationCity', destinationCity);
         if (arrivalCity) params.set('arrivalCity', arrivalCity);
-        if (onlyPending) params.set('onlyPending', String(onlyPending));
         router.push(`?${params.toString()}`, { scroll: false });
     };
     
     const handleValueChange = (newValue: { startDate: Date | null; endDate: Date | null } | null) => {
-        // Handle case when newValue is null
         if (newValue && newValue.startDate && newValue.endDate) {
             setValue({
                 startDate: new Date(newValue.startDate),
@@ -53,7 +48,7 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
         return () => {
             clearTimeout(timer)
         }
-    }, [busOperator, source, destinationCity, arrivalCity, onlyPending]);
+    }, [busOperator,  destinationCity, arrivalCity]);
 
   return (
     <div className='w-full flex items-center mt-10 justify-center'>
@@ -64,7 +59,7 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
                 <div className='flex flex-row gap-10 border-2 border-gray-400 px-4 py-3 rounded-lg box-bg'>
                     <p className='darkGray-text font-normal text-sm'>Transactions Type</p>
                     <label className='switch'>
-                        <input type='checkbox' checked={onlyPending} onChange={() => setOnlyPending(prev => !prev)}/>
+                        <input type='checkbox'/>
                         <span className='slider round'></span>
                     </label>
                 </div>
@@ -82,7 +77,7 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
                 </div>
                 <div className='w-3/12'>
                     <p className="mb-1 darkGray-text font-normal text-sm">Search Arrival City</p>
-                    <Input type='text' value={destinationCity} onChange={(e) => setArrivalCity(e.target.value)} placeholder='Search by city' className="h-12 rounded-lg text-gray-500 border-gray-700"/>
+                    <Input type='text' value={arrivalCity} onChange={(e) => setArrivalCity(e.target.value)} placeholder='Search by city' className="h-12 rounded-lg text-gray-500 border-gray-700"/>
                 </div>
                 <div className='w-3/12'>
                     <p className="mb-1 darkGray-text font-normal text-sm">Select Date</p>

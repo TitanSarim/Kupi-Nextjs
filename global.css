@@ -185,6 +185,10 @@ input:checked + .slider:before {
   width: 700px;
 }
 
+.transaction_dialguebox{
+  width: 500px;
+}
+
 .hrGap{
   height: 1px;
 }
@@ -213,10 +217,3 @@ input:checked + .slider:before {
   border-bottom: 1px  solid rgb(209, 208, 208);
 }
 
-
-
-.passengerDetail{
-  max-height: 118px;
-  overflow-y: auto;
-  padding-top: 50px;
-}
