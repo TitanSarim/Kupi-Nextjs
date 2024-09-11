@@ -13,9 +13,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import Image from 'next/image';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { TicketsDataType, TicketsReturn } from '@/types/ticket'
-import TicketOptionDialogue from './TicketOptionDialogue'
+import TicketDetailDialgue from './TicketDetailDialgue'
 
 const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) => {
+
 
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -54,12 +55,12 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
       if (pagination.pageIndex >= 0 && pagination.pageSize > 0) {
         updateUrl(pagination.pageIndex, pagination.pageSize);
       }
-    }, [pagination]);
+    }, [pagination, updateUrl]);
 
     // Table initialization
     const columns: ColumnDef<TicketsDataType>[] = [
         {
-            accessorKey: "busId",
+            accessorKey: "busIdentifier",
             header: ({ column }) => (
               <button
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -69,7 +70,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
             ),
             cell: ({ row }) => (
               <div>
-                {row.original.tickets.busId ? <span>{row.original.tickets.busId}</span> : <span>NA</span>}
+                <span>{row.original.tickets.busIdentifier}</span>
               </div>
             )
           },
@@ -102,7 +103,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
           ),
         },
         {
-            accessorKey: 'ArrivalLocation',  
+            accessorKey: 'sourceCity',  
             header: ({ column }) => (
               <button onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
                 Locations <ArrowUpDown className="ml-2 h-4 w-4 inline" />
@@ -112,11 +113,11 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
               <div>
                 <div>
                   <span className='midGray-text'>Departure:</span>{" "} 
-                    NA
+                    {row.original.sourceCity.name}
                 </div>
                 <div>
                   <span className='midGray-text'>Arrival:</span>{" "}
-                    NA
+                    {row.original.arrivalCity.name}
                 </div>
               </div>
             ),
@@ -131,7 +132,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
               </button>
             ),
             cell: ({ row }) => (
-              <span>NA</span>
+              <span>{row.original.tickets.source}</span>
             )
         },
         {
@@ -303,7 +304,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
                         <SelectValue placeholder={pageSize.toString()} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="2">2</SelectItem>
+                        <SelectItem value="10">10</SelectItem>
                         <SelectItem value="20">20</SelectItem>
                         <SelectItem value="30">30</SelectItem>
                       </SelectContent>
@@ -334,7 +335,7 @@ const TicketTable: React.FC<TicketsReturn> = ({ ticketData, paginationData }) =>
 
             {/* Dialogue */}
             <div className='w-full'>
-                <TicketOptionDialogue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/>
+                <TicketDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TicketData={selectedTicket}/>
             </div>
         </div>
     )

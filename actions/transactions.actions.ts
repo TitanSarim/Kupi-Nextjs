@@ -25,30 +25,21 @@ export async function getAllTransactions(searchParams: {
             return null
         }
 
-        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 1 } = searchParams;
+        const { busId, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 10 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
 
-        const filter: TransactionFilterProp = {};
-        // if (onlyPending !== undefined) filter.status = "RESERVED";
 
-        const sortOrder: TransactionSortOrderProps = {};
-        if (sort) {
-            const [field, order] = sort.split('_');
-            sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
-        }
-        
         const skip = pageIndexNumber * pageSizeNumber;
         const take = pageSizeNumber;
 
         const transactionData = await db.transactions.findMany({
-            // where: filter,
-            orderBy: sortOrder,
             skip,
             take,
             include: {
                 customer: true,
+                tickets: true
             },
         });
 
@@ -64,17 +55,24 @@ export async function getAllTransactions(searchParams: {
                 },
             }
         })
+        const transactionsWithTickets = transactionData.map((transaction) => {
+            const matchedTickets = ticketData.filter(ticket => ticket.transactionId === transaction.id);
+            return {
+                ...transaction,
+                tickets: matchedTickets
+            };
+        });
 
-        const wrappedTransactionData = transactionData.map((transaction) => ({
-            transactions: transaction,
-            customer: transaction.customer,
-            paymentReference: transaction.paymentReference && typeof transaction.paymentReference === 'object'
-            ? (transaction.paymentReference as PaymentReference) 
+        const wrappedTransactionData = transactionData.map((transactionsWithTickets) => ({
+            transactions: transactionsWithTickets,
+            customer: transactionsWithTickets.customer,
+            paymentReference: transactionsWithTickets.paymentReference && typeof transactionsWithTickets.paymentReference === 'object'
+            ? (transactionsWithTickets.paymentReference as PaymentReference) 
             : null,
-            // tickets: ticketData || null
+            tickets: transactionsWithTickets.tickets || []
         }));
 
-        const totalCount = await db.tickets.count({ where: filter });
+        const totalCount = await db.tickets.count();
 
         return {
             transactionData: wrappedTransactionData,

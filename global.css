@@ -182,7 +182,7 @@ input:checked + .slider:before {
 }
 
 .dialguebox{
-  width: 500px;
+  width: 700px;
 }
 
 .hrGap{
@@ -213,3 +213,10 @@ input:checked + .slider:before {
   border-bottom: 1px  solid rgb(209, 208, 208);
 }
 
+
+
+.passengerDetail{
+  max-height: 118px;
+  overflow-y: auto;
+  padding-top: 50px;
+}

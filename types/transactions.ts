@@ -41,7 +41,7 @@ export type TransactionsType = {
     transactions: Transactions
     customer: Customers; 
     paymentReference?: PaymentReference | null; 
-    tickets?: Tickets | null
+    tickets?: Tickets[] | null
 };
 
 export type TransactionReturn = {

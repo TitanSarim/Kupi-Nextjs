@@ -2,7 +2,8 @@
 
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { FilterProps, SortOrderProps, TicketsReturn } from "@/types/ticket";
+import { convertToTicketSources, FilterProps, PassengerDetails, SortOrderProps, TicketsDataType, TicketsReturn } from "@/types/ticket";
+import { TicketSources } from "@prisma/client";
 
 
 export async function getAllTickets(searchParams: {
@@ -24,24 +25,39 @@ export async function getAllTickets(searchParams: {
             return null
         }
 
-        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 2 } = searchParams;
+        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 10 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
 
         const filter: FilterProps = {};
-        // if (busId) filter.busId = busId;
-        // if (source) filter.source = source;
-        // if (destinationCity) filter.destinationCity = destinationCity;
-        // if (arrivalCity) filter.arrivalCity = arrivalCity;
+        if (source) filter.source = convertToTicketSources(source);
+        if (destinationCity) filter.sourceCity = { name: { contains: destinationCity, mode: 'insensitive' } };
+        if (arrivalCity) filter.arrivalCity = { name: { contains: arrivalCity, mode: 'insensitive' } };
         if (onlyPending !== undefined) filter.status = "RESERVED";
 
         const sortOrder: SortOrderProps = {};
         if (sort) {
             const [field, order] = sort.split('_');
-            sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
+            if (field === 'totalPrice') {
+                sortOrder['priceDetails'] = { 
+                    totalPrice: order === 'asc' ? 'asc' : 'desc',
+                };
+            }if(field === 'sourceCity'){
+                sortOrder['sourceCity'] = { 
+                    name: order === 'asc' ? 'asc' : 'desc',
+                };
+            }
+            if (field === 'CustomerName') {
+                sortOrder['customer'] = { 
+                    name: order === 'asc' ? 'asc' : 'desc',
+                };
+            }
+            if(field === 'busIdentifier' || field === 'ticketId' || field === 'source' || field == 'status'){
+                sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
+            }
         }
-        
+
         const skip = pageIndexNumber * pageSizeNumber;
         const take = pageSizeNumber;
 
@@ -53,7 +69,9 @@ export async function getAllTickets(searchParams: {
             include: {
                 customer: true,
                 transaction: true,
-                bus: true
+                bus: true,
+                sourceCity: true,
+                arrivalCity: true,
             },
         });
 
@@ -61,11 +79,18 @@ export async function getAllTickets(searchParams: {
             return null
         }
 
-        const wrappedTickets = ticketData.map((ticket) => ({
+        const wrappedTickets: TicketsDataType[] = ticketData.map((ticket) => ({
             tickets: ticket,
             customer: ticket.customer || null,
             bus: ticket.bus || null,
-            transaction: ticket.transaction || null
+            transaction: ticket.transaction || null,
+            sourceCity: ticket.sourceCity,
+            arrivalCity: ticket.arrivalCity,
+            passengerDetails: Array.isArray(ticket.passengerDetails)
+                ? ticket.passengerDetails as PassengerDetails[]
+                : ticket.passengerDetails && typeof ticket.passengerDetails === 'object'
+                ? [ticket.passengerDetails as PassengerDetails]
+                : null,
         }));
 
         const totalCount = await db.tickets.count({ where: filter });

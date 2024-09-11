@@ -145,6 +145,7 @@ model Transactions {
   operators        Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
   paymentMethod    String
   paymentRef       String    @unique
+  paidAt           DateTime  @default(now())
   totalAmount      Float
   currency         String
   paymentReference Json
@@ -153,26 +154,38 @@ model Transactions {
 
 
 model Tickets {
-  id             String             @id @default(auto()) @map("_id") @db.ObjectId
-  ticketId       String             @unique
-  busId          String?            @db.ObjectId
-  bus            Busses?            @relation(fields: [busId], references: [id], onDelete: Cascade)
-  conversationId String             @db.ObjectId
-  discountId     String?            @db.ObjectId
-  discount       Discounts?         @relation(fields: [discountId], references: [id], onDelete: Cascade)
-  routeId        String?            @db.ObjectId
-  route          Routes?            @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  carmaDetails   CarmaRouteDetails?
-  transactionId  String?            @db.ObjectId
-  transaction    Transactions?      @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  customerId     String             @db.ObjectId
-  customer       Customers          @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  priceDetails   TicketPriceDetails
-  paymentMethod  String
-  paymentSecret  String
-  isDeleted      Boolean
-  seats          String
-  status         TicketStatus
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId         String             @unique
+  busId            String?            @db.ObjectId
+  bus              Busses?            @relation(fields: [busId], references: [id], onDelete: Cascade)
+  conversationId   String             @db.ObjectId
+  discountId       String?            @db.ObjectId
+  discount         Discounts?         @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  routeId          String?            @db.ObjectId
+  route            Routes?            @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  carmaDetails     CarmaRouteDetails?
+  transactionId    String?            @db.ObjectId
+  transaction      Transactions?      @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  customerId       String             @db.ObjectId
+  customer         Customers          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  sourceCityId     String             @db.ObjectId
+  sourceCity       Cities             @relation("SourceCityTickets", fields: [sourceCityId], references: [id])
+  arrivalCityId    String             @db.ObjectId
+  arrivalCity      Cities             @relation("ArrivalCityTickets", fields: [arrivalCityId], references: [id])
+  priceDetails     TicketPriceDetails
+  departureTime    DateTime
+  passengerDetails Json
+  arrivalTime      DateTime
+  paymentMethod    String
+  paymentSecret    String
+  isDeleted        Boolean
+  seats            String
+  reservedAt       DateTime
+  confirmedAt      DateTime?
+  cancelledAt      DateTime?
+  status           TicketStatus
+  busIdentifier    String
+  source           TicketSources
 }
 
 model Discounts {
@@ -215,7 +228,7 @@ model Conversations {
 
 model BotStates {
   id                       String            @id @default(auto()) @map("_id") @db.ObjectId
-  friendlyName             String            @unique
+  friendlyName             String            
   text                     Json?
   contentTemplateIds       Json?
   preMsgFunction           String?
@@ -240,6 +253,8 @@ model Cities {
   isPopular          Boolean     @default(false)
   departureDiscounts Discounts[] @relation("departureCityDiscount")
   arrivalDiscounts   Discounts[] @relation("arrivalCityDiscount")
+  sourceTickets      Tickets[]   @relation("SourceCityTickets")
+  arrivalTickets     Tickets[]   @relation("ArrivalCityTickets")
 }
 
 model Countries {
@@ -283,11 +298,7 @@ type TicketPriceDetails {
 }
 
 type CarmaRouteDetails {
-  departureCity String
-  arrivalCity   String
-  departureTime DateTime
-  arrivalTime   DateTime
-  price         Float
+  selectedAvailability      Json
 }
 
 type RoutePricing {

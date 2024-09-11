@@ -102,7 +102,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
           }
         },
         {
-          accessorKey: "totalPrice",
+          accessorKey: "totalAmount",
           header: ({ column }) => (
             <button
               onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -116,20 +116,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
               </div>
           )
         },
-        {
-            accessorKey: 'comission', 
-            header: ({ column }) => (
-              <button onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                Comission <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-              </button>
-            ),
-            cell: ({ row }) => (
-              <div>
-                <span>{row.original?.paymentReference?.customerCharge}%</span>
-              </div>
-            ),
-        },
-        
         {
             accessorKey: "status",
             header: ({ column }) => (
@@ -281,7 +267,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
                             <SelectValue placeholder={pageSize.toString()}/>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="2">2</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
                             <SelectItem value="20">20</SelectItem>
                             <SelectItem value="30">30</SelectItem>
                         </SelectContent>

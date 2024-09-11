@@ -9,13 +9,13 @@ interface DialogProps {
     TicketData: TicketsDataType | null;
 }
 
-const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData }) => {
+const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData }) => {
 
     if (!open) return null;
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 duration-700 ease-out">
-        <div className="lightGray py-6 px-8 rounded-lg shadow-lg dialguebox flex flex-col gap-2 duration-700 ease-out">
+        <div className="lightGray py-6 px-8 rounded-lg shadow-lg dialguebox flex flex-wrap justify-between gap-2 duration-700 ease-out">
 
             <div className='w-full flex flex-row justify-between'>
                 <p className='text-lg text-black font-semibold'>Ticket Detail</p>
@@ -27,22 +27,36 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
                 </button>
             </div>
 
-            <div className='relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
-                <p className='text-black font-semibold text-md'>Customer Information</p>
-                <div className='flex w-full flex-wrap justify-between gap-4'>
-                    <div className='w-5/12'>
-                        <p className='text-gray-600 font-light'>Customer Name</p>
-                        <span>{TicketData?.customer?.name}</span>
+            <div className='flex w-full flex-row items-start justify-between gap-2'>
+                <div className='relative w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+                    {/* {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>} */}
+                    <p className='text-black font-semibold text-md'>Customer Information</p>
+                    <div className='flex flex-row w-full items-start justify-start gap-10'>
+                        <div className='w-5/12'>
+                            <p className='text-gray-600 font-light'>Name</p>
+                            <span>{TicketData?.customer?.name}</span>
+                        </div>
+                        <div className='w-5/12'>
+                            <p className='text-gray-600 font-light'>Phone</p>
+                            <span>{TicketData?.customer?.number}</span>
+                        </div>
                     </div>
-                    <div className='w-5/12'>
-                        <p className='text-gray-600 font-light'>Customer Phone</p>
-                        <span>{TicketData?.customer?.number}</span>
-                    </div>
-                    {/* <div >
-                        <p className='text-gray-600 font-light'>Passport Number</p>
-                        <span>NA</span>
-                    </div> */}
+                </div>
+                <div className='relative w-full passengerDetail bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
+                    {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
+                    <p className='text-black font-semibold text-md'>Passengers Information</p>
+                    {TicketData?.passengerDetails?.map((passenger, i) => (
+                        <div className='flex w-full flex-wrap justify-between gap-6' key={i}>
+                            <div className='w-5/12'>
+                                <p className='text-gray-600 font-light'>Name</p>
+                                <span>{passenger.passport}</span>
+                            </div>
+                            <div className='w-5/12'>
+                                <p className='text-gray-600 font-light'>Passport</p>
+                                <span>{passenger.passport}</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
 
@@ -55,23 +69,35 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Bus Number</p>
-                        <span>{TicketData?.tickets.busId}</span>
+                        <span>{TicketData?.tickets.busIdentifier}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Departure Location</p>
-                        <span className='break-words'>NA</span>
+                        <span className='break-words'>{TicketData?.sourceCity.name}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Arrival Location</p>
-                        <span>NA</span>
+                        <span>{TicketData?.arrivalCity.name}</span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Departure Time</p>
-                        <span>NA</span>
+                        <span>
+                            {TicketData?.tickets.departureTime?.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })}
+                        </span>
                     </div>
                     <div className='w-5/12'>
                         <p className='text-gray-600 font-light'>Arrival Time</p>
-                        <span>NA</span>
+                        <span>
+                            {TicketData?.tickets.arrivalTime?.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -121,4 +147,4 @@ const TransactionDetailDialgue : React.FC<DialogProps> = ({ open, onClose, Ticke
   )
 }
 
-export default TransactionDetailDialgue
+export default TicketDetailDialgue
