@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { auth } from "@/auth";
 import { FilterProps, SortOrderProps } from "@/types/ticket";
-import { PaymentReference, TransactionFilterProp, TransactionReturn, TransactionSortOrderProps, TransactionsType } from "@/types/transactions";
+import { PaymentReference, TransactionReturn, TransactionsType } from "@/types/transactions";
 
 
 export async function getAllTransactions(searchParams: {

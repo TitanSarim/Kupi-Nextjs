@@ -28,7 +28,7 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
             </div>
 
             <div className='relative w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {/* {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>} */}
+                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
                 <p className='text-black font-semibold text-md'>Customer Information</p>
                 <div className='flex flex-row w-full items-start justify-start gap-10'>
                     <div className='w-6/12'>
@@ -43,7 +43,6 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
             </div>
 
             <div className='relative w-full passengerDetail bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
-                {TicketData?.tickets.status === TicketStatus.CONFIRMED && <p className='transaction-paid'>Confirm</p>}
                 <p className='text-black font-semibold text-md'>Passengers Information</p>
                 <div className='w-full flex flex-row gap-3'>
                     {TicketData?.passengerDetails?.map((passenger, i) => (

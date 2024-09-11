@@ -57,13 +57,6 @@ export type TransactionReturn = {
 }
 
 
-export interface TransactionFilterProp {
-    busId?: string;
-    source?: string;
-    destinationCity?: string;
-    arrivalCity?: string;
-    status?: "RESERVED"; // Since you're setting this explicitly when `onlyPending` is defined
-}
 
 export interface TransactionSortOrderProps {
     [field: string]: 'asc' | 'desc';
