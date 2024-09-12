@@ -182,7 +182,7 @@ input:checked + .slider:before {
 }
 
 .dialguebox{
-  width: 700px;
+  width: 750px;
 }
 
 .transaction_dialguebox{
@@ -222,4 +222,8 @@ input:checked + .slider:before {
   position: absolute;
   top: 311px;
   left: 47.7%;
+}
+
+.passenger_info_dialgue{
+  min-width: 250px !important;
 }

@@ -58,36 +58,16 @@ export async function getAllTransactions(searchParams: {
             }
         }
 
-        
-        let ticketOrderBy: any = {};
-        let transactionOrderBy: any = {};
-
-        if (sort) {
-            const [field, order] = sort.split('_');
-            if (field === 'ticketId') {
-                ticketOrderBy[field] = order === 'asc' ? 'asc' : 'desc';
-            }
-        }
-
-
-        const tickets = await db.tickets.findMany({
-            orderBy: ticketOrderBy,
-        });
-        
-        const ticketIds = tickets.map((ticket) => ticket.id);
-        
         const transactionData = await db.transactions.findMany({
             where: {
                 tickets: {
-                    some: {
-                        id: {
-                            in: ticketIds,
-                        },
-                        sourceCity: filter.sourceCity || undefined,
-                        arrivalCity: filter.arrivalCity || undefined,
-                    },
+                  some: {
+                    sourceCity: filter.sourceCity || undefined,
+                    arrivalCity: filter.arrivalCity || undefined, 
+                  },
                 },
             },
+            orderBy: sortOrder,
             skip,
             take,
             include: {
@@ -101,13 +81,12 @@ export async function getAllTransactions(searchParams: {
                     },
                 },
             },
-            orderBy: transactionOrderBy,
         });
-
 
         if(!transactionData){
             return null
         }
+
 
         const wrappedTransactionData: TransactionsType[] = transactionData.map((transaction) => {
             const firstTicket = transaction.tickets[0];

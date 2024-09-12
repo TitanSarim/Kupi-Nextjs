@@ -320,11 +320,17 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
                       <SelectTrigger className="h-10 w-24 rounded-lg text-gray-500 border-gray-700">
                         <SelectValue placeholder={pageSize.toString()} />
                       </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="30">30</SelectItem>
-                      </SelectContent>
+                      {paginationData.totalCount === 0 ? (
+                        <SelectContent>
+                          <SelectItem value="0">0</SelectItem>
+                        </SelectContent>
+                      ) : (
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="30">30</SelectItem>
+                        </SelectContent>
+                      )}
                     </Select>
                 </div>
 
