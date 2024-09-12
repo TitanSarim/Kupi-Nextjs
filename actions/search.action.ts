@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { City } from "@/types/city";
 
 
-export async function getAllMatchedCity(city: string):Promise<City[] | null>{
+export async function getAllMatchedCity():Promise<string[] | null>{
 
     try {
 
@@ -15,16 +15,9 @@ export async function getAllMatchedCity(city: string):Promise<City[] | null>{
             return null
         }
         
-        const cities = await db.cities.findMany({
-            where: {
-                name: {
-                    contains: city, 
-                    mode: 'insensitive', 
-                }
-            }
-        });
+        const cities = await db.cities.findMany();
         
-        return cities;
+        return cities.map(city => city.name);
 
     } catch (error) {
         console.error(error);

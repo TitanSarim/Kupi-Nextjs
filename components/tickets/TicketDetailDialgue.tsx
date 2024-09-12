@@ -47,9 +47,9 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
                 <div className='w-full flex flex-row gap-3'>
                     {TicketData?.passengerDetails?.map((passenger, i) => (
                         <div className='flex 5/12 flex-col justify-start gap-3 border-r-2 px-2' key={i}>
-                            <div className='w-5/12 '>
+                            <div className='truncate '>
                                 <p className='text-gray-600 font-light'>Name</p>
-                                <span>{passenger.name}</span>
+                                <span>{passenger.name.length > 12 ? `${passenger.name.slice(0, 12)}...` : passenger.name}</span>
                             </div>
                             <div className='w-5/12'>
                                 <p className='text-gray-600 font-light'>Passport</p>

@@ -110,3 +110,56 @@ export async function getAllTickets(searchParams: {
     }
 
 }
+
+
+export async function getTicketById(ticketId: string): Promise<TicketsDataType | null> {
+
+    try {
+
+        const session = await auth();
+
+        if(!session || !session.userId ) {
+            return null
+        }
+
+        const ticket = await db.tickets.findFirst({
+            where: {
+                ticketId: ticketId
+            },
+            include: {
+                customer: true,
+                transaction: true,
+                bus: true,
+                sourceCity: true,
+                arrivalCity: true,
+            }
+        })
+
+        if(!ticket) {
+            return null
+        }
+
+        const passengerDetails: PassengerDetails[] | null = Array.isArray(ticket.passengerDetails)
+            ? ticket.passengerDetails as PassengerDetails[]
+            : ticket.passengerDetails && typeof ticket.passengerDetails === 'object'
+            ? [ticket.passengerDetails as PassengerDetails]
+            : null
+    
+        const ticketData: TicketsDataType = {
+            tickets: ticket, 
+            bus: ticket.bus,
+            customer: ticket.customer,
+            transaction: ticket.transaction,
+            sourceCity: ticket.sourceCity,
+            arrivalCity: ticket.arrivalCity,
+            passengerDetails: passengerDetails 
+        };
+
+        return ticketData
+        
+    } catch (error) {
+        console.error("Error getting setting:", error);
+        return null;
+    }
+
+}

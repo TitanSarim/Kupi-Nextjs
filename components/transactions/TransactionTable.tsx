@@ -14,6 +14,9 @@ import Image from 'next/image';
 import TransactionDetailDialgue from './TransactionDetailDialgue'
 import { usePathname, useSearchParams, useRouter} from 'next/navigation';
 import { TransactionReturn, TransactionsType } from '@/types/transactions'
+import { TicketsDataType } from '@/types/ticket'
+import { getTicketById } from '@/actions/ticket.action'
+import TicketDetailDialgue from '../tickets/TicketDetailDialgue'
 
 const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, paginationData }) => {
 
@@ -27,7 +30,9 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
     });  
     const [selectedTransaction, setSelectedTransaction] = useState<TransactionsType | null>(null);
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [ticketDialogue, setTicketDialogue] = useState(false)
     const [sorting, setSorting] = useState<SortingState>([]);
+    const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(null);
     
 
     const handleShowDetail = (id: string) => {
@@ -36,8 +41,25 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
         setDialogOpen(true);
     };
 
+    const handleShowTicketDetail = async (ticketId: string) => {
+      try {
+        const ticket = await getTicketById(ticketId)
+        if(!ticket){
+          return null;
+        }
+        setSelectedTicket(ticket);
+        setTicketDialogue(true);
+      } catch (error) {
+        console.error(error);
+        return null
+      }
+  };
+
     const handleCloseDialog = () => {
         setDialogOpen(false);
+    };
+    const handleTicketDialog = () => {
+      setTicketDialogue(false);
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,7 +79,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
     }, [pagination, updateUrl]);
 
      // table initalizes here
-     const columns: ColumnDef<TransactionsType>[] = [
+    const columns: ColumnDef<TransactionsType>[] = [
         {
             accessorKey: "ticketId",
             header: ({ column }) => (
@@ -70,7 +92,10 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
             cell: ({ row }) => (
               <div>
                   {row.original.tickets?.map((ticket, i) => (
-                    <button key={i}>{ticket.ticketId},</button>
+                    <button 
+                      key={i} 
+                      onClick={() => handleShowTicketDetail(ticket.ticketId)} 
+                      className='bg-gray-200 rounded-md p-1 ml-1'>{ticket.ticketId}</button>
                   ))}
               </div>
             )
@@ -328,6 +353,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
             {/* dialogue */}
             <div className='w-full'>
                 <TransactionDetailDialgue open={dialogOpen} onClose={handleCloseDialog} TransactionData={selectedTransaction}/>
+                <TicketDetailDialgue open={ticketDialogue} onClose={handleTicketDialog} TicketData={selectedTicket}/>
             </div>
             
         </div>
