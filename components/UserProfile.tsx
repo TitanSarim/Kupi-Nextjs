@@ -129,13 +129,8 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
             <Input
               type="text"
               value={formData.number}
-              onChange={(e) =>
-                setFormData((prevData) => ({
-                  ...prevData,
-                  number: filterDigits(e.target.value),
-                }))
-              }
-              className="h-12 border-gray-400 rounded-lg"
+              disabled
+              className="h-12 rounded-lg text-gray-500"
             />
           </div>
 

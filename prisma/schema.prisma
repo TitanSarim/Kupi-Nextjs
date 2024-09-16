@@ -149,6 +149,9 @@ model Transactions {
   totalAmount      Float
   currency         String
   paymentReference Json
+  paymentPeriod    Int?
+  recipt           File?
+  invoice          File?
   isDeleted        Boolean   @default(false)
 }
 
@@ -374,4 +377,11 @@ enum Languages {
   en
   sn
   nd
+}
+
+type File {
+  name String
+  path String
+  type String
+  size Int
 }

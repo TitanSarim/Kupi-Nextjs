@@ -50,7 +50,7 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
                 
                     <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                         <p className='text-black font-semibold text-md'>Route Information</p>
-                        <div className='w-full flex flex-wrap justify-between gap-4'>
+                        <div className='w-full flex flex-wrap justify-between gap-2'>
                             <div className='w-5/12'>
                                 <p className='text-gray-600 font-light'>Ticket ID</p>
                                 <span>{TicketData?.tickets.ticketId}</span>
@@ -90,7 +90,7 @@ const TicketDetailDialgue : React.FC<DialogProps> = ({ open, onClose, TicketData
 
                     <div className='bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2'>
                         <p className='text-black font-semibold text-md'>Ticket Price Detail</p>
-                        <div className='w-full flex flex-wrap justify-between gap-4'>
+                        <div className='w-full flex flex-wrap justify-between gap-2'>
                             <div className='w-5/12'>
                                 <p className='text-gray-600 font-light'>Payment Method</p>
                                 <span>{TicketData?.tickets.paymentMethod}</span>

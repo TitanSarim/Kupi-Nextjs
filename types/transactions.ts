@@ -1,4 +1,4 @@
-import { Busses, Cities, Customers, Operators, Tickets, Transactions } from "@prisma/client";
+import { Busses, Cities, Customers, File, Tickets, TicketSources, Transactions } from "@prisma/client";
 import { PassengerDetails } from "./ticket";
 
 export enum TransactionStatus {
@@ -60,4 +60,53 @@ export type TransactionReturn = {
 
 export interface TransactionSortOrderProps {
     [field: string]: 'asc' | 'desc';
+}
+
+
+export interface FilterProps {
+    selectedAvailability?: {
+        carrier?: {
+            contains?: string;
+            mode?: 'insensitive';
+        };
+    };
+    source?: TicketSources;
+    sourceCity?: {
+        name?: {
+            contains?: string;
+            mode?: 'insensitive';
+        };
+    };
+    arrivalCity?: {
+        name?: {
+            contains?: string;
+            mode?: 'insensitive';
+        };
+    };
+    paidAt?: {
+        gte?: Date;
+        lte?: Date;
+    };
+    status?: "RESERVED";
+}
+
+export interface FileType {
+    path: string;
+    name: string;
+    size: number;
+    type: string;
+}
+
+export interface InvoiceFormData{
+    busOperator: string,
+    paymentPeriod?: number,
+    totalAmount?: number ,
+    invoiceFiles: File,
+    receiptFiles: File,
+}
+
+export interface OperatorsType{
+    id: string,
+    name: string,
+    description: string,
 }

@@ -153,10 +153,16 @@ input:checked + .slider:before {
 .select-dropdown{
   width: 360px !important;
   z-index: 50;
+  max-height: 16.7rem;
+  overflow-y: hidden;
+}
+
+.select-dropdown_add_trans{
+  width: 485px;
 }
 
 .select-dropdown .SelectItem {
-  padding: 8px 12px; /* Add padding for better spacing */
+  padding: 8px 12px;
 }
 
 .tickettableclass{
@@ -182,11 +188,15 @@ input:checked + .slider:before {
 }
 
 .dialguebox{
-  width: 750px;
+  width: 900px;
 }
 
 .transaction_dialguebox{
-  width: 500px;
+  width: 600px;
+}
+
+.add_transaction_dialguebox{
+  width: 550px;
 }
 
 .hrGap{
@@ -226,4 +236,29 @@ input:checked + .slider:before {
 
 .passenger_info_dialgue{
   min-width: 250px !important;
+}
+
+
+.citylistpopUp{
+  outline: none;
+  border: none;
+  border-radius: 6px;
+  padding: 1px 6px;
+  background-color: #f1f1f1;
+}
+
+.remove-file{
+  top: -10px;
+  right: -10px;
+  border-radius: 50px;
+  padding: 8px;
+}
+
+@media screen and (max-height: 800px) {
+  .dialguebox{
+    max-height: 740px;
+  }
+  .transaction_dialguebox{
+    max-height: 740px;
+  }
 }

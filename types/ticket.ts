@@ -48,7 +48,13 @@ enum TicketSources {
 }
 
 export interface FilterProps {
-    busIdentifier?: string;
+    carmaDetails?: {
+        selectedAvailability?: {
+            contains?: string;
+            mode?: 'insensitive';
+        };
+    };
+    
     source?: TicketSources;
     sourceCity?: {
         name?: {
@@ -62,7 +68,7 @@ export interface FilterProps {
             mode?: 'insensitive';
         };
     };
-    status?: "RESERVED"; 
+    status?: "RESERVED";
 }
 
 export interface SortOrderProps {

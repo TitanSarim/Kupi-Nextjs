@@ -7,7 +7,7 @@ import { TicketSources } from "@prisma/client";
 
 
 export async function getAllTickets(searchParams: {
-    busId?: string;
+    carrier?: string;
     source?: string;
     destinationCity?: string;
     arrivalCity?: string;
@@ -25,18 +25,20 @@ export async function getAllTickets(searchParams: {
             return null
         }
 
-        const { busId, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 10 } = searchParams;
+        const { carrier, source, destinationCity, arrivalCity, onlyPending, sort, pageIndex=0, pageSize = 10 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
 
         const filter: FilterProps = {};
+        if (carrier) filter.carmaDetails = { selectedAvailability: {contains: carrier, mode: 'insensitive'}} 
         if (source) filter.source = convertToTicketSources(source);
         if (destinationCity) filter.sourceCity = { name: { contains: destinationCity, mode: 'insensitive' } };
         if (arrivalCity) filter.arrivalCity = { name: { contains: arrivalCity, mode: 'insensitive' } };
         if (onlyPending !== undefined) filter.status = "RESERVED";
 
         const sortOrder: SortOrderProps = {};
+        sortOrder['ticketId'] = 'desc';
         if (sort) {
             const [field, order] = sort.split('_');
             if (field === 'totalPrice') {
@@ -57,9 +59,11 @@ export async function getAllTickets(searchParams: {
                 sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
             }
         }
-
+        
         const skip = pageIndexNumber * pageSizeNumber;
         const take = pageSizeNumber;
+
+        console.log("filter", filter)
 
         const ticketData = await db.tickets.findMany({
             where: filter,

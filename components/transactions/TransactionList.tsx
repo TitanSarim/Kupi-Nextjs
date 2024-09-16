@@ -6,7 +6,11 @@ import { TransactionReturn } from '@/types/transactions'
 import Datepicker from "react-tailwindcss-datepicker";
 import { getAllMatchedCity } from '@/actions/search.action'
 import TransactionTable from './TransactionTable'
-
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginationData}) => {
 
@@ -14,13 +18,15 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
     NEXT_MONTH.setMonth(NEXT_MONTH.getMonth() + 1);
 
     const [cities, setCities] = useState<string[]>([])
-    const [suggestedCity, setSuggestedCity] = useState('');
+    const [invocieTab, setInvocieTab] = useState(false);
+    const [open, setOpen] = React.useState(false)
     const [busOperator, setBusOperator] = useState('');
     const [destinationCity, setDestinationCity] = useState('');
     const [arrivalCity, setArrivalCity] = useState('');
-    const [value, setValue] = useState<{ startDate: Date; endDate: Date }>({
-        startDate: new Date(),
-        endDate: NEXT_MONTH,
+    const [openArrival, setOpenArrival] = React.useState(false)
+    const [value, setValue] = useState<{ startDate: Date | null; endDate: Date | null }>({
+      startDate: null,
+      endDate: null,
     });
 
     const router = useRouter();
@@ -43,10 +49,28 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
     }, []);
 
     const updateSearchParams = () => {
-        if (busOperator) params.set('busId', busOperator);
-        if (destinationCity) params.set('destinationCity', destinationCity);
-        if (arrivalCity) params.set('arrivalCity', arrivalCity);
+        if (busOperator) params.set('carrier', busOperator);
+        if (destinationCity !== 'clear'){
+          params.set('destinationCity', destinationCity)
+        }else{
+          setDestinationCity('')
+        };
+        if (arrivalCity !== 'clear'){
+          params.set('arrivalCity', arrivalCity)
+        }else{
+          setArrivalCity('')
+        };
+        if (value.startDate) params.set('startDate', value.startDate.toISOString())
+        if (value.endDate) params.set('endDate', value.endDate.toISOString())
         router.push(`?${params.toString()}`, { scroll: false });
+    };
+
+
+
+    const updateSearchDateParams = () => {
+      if (value.startDate) params.set('startDate', value.startDate.toISOString())
+      if (value.endDate) params.set('endDate', value.endDate.toISOString())
+      router.push(`?${params.toString()}`, { scroll: false });
     };
     
     const handleValueChange = (newValue: { startDate: Date | null; endDate: Date | null } | null) => {
@@ -58,41 +82,6 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
         }
     };
 
-    const handleDestinationCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setDestinationCity(value);
-    
-        const firstMatch = cities.find(city => city.toLowerCase().startsWith(value.toLowerCase()));
-        setSuggestedCity(firstMatch && value !== firstMatch ? firstMatch : '');
-      };
-    
-      const handleArrivalCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setArrivalCity(value);
-        const firstMatch = cities.find(city => city.toLowerCase().startsWith(value.toLowerCase()));
-        setSuggestedCity(firstMatch && value !== firstMatch ? firstMatch : '');
-      };
-    
-      const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, type: string) => {
-        if (e.key === 'Tab' || e.key === 'ArrowRight' && suggestedCity) {
-          e.preventDefault();
-
-          if (type === 'destination') {
-            setDestinationCity(suggestedCity);
-          } else {
-            setArrivalCity(suggestedCity);
-          }
-    
-          setSuggestedCity(''); 
-        }
-      };
-    
-      const getPlaceholderText = (typedValue: string, suggestion: string): string => {
-        if (suggestion && suggestion.toLowerCase().startsWith(typedValue.toLowerCase())) {
-          return suggestion.slice(typedValue.length);
-        }
-        return 'Search by city';
-      };
 
     useEffect(() => {
         
@@ -103,66 +92,153 @@ const TransactionList: React.FC<TransactionReturn> = ({transactionData, paginati
         return () => {
             clearTimeout(timer)
         }
-    }, [busOperator,  destinationCity, arrivalCity]);
+    }, [busOperator, destinationCity, arrivalCity, value.endDate, value.startDate]);
+
+    useEffect(() => {
+        
+      const timer = setTimeout(() => {
+        updateSearchDateParams();
+      }, 200)
+
+      return () => {
+          clearTimeout(timer)
+      }
+  }, [value.endDate, value.startDate]);
 
   return (
-    <div className='w-full flex items-center mt-10 justify-center'>
+    <div className='w-full flex flex-col items-center justify-center'>
 
-        <div className='h-full w-full bg-white shadow-sm rounded-md px-8 py-8 mb-5'>
-            <div className='w-full flex flex-row items-start justify-between'>
-                <p className='text-lg text-black font-semibold'>Transaction List</p>
-                <div className='flex flex-row gap-10 border-2 border-gray-400 px-4 py-3 rounded-lg box-bg'>
-                    <p className='darkGray-text font-normal text-sm'>Transactions Type</p>
-                    <label className='switch'>
-                        <input type='checkbox'/>
-                        <span className='slider round'></span>
-                    </label>
-                </div>
-            </div>
+      <div className='w-full'>
+          <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
+          <Input type='text'  value={busOperator} onChange={(e) => setBusOperator(e.target.value)} placeholder='Search bus operator' className="h-12 rounded-lg text-gray-500 border-gray-700"/>
+      </div>
 
-            <div >
-                <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
-                <Input type='text'  value={busOperator} onChange={(e) => setBusOperator(e.target.value)} placeholder='Search bus operator' className="h-12 rounded-lg text-gray-500 border-gray-700"/>
-            </div>
-
-            <div className='w-full flex flex-wrap justify-between mt-6'>
-                <div className='w-3/12'>
-                    <p className="mb-1 darkGray-text font-normal text-sm">Search Departure City</p>
-                    <Input 
-                        type='text' 
-                        value={destinationCity} 
-                        onChange={handleDestinationCityChange}  
-                        onKeyDown={(e) => handleKeyDown(e, 'destination')}
-                        placeholder={destinationCity + getPlaceholderText(destinationCity, suggestedCity)}
-                        className="h-12 rounded-lg text-gray-500 border-gray-700"
-                    />
-                </div>
-                <div className='w-3/12'>
-                    <p className="mb-1 darkGray-text font-normal text-sm">Search Arrival City</p>
-                    <Input 
-                        type='text'  
-                        value={arrivalCity}
-                        onChange={handleArrivalCityChange}  
-                        onKeyDown={(e) => handleKeyDown(e, 'arrival')}
-                        placeholder={arrivalCity + getPlaceholderText(arrivalCity, suggestedCity)}
-                        className="h-12 rounded-lg text-gray-500 border-gray-700"
-                    />
-                </div>
-                <div className='w-3/12'>
-                    <p className="mb-1 darkGray-text font-normal text-sm">Select Date</p>
-                        <Datepicker
-                            primaryColor={"yellow"}
-                            value={value} 
-                            onChange={handleValueChange}
-                            showShortcuts={true}
-                            inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg"
-                        /> 
-                </div>
-            </div>
-
-            <TransactionTable transactionData={transactionData} paginationData={paginationData}/>
-
-        </div>
+      <div className='w-full flex flex-wrap justify-between mt-6'>
+          <div className='w-3/12'>
+              <p className="mb-1 darkGray-text font-normal text-sm">Search Departure City</p>
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild className='w-full  h-12 rounded-lg  text-gray-500 border-gray-700'>
+                    <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between outline-none"
+                    >
+                    {destinationCity || "Select city..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 select-dropdown">
+                    <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList className='w-full'>
+                        <CommandEmpty>No city found.</CommandEmpty>
+                        <CommandGroup>
+                        <CommandItem
+                            key="clear"
+                            value=""
+                            onSelect={() => {
+                            setDestinationCity("");
+                            setOpen(false); 
+                            }}
+                            className="cursor-pointer w-full"
+                        >
+                            <Check
+                            className={`mr-2 h-4 w-4 ${destinationCity === "" ? 'opacity-100' : 'opacity-0'}`}
+                            />
+                            Clear
+                        </CommandItem>
+                        {cities.map((city) => (
+                            <CommandItem
+                                key={city}
+                                value={city}
+                                onSelect={(currentValue) => {
+                                    setDestinationCity(currentValue === destinationCity ? "" : currentValue); 
+                                    setOpen(false);
+                                }}
+                                className='cursor-pointer w-full'
+                            >
+                            <Check
+                                className={`mr-2 h-4 w-4 ${city === destinationCity ? 'opacity-100' : 'opacity-0'}`} 
+                            />
+                            {city}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </CommandList>
+                    </Command>
+                </PopoverContent>
+              </Popover>
+          </div>
+          <div className='w-3/12'>
+              <p className="mb-1 darkGray-text font-normal text-sm">Search Arrival City</p>
+              <Popover open={openArrival} onOpenChange={setOpenArrival}>
+                <PopoverTrigger asChild className='w-full  h-12 rounded-lg  text-gray-500 border-gray-700'>
+                    <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={openArrival}
+                        className="w-full justify-between outline-none"
+                    >
+                    {arrivalCity || "Select city..."} 
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 select-dropdown">
+                    <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList className='w-full'>
+                        <CommandEmpty>No city found.</CommandEmpty>
+                        <CommandGroup>
+                        <CommandItem
+                            key="clear"
+                            value=""
+                            onSelect={() => {
+                            setArrivalCity("");
+                            setOpenArrival(false);
+                            }}
+                            className="cursor-pointer w-full"
+                        >
+                            <Check
+                            className={`mr-2 h-4 w-4 ${arrivalCity === "" ? 'opacity-100' : 'opacity-0'}`}
+                            />
+                            Clear
+                        </CommandItem>
+                        {cities.map((city) => (
+                            <CommandItem
+                                key={city}
+                                value={city}
+                                onSelect={(currentValue) => {
+                                    setArrivalCity(currentValue === arrivalCity ? "" : currentValue); 
+                                    setOpenArrival(false); 
+                                }}
+                                className='cursor-pointer w-full'
+                            >
+                            <Check
+                                className={`mr-2 h-4 w-4 ${city === arrivalCity ? 'opacity-100' : 'opacity-0'}`} 
+                            />
+                            {city}
+                            </CommandItem>
+                        ))}
+                        </CommandGroup>
+                    </CommandList>
+                    </Command>
+                </PopoverContent>
+              </Popover>
+          </div>
+          <div className='w-3/12'>
+              <p className="mb-1 darkGray-text font-normal text-sm">Select Date</p>
+                  <Datepicker
+                      primaryColor={"yellow"}
+                      value={value} 
+                      onChange={handleValueChange}
+                      showShortcuts={true}
+                      inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg"
+                  /> 
+          </div>
+      </div>
+      
+      <TransactionTable transactionData={transactionData} paginationData={paginationData}/>
 
     </div>
   )

@@ -1,17 +1,20 @@
 "use server";
 
 import { db } from "@/db";
-import { auth } from "@/auth";
-import { FilterProps, SortOrderProps } from "@/types/ticket";
-import { PaymentReference, TransactionReturn, TransactionsType } from "@/types/transactions";
-
+import { auth } from "@/auth";;
+import { FilterProps, InvoiceFormData, OperatorsType, PaymentReference, TransactionReturn, TransactionsType } from "@/types/transactions";
+import { Prisma } from "@prisma/client";
+import { uploadToAWS } from "@/libs/s3";
+import { observableToPromise } from "@/libs/ClientSideHelpers";
 
 export async function getAllTransactions(searchParams: {
-    busId?: string;
+    carrier?: string;
     source?: string;
     destinationCity?: string;
     arrivalCity?: string;
     onlyPending?: boolean;
+    startDate?: string;
+    endDate?: string;
     sort?: string;
     pageIndex?: number;
     pageSize?: number;
@@ -25,7 +28,7 @@ export async function getAllTransactions(searchParams: {
             return null
         }
 
-        const { destinationCity, arrivalCity, sort, pageIndex=0, pageSize = 10 } = searchParams;
+        const {carrier, startDate, endDate, destinationCity, arrivalCity, sort, pageIndex=0, pageSize = 10 } = searchParams;
 
         const pageSizeNumber = Number(pageSize);
         const pageIndexNumber = Number(pageIndex);
@@ -33,37 +36,47 @@ export async function getAllTransactions(searchParams: {
         const skip = pageIndexNumber * pageSizeNumber;
         const take = pageSizeNumber;
 
-        const filter: FilterProps = {};
-        if (destinationCity) filter.sourceCity = { name: { contains: destinationCity, mode: 'insensitive' } };
-        if (arrivalCity) filter.arrivalCity = { name: { contains: arrivalCity, mode: 'insensitive' } };
+        const filter: FilterProps = {}
+        const Cities: FilterProps = {};
+        if (carrier) { filter.selectedAvailability = { carrier: { contains: carrier, mode: 'insensitive' } } }       
+        if (destinationCity) Cities.sourceCity = { name: { contains: destinationCity, mode: 'insensitive' } };
+        if (arrivalCity) Cities.arrivalCity = { name: { contains: arrivalCity, mode: 'insensitive' } };
+        if (startDate && endDate) {
+            filter.paidAt = {
+                gte: new Date(startDate),  
+                lte: new Date(endDate),   
+            };
+        } else if (startDate) {
+            filter.paidAt = {
+                gte: new Date(startDate),
+            };
+        } else if (endDate) {
+            filter.paidAt = {
+                lte: new Date(endDate),
+            };
+        }
 
-        const sortOrder: SortOrderProps = {};
+        const sortOrder: Array<Prisma.TransactionsOrderByWithRelationInput> = [];
+
         if (sort) {
             const [field, order] = sort.split('_');
             if (field === 'customer') {
-                sortOrder['customer'] = { 
-                    name: order === 'asc' ? 'asc' : 'desc',
-                };
+                sortOrder.push({ customer: { name: order === 'asc' ? 'asc' : 'desc' } });
             }
-            if(field === "totalAmount" || field === 'date'){
-                sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
+            if (field === 'totalAmount' || field === 'paidAt') {
+                sortOrder.push({ [field]: order === 'asc' ? 'asc' : 'desc' });
             }
-        }
-
-        const sortOrderForTicket: SortOrderProps = {};
-        if (sort) {
-            const [field, order] = sort.split('_');
-            if (field === 'ticketId') {
-                sortOrder[field] = order === 'asc' ? 'asc' : 'desc';
-            }
+        } else {
+            sortOrder.push({ paidAt: 'desc' });
         }
 
         const transactionData = await db.transactions.findMany({
             where: {
+                ...filter,
                 tickets: {
                   some: {
-                    sourceCity: filter.sourceCity || undefined,
-                    arrivalCity: filter.arrivalCity || undefined, 
+                    sourceCity: Cities.sourceCity || undefined,
+                    arrivalCity: Cities.arrivalCity || undefined, 
                   },
                 },
             },
@@ -82,9 +95,10 @@ export async function getAllTransactions(searchParams: {
                 },
             },
         });
+        
 
-        if(!transactionData){
-            return null
+        if (!transactionData) {
+            return null;
         }
 
 
@@ -104,7 +118,17 @@ export async function getAllTransactions(searchParams: {
             };
         });
 
-        const totalCount = await db.tickets.count();
+        const totalCount = await db.transactions.count({
+            where: {
+                ...filter,
+                tickets: {
+                  some: {
+                    sourceCity: Cities.sourceCity || undefined,
+                    arrivalCity: Cities.arrivalCity || undefined, 
+                  },
+                },
+            },
+        });
 
         return {
             transactionData: wrappedTransactionData,
@@ -120,4 +144,69 @@ export async function getAllTransactions(searchParams: {
         return null;
     }
 
+}
+
+export async function getBusOperators(): Promise<OperatorsType[] | null> {
+    try {
+        const operators = await db.operators.findMany();
+
+        if (!operators) {
+            return null;
+        }
+
+        return operators;
+    } catch (error) {
+        console.error("Error getting bus operators:", error);
+        return null;  
+    }
+}
+
+
+export async function createInvoice(formData: any)  {
+
+    try {
+        console.log("invoice", formData)
+
+        if(!formData.invoiceFiles || !formData.receiptFiles || !formData.busOperator || !formData.totalAmount){
+            return null;
+        }
+
+        const invoiceFile = formData.invoiceFiles[0];
+        const receiptFile = formData.receiptFiles[0];
+    
+        // Convert Observables to Promises
+        const invoiceUpload$ = uploadToAWS(invoiceFile);
+        const receiptUpload$ = uploadToAWS(receiptFile);
+    
+        // Handle progress and data for invoice
+        const invoiceResult = await observableToPromise(invoiceUpload$);
+        console.log("Invoice upload result:", invoiceResult);
+    
+        // Handle progress and data for receipt
+        const receiptResult = await observableToPromise(receiptUpload$);
+        console.log("Receipt upload result:", receiptResult);
+    
+        // Extract file information from the results
+        const invoice = invoiceResult.data;
+        const receipt = receiptResult.data;
+
+
+        const operatorIds = Array.isArray(formData.busOperator) ? formData.busOperator : [formData.busOperator];
+
+        // const invoice = await db.transactions.create({
+        //     data: {
+        //         operatorIds: operatorIds,
+        //         totalAmount: formData.totalAmount,
+        //         paymentPeriod: formData.paymentPeriod,
+        //         recipt: receipts[0],
+        //         invoice: invoices[0],
+        //     }
+        // })
+
+        return invoice
+        
+    } catch (error) {
+        console.error("Error getting setting:", error);
+        return null;
+    }
 }

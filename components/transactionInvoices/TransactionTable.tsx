@@ -17,7 +17,6 @@ import { TransactionReturn, TransactionsType } from '@/types/transactions'
 import { TicketsDataType } from '@/types/ticket'
 import { getTicketById } from '@/actions/ticket.action'
 import TicketDetailDialgue from '../tickets/TicketDetailDialgue'
-import * as XLSX from 'xlsx';
 
 const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, paginationData }) => {
 
@@ -288,31 +287,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
       });
     };
 
-    const handleDownload = () => {
-      const exportData = transactionData.map((transaction) => ({
-        TicketID: transaction.tickets?.map(ticket => ticket.ticketId).join(', ') || 'N/A',
-        Customer: transaction.customer?.name || 'N/A',
-        PaymentMethod: transaction.paymentReference?.providerName || 'N/A',
-        Amount: transaction.transactions?.totalAmount || 'N/A',
-        Status: transaction.paymentReference?.status || 'N/A',
-        Date: transaction.transactions?.paidAt
-          ? new Date(transaction.transactions.paidAt).toLocaleString('en-US', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })
-          : 'N/A',
-      }));
-    
-      const worksheet = XLSX.utils.json_to_sheet(exportData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Transactions');
-    
-      XLSX.writeFile(workbook, 'transactions_data.xlsx');
-    }
-
     // actual table
     return (
         <div className="w-full mt-8">
@@ -370,7 +344,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({ transactionData, pagina
 
                 {/* Pagination buttons */}
                 <div className="flex flex-row items-center gap-2">
-                  <button className='bg-kupi-yellow px-5 mr-5 py-1 rounded-md' onClick={handleDownload}>Download Excel</button>
                   <button
                     onClick={() => handlePageChange(pageIndex - 1)}
                     disabled={pageIndex === 0}

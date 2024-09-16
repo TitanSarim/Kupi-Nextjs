@@ -6,7 +6,10 @@ import TicketTable from './TicketTable'
 import { useRouter } from 'next/navigation'
 import { TicketsReturn } from '@/types/ticket'
 import { getAllMatchedCity } from '@/actions/search.action'
-
+import { Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover"
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, } from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData}) => {
 
@@ -16,7 +19,9 @@ const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData}) => {
     const [destinationCity, setDestinationCity] = useState('');
     const [arrivalCity, setArrivalCity] = useState('');
     const [onlyPending, setOnlyPending] = useState(false);
-    const [suggestedCity, setSuggestedCity] = useState('');
+    const [open, setOpen] = React.useState(false)
+    const [openArrival, setOpenArrival] = React.useState(false)
+
 
     useEffect(() => {
         const fetchCities = async () => {
@@ -34,54 +39,43 @@ const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData}) => {
         fetchCities(); 
     }, []);
 
+    const handleDestination = (value: string) => {
+      setDestinationCity(value);
+
+      if (value) {
+          const matchedCities = cities
+              .filter(city => city.toLowerCase().includes(value.toLowerCase())) // Filter cities
+              .sort((a, b) => {
+                  if (a.toLowerCase().startsWith(value.toLowerCase())) return -1;
+                  if (b.toLowerCase().startsWith(value.toLowerCase())) return 1;
+                  return 0;
+              });
+          
+          setCities(matchedCities.slice(0, 5));
+      } else {
+          setCities(cities.slice(0, 5));
+      }
+  };
+
     const router = useRouter();
     const params = new URLSearchParams();
 
     const updateSearchParams = () => {
-        if (busOperator) params.set('busId', busOperator);
+        if (busOperator) params.set('carrier', busOperator);
         if (source) params.set('source', source);
-        if (destinationCity) params.set('destinationCity', destinationCity);
-        if (arrivalCity) params.set('arrivalCity', arrivalCity);
+        if (destinationCity !== 'clear'){
+          params.set('destinationCity', destinationCity)
+        }else{
+          setDestinationCity('')
+        };
+        if (arrivalCity !== 'clear'){
+          params.set('arrivalCity', arrivalCity)
+        }else{
+          setArrivalCity('')
+        };
         if (onlyPending) params.set('onlyPending', String(onlyPending));
         router.push(`?${params.toString()}`, { scroll: false });
     };
-
-    const handleDestinationCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setDestinationCity(value);
-    
-        const firstMatch = cities.find(city => city.toLowerCase().startsWith(value.toLowerCase()));
-        setSuggestedCity(firstMatch && value !== firstMatch ? firstMatch : '');
-      };
-    
-      const handleArrivalCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setArrivalCity(value);
-        const firstMatch = cities.find(city => city.toLowerCase().startsWith(value.toLowerCase()));
-        setSuggestedCity(firstMatch && value !== firstMatch ? firstMatch : '');
-      };
-    
-      const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, type: string) => {
-        if (e.key === 'Tab' || e.key === 'ArrowRight' && suggestedCity) {
-          e.preventDefault();
-
-          if (type === 'destination') {
-            setDestinationCity(suggestedCity);
-          } else {
-            setArrivalCity(suggestedCity);
-          }
-    
-          setSuggestedCity(''); 
-        }
-      };
-    
-      const getPlaceholderText = (typedValue: string, suggestion: string): string => {
-        if (suggestion && suggestion.toLowerCase().startsWith(typedValue.toLowerCase())) {
-          return suggestion.slice(typedValue.length);
-        }
-        return 'Search by city';
-      };
-
 
     useEffect(() => {
         
@@ -118,7 +112,7 @@ const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData}) => {
                 <div className='w-3/12'>
                     <p className="mb-1 darkGray-text font-normal text-sm">Search Source</p>
                     <Select value={source} onValueChange={setSource}>
-                        <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-700">
+                        <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-700 ">
                             <SelectValue placeholder="Select source"/>
                         </SelectTrigger>
                         <SelectContent className='select-dropdown z-50'>
@@ -129,25 +123,115 @@ const TicketList: React.FC<TicketsReturn> = ({ticketData, paginationData}) => {
                 </div>
                 <div className='w-3/12'>
                     <p className="mb-1 darkGray-text font-normal text-sm">Search Destination City</p>
-                    <Input 
-                        type='text' 
-                        value={destinationCity} 
-                        onChange={handleDestinationCityChange}  
-                        onKeyDown={(e) => handleKeyDown(e, 'destination')}
-                        placeholder={destinationCity + getPlaceholderText(destinationCity, suggestedCity)}
-                        className="h-12 rounded-lg text-gray-500 border-gray-700"
-                    />
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild className='w-full  h-12 rounded-lg  text-gray-500 border-gray-700'>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={open}
+                                className="w-full justify-between outline-none"
+                            >
+                            {destinationCity || "Select city..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0 select-dropdown">
+                            <Command>
+                            <CommandInput placeholder="Search city..." />
+                            <CommandList className='w-full'>
+                                <CommandEmpty>No city found.</CommandEmpty>
+                                <CommandGroup>
+                                <CommandItem
+                                    key="clear"
+                                    value=""
+                                    onSelect={() => {
+                                    setDestinationCity("");
+                                    setOpen(false); 
+                                    }}
+                                    className="cursor-pointer w-full"
+                                >
+                                    <Check
+                                    className={`mr-2 h-4 w-4 ${destinationCity === "" ? 'opacity-100' : 'opacity-0'}`}
+                                    />
+                                    Clear
+                                </CommandItem>
+                                {cities.map((city) => (
+                                    <CommandItem
+                                        key={city}
+                                        value={city}
+                                        onSelect={(currentValue) => {
+                                            setDestinationCity(currentValue === destinationCity ? "" : currentValue); 
+                                            setOpen(false);
+                                        }}
+                                        className='cursor-pointer w-full'
+                                    >
+                                    <Check
+                                        className={`mr-2 h-4 w-4 ${city === destinationCity ? 'opacity-100' : 'opacity-0'}`} 
+                                    />
+                                    {city}
+                                    </CommandItem>
+                                ))}
+                                </CommandGroup>
+                            </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                 </div>
                 <div className='w-3/12'>
                     <p className="mb-1 darkGray-text font-normal text-sm">Search Arrival City</p>
-                    <Input 
-                        type='text'  
-                        value={arrivalCity}
-                        onChange={handleArrivalCityChange}  
-                        onKeyDown={(e) => handleKeyDown(e, 'arrival')}
-                        placeholder={arrivalCity + getPlaceholderText(arrivalCity, suggestedCity)}
-                        className="h-12 rounded-lg text-gray-500 border-gray-700"
-                    />
+                    <Popover open={openArrival} onOpenChange={setOpenArrival}>
+                        <PopoverTrigger asChild className='w-full  h-12 rounded-lg  text-gray-500 border-gray-700'>
+                            <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openArrival}
+                                className="w-full justify-between outline-none"
+                            >
+                            {arrivalCity || "Select city..."} 
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0 select-dropdown">
+                            <Command>
+                            <CommandInput placeholder="Search city..." />
+                            <CommandList className='w-full'>
+                                <CommandEmpty>No city found.</CommandEmpty>
+                                <CommandGroup>
+                                <CommandItem
+                                    key="clear"
+                                    value=""
+                                    onSelect={() => {
+                                    setArrivalCity("");
+                                    setOpenArrival(false);
+                                    }}
+                                    className="cursor-pointer w-full"
+                                >
+                                    <Check
+                                    className={`mr-2 h-4 w-4 ${arrivalCity === "" ? 'opacity-100' : 'opacity-0'}`}
+                                    />
+                                    Clear
+                                </CommandItem>
+                                {cities.map((city) => (
+                                    <CommandItem
+                                        key={city}
+                                        value={city}
+                                        onSelect={(currentValue) => {
+                                            setArrivalCity(currentValue === arrivalCity ? "" : currentValue); 
+                                            setOpenArrival(false); 
+                                        }}
+                                        className='cursor-pointer w-full'
+                                    >
+                                    <Check
+                                        className={`mr-2 h-4 w-4 ${city === arrivalCity ? 'opacity-100' : 'opacity-0'}`} 
+                                    />
+                                    {city}
+                                    </CommandItem>
+                                ))}
+                                </CommandGroup>
+                            </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
 
