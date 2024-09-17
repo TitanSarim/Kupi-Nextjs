@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  surname String
+  number String
+  password String
+  operatorsId String @db.ObjectId
+  operator Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
+  roleId String @db.ObjectId
+  role UserRoles @relation(fields: [roleId], references: [id], onDelete: Cascade)
+}
+
+model UserRoles {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  user Users[]
+  permissions String[]
+}
+
+model Customers {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  email String
+  number String @unique
+  conversations Conversations[]
+  tickets Tickets[]
+  transactions Transactions[]
+}
+
+model Operators {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String
+  setting Settings[]
+  users Users[]
+  discounts Discounts[]
+  transactions Transactions[]
+  routes Routes[]
+  busses Busses[]
+}
+
+model Busses {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  tickets Tickets[]
+  operatorIds String[] @db.ObjectId
+  operators Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade) 
+  name String
+  busID String
+  registration String
+  capacity Int
+  class BusClass
+  homeBase String
+  driverName String
+  comments String
+}
+
+model Routes {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  tickets Tickets[]
+  type RouteType
+  days DAYS
+  departureLocation Location
+  arrivalLocation Location
+  departureTime DateTime
+  arrivalTime DateTime
+  stops RouteStops
+  pricing RoutePricing
+  operatorIds String[] @db.ObjectId
+  operators Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade) 
+}
+
+model Transactions {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  tickets Tickets[]
+  customerId String @db.ObjectId
+  customer Customers @relation(fields:[customerId], references:[id], onDelete: Cascade)
+  operatorIds String[] @db.ObjectId
+  operators Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade) 
+  paymentMethod String
+  amount Float
+  currency String
+  isDeleted Boolean
+}
+
+model Tickets {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  ticketId String @unique
+  busId String @db.ObjectId
+  bus Busses @relation(fields: [busId], references:[id], onDelete:Cascade)
+  conversationId String @db.ObjectId
+  discountId String @db.ObjectId
+  discount Discounts @relation(fields: [discountId], references:[id], onDelete:Cascade)
+  routeId String? @db.ObjectId
+  route Routes? @relation(fields:[routeId], references:[id], onDelete: Cascade)
+  carmaDetails CarmaRouteDetails?
+  transactionId String @db.ObjectId
+  transaction Transactions @relation(fields:[transactionId], references:[id], onDelete: Cascade)
+  customerId String @db.ObjectId
+  customer Customers @relation(fields:[customerId], references:[id], onDelete: Cascade)
+  priceDetails TicketPriceDetails
+  isDeleted Boolean
+}
+
+model Discounts {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  operatorIds String[] @db.ObjectId
+  operators Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade) 
+  departureCityId String @db.ObjectId
+  departureCity Cities @relation("departureCityDiscount", fields:[departureCityId],references: [id], onDelete: Cascade)
+  arrivalCityId String @db.ObjectId
+  arrivalCity Cities @relation("arrivalCityDiscount", fields:[arrivalCityId],references: [id], onDelete: Cascade)
+  source TicketSources?
+  maxUseCount Int?
+  expiryDate DateTime?
+  tickets Tickets[]
+  isDeleted Boolean
+}
+
+model Settings {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  key String
+  value Json
+  operatorsId String @db.ObjectId
+  operator Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
+  
+}
+
+model Conversations {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  lastMessageTime DateTime
+  messages Messages[]
+  customerId String @db.ObjectId
+  customer Customers @relation(fields: [customerId], references:[id], onDelete: Cascade)
+  botStateId String @db.ObjectId
+  botState BotStates @relation(fields: [botStateId], references:[id], onDelete: Cascade)
+}
+
+model BotStates {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  text Json
+  preMsgFunction String
+  postMsgFunction String
+  nextStateConfig NextStateConfig[]
+  conversations Conversations[]
+  isDeleted Boolean
+}
+
+model Cities {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  countryId String @db.ObjectId
+  country Countries @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  departureDiscounts Discounts[] @relation("departureCityDiscount")
+  arrivalDiscounts Discounts[] @relation("arrivalCityDiscount")
+}
+
+model Countries {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  cities Cities[]
+}
+
+type NextStateConfig {
+  nextStateId String @db.ObjectId
+  value String[]
+}
+
+type Messages {
+  text String
+  date DateTime
+  from MessageFrom
+}
+
+type TicketPriceDetails {
+  paymentMethod String
+  totalPrice Float
+  kupiPrice Float
+  carmaPrice Float
+  kupiCommission Float
+  carmaCommission Float
+}
+
+type CarmaRouteDetails {
+  departureCity String
+  arrivalCity String
+  departureTime DateTime
+  arrivalTime DateTime
+  price Float
+}
+
+type RoutePricing {
+  amoutUSD Float
+  amountLocal Float
+  departureLocation Location
+  arrivalLocation Location
+}
+
+type RouteStops  {
+  location Location
+  arrivalTime DateTime
+  departureTime DateTime
+}
+
+type Location {
+  stationName String
+  streetAddress String
+  suburb String
+  cityId String @db.ObjectId
+  countryId String @db.ObjectId
+  geoLocation String
+}
+
+enum RouteType {
+  WEEKLY
+  DAILY
+}
+
+enum DAYS {
+  SUN
+  MON
+  TUE
+  WED
+  THR
+  FRI
+  SAT
+}
+
+enum MessageFrom {
+  CUSTOMER
+  BOT
+}
+
+enum TicketSources {
+  CARMA
+  KUPI
+}
+
+enum BusClass {
+  STANDARD
+  LUXURY
+}
+
+//////////////////
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String          @id @default(auto()) @map("_id") @db.ObjectId
+  name               String?
+  surname            String?
+  email              String?         @unique
+  password           String
+  emailVerified      DateTime?
+  image              String?
+  company            String?
+  description        String?
+  whatsappNumber     String?
+  accounts           Account[]
+  sessions           Session[]
+  userRolesId        String?         @map("userRolesId") @db.ObjectId
+  UserRoles          UserRoles?      @relation(fields: [userRolesId], references: [id])
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+}
+
+model UserRoles {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  user        User[]
+  permissions String[]
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Verification {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  email              String   @unique
+  verificationCode   String
+  verificationExpiry DateTime
+  // Fields specific to signup verification
+  name               String?
+  surname            String?
+  password           String?
+  company            String?
+  description        String?
+  whatsappNumber     String?
+  // Fields specific to password reset
+  resetPasswordToken String?    // Store the reset token if this is for password reset
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+
+
+
+.auth-signup::before {
+  content: '';
+  width: 230px;
+  height: 100vh; /* Ensures it covers the full viewport height */
+  background-image: url(../img/auth-screens/logo-layer.svg);
+  position: absolute;
+  right: 0;
+  background-repeat: no-repeat;
+  background-size: cover; /* Ensures the logo scales appropriately */
+  bottom: 0;
+}

@@ -1,0 +1,1 @@
+export type UpdateProfileResponseType = | { success: true } | { error: string };

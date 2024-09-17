@@ -1,0 +1,264 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "/public/css/style.css";
+@import "/public/css/custom.css";
+@layer base {
+  :root {
+    --radius: 0.5rem}
+}
+
+.box-bg{
+  background-color: #E6E6E6;
+}
+
+.primaryYellow{
+  background-color: #FFC107;
+}
+
+.lightGray{
+  background-color: #EDEDED;
+}
+
+.midGray-text{
+  color: #57707A;
+}
+
+.darkGray-text{
+  color: #292724;
+}
+
+.kupi-login-globe{
+  top: -70px;
+  width: 190px;
+  right: 50px;
+}
+
+.profile-camera{
+  position:absolute;
+  top: 320px;
+  right: 145px;
+}
+
+
+/* From Uiverse.io by JaydipPrajapati1910 */ 
+.radio-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio-input input {
+  appearance: none;
+  width: 1.2em;
+  height: 1.2em;
+  background-color: transparent;
+  border: 1px solid gray;
+  border-radius: 50%;
+  transition: .4s ease-in-out;
+}
+
+.radio-input input:hover {
+  scale: 1.2;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.radio-input .circle {
+  position: relative;
+  top: 0.0em;
+  left: -.95em;
+  width: 0.7em;
+  height: 0.7em;
+  background-color: #FFC107;
+  scale: 0;
+  border-radius: 10px;
+  transition: .4s ease-in-out;
+}
+
+.radio-input input:checked {
+  box-shadow: none;
+  border: 1px solid #FFC107;
+}
+
+.radio-input input:checked + .circle {
+  transform: rotate(360deg);
+  scale: 1;
+}
+
+/* toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 45px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid #57707A;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 1.5px;
+  background-color: #57707A;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #ffffff;
+  border: 1px solid #FFC107;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  background-color: #FFC107;
+  -webkit-transform: translateX(22px);
+  -ms-transform: translateX(22px);
+  transform: translateX(22px);
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.select-dropdown{
+  width: 360px !important;
+  z-index: 50;
+  max-height: 16.7rem;
+  overflow-y: hidden;
+}
+
+.select-dropdown_add_trans{
+  width: 485px;
+}
+
+.select-dropdown .SelectItem {
+  padding: 8px 12px;
+}
+
+.tickettableclass{
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+::-webkit-scrollbar {
+  width: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f100;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FFC107;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #55555500;
+}
+
+.dialguebox{
+  width: 900px;
+}
+
+.transaction_dialguebox{
+  width: 600px;
+}
+
+.add_transaction_dialguebox{
+  width: 550px;
+}
+
+.hrGap{
+  height: 1px;
+}
+
+.ticket-sold{
+  position: absolute;
+  background-color: red;
+  right :0px;
+  top: -11px;
+  color: white;
+  border-radius: 30px;
+  padding: 6px 15px;
+}
+
+.transaction-paid{
+  position: absolute;
+  background-color: rgb(14, 231, 32);
+  right :0px;
+  top: -11px;
+  color: white;
+  border-radius: 30px;
+  padding: 6px 15px;
+}
+
+.ticket-table-row{
+  border-bottom: 1px  solid rgb(209, 208, 208);
+}
+
+
+.label-search{
+  position: absolute;
+  top: 311px;
+  left: 47.7%;
+}
+
+.passenger_info_dialgue{
+  min-width: 250px !important;
+}
+
+
+.citylistpopUp{
+  outline: none;
+  border: none;
+  border-radius: 6px;
+  padding: 1px 6px;
+  background-color: #f1f1f1;
+}
+
+.remove-file{
+  top: -10px;
+  right: -10px;
+  border-radius: 50px;
+  padding: 8px;
+}
+
+@media screen and (max-height: 800px) {
+  .dialguebox{
+    max-height: 740px;
+  }
+  .transaction_dialguebox{
+    max-height: 740px;
+  }
+}
