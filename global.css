@@ -156,6 +156,12 @@ input:checked + .slider:before {
   max-height: 16.7rem;
   overflow-y: hidden;
 }
+.select-discount-dropdown{
+  width: 470px !important;
+  z-index: 50;
+  max-height: 16.7rem;
+  overflow-y: hidden;
+}
 
 .select-dropdown_add_trans{
   width: 485px;
@@ -166,7 +172,8 @@ input:checked + .slider:before {
 }
 
 .tickettableclass{
-  max-height: 50vh;
+  min-height: 48vh;
+  max-height: 48vh;
   overflow-y: auto;
 }
 
@@ -254,11 +261,56 @@ input:checked + .slider:before {
   padding: 8px;
 }
 
-@media screen and (max-height: 800px) {
+.invite-dialguebox{
+  width: 550px;
+  background-color: white;
+}
+
+.discount-dialguebox{
+  width: 550px;
+  background-color: white;
+}
+
+.invite-textarea{
+  min-height: 100px;
+  max-height: 100px;
+}
+
+@media screen and (max-height: 900px) {
+
+  .dialguebox-container{
+    max-height: 800px;
+    overflow-y: auto;
+    padding-top: 100px;
+  }
   .dialguebox{
-    max-height: 740px;
+    max-height: 740px !important;
+    margin-top: 130px;
+    margin-bottom: 100px;
+  }
+  .transaction_dialguebox-container{
+    max-height: 800px;
+    overflow-y: auto;
+    padding-top: 100px;
   }
   .transaction_dialguebox{
     max-height: 740px;
+    margin-top: 130px;
+    margin-bottom: 100px;
+  }
+  .discount-dialguebox-container{
+    max-height: 900px;
+    overflow-y: auto;
+    padding-top: 100px;
+  }
+  .discount-dialguebox{
+    max-height: 890px;
+    margin-top: 210px;
+    margin-bottom: 100px;
+  }
+
+  .tickettableclass{
+    min-height: 30vh;
+    max-height: 30vh;
   }
 }

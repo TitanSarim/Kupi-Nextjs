@@ -8,14 +8,14 @@ type ProfileProps = {
   userData: Users;
 };
 
-const filterAlpha = (value: string) => value.replace(/[^a-zA-Z]/g, '');
-const filterDigits = (value: string) => value.replace(/[^0-9+]/g, '');
+const filterAlpha = (value: string) => value.replace(/[^a-zA-Z]/g, "");
+const filterDigits = (value: string) => value.replace(/[^0-9+]/g, "");
 
 const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
   const [formData, setFormData] = useState({
-    name: userData.name,
-    surname: userData.surname,
-    number: userData.number,
+    name: userData.name || "",
+    surname: userData.surname || "",
+    number: userData.number || "",
   });
   const [email, setEmail] = useState(userData.email || "");
   const [password, setPassword] = useState<string>("");
@@ -32,6 +32,14 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setConfirmPassword(e.target.value);
+  };
+
+  const handleResetForm = () => {
+    setFormData({
+      name: userData.name,
+      surname: userData.surname,
+      number: userData.number,
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -165,14 +173,19 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
       </div>
 
       <div className="w-full mt-5 flex flex-row items-center justify-end gap-4">
-        <button className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600">
+        <button
+          type="reset"
+          onClick={handleResetForm}
+          className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600"
+        >
           Cancel
         </button>
         <button
+          type="submit"
           className="py-2 px-10 bg-kupi-yellow rounded-lg font-semibold"
           disabled={loading}
         >
-          save
+          Save
         </button>
       </div>
     </form>

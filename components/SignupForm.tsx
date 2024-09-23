@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { registerUser } from "../actions/registerUser";
 import Link from "next/link";
 
@@ -20,6 +20,7 @@ const SignupForm = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Function to handle form data changes
   const handleChange = (
@@ -27,6 +28,17 @@ const SignupForm = () => {
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    const emailFromURL = searchParams.get("email");
+
+    if (emailFromURL) {
+      setFormData((prev) => ({
+        ...prev,
+        email: emailFromURL,
+      }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,6 +152,7 @@ const SignupForm = () => {
             <input
               type="email"
               name="email"
+              disabled
               value={formData.email}
               onChange={handleChange}
               className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"

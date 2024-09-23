@@ -7,3 +7,7 @@ export enum RolesEnum {
   BusCompanyAdmin = "BusCompanyAdmin",
   BusCompanyUser = "BusCompanyUser",
 }
+
+export type emailParams = {
+  email: string;
+};

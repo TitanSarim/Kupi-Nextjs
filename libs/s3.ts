@@ -1,11 +1,11 @@
 import { GetObjectCommand, ListObjectsCommand, type ListObjectsOutput, PutObjectCommand, S3Client, type S3ClientConfig, ObjectCannedACL } from '@aws-sdk/client-s3'
 import { createPresignedPost, type PresignedPost } from '@aws-sdk/s3-presigned-post'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-
 import fs, { type ReadStream } from 'fs'
 import { Observable } from 'rxjs'
 import axios, { type AxiosProgressEvent } from 'axios'
-import { type File as FileType } from '@prisma/client'
+import { File, type File as FileType } from '@prisma/client'
+import { Upload } from '@aws-sdk/lib-storage';
 
 const S3_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -104,7 +104,6 @@ export const uploadToAWS = (
   return new Observable<{ progress: number, data?: FileType }>((subscribe) => {
     // Generate key for file
     const key = `${new Date().getTime()}_${file.name}`
-
     // Get signed url for file
     const payload: any = { key, action: 'getPostSignedURL' }
     let getSignedUrlResponse: any
@@ -112,7 +111,7 @@ export const uploadToAWS = (
     axios
       .request({
         method: 'get',
-        url: '/api/s3',
+        url: `/api/s3`,
         params: payload
       })
       .then((res) => {
@@ -128,9 +127,6 @@ export const uploadToAWS = (
             Object.entries(headers).forEach((item: any) => {
               formBody.append(item[0] as string, item[1] as string)
             })
-
-            // sequence of file should be in the last otherwise it will cause an issue
-            formBody.append('file', file)
 
             axios
               .request({
@@ -150,7 +146,6 @@ export const uploadToAWS = (
                     size: file.size,
                     type: file.type
                   }
-                  console.log("fileObject", fileObject)
                   subscribe.next({ progress: 1, data: fileObject })
                   subscribe.complete()
                 } else {
@@ -167,6 +162,43 @@ export const uploadToAWS = (
         subscribe.error(`${JSON.stringify(err)}`)
       })
   })
+}
+
+export async function uploadPdfToS3 (file: any): Promise<File | undefined>{
+
+   const key = `${new Date().getTime()}_${file.name}`
+
+   const params = {
+    Bucket: process.env.NEXT_PUBLIC_S3_BUCKET!,
+    Key: `transactions/${key}`,
+    Body: file,
+    ContentType: 'application/pdf',
+  };
+
+  try {
+    const upload = new Upload({
+      client: s3client,
+      params,
+    });
+
+    upload.on('httpUploadProgress', (progress) => {
+      console.log(`Uploaded ${progress.loaded} bytes.`);
+    });
+
+    await upload.done();
+
+    const fileReturn: File = {
+      name: file.name,
+      path: `transactions/${key}`,
+      size: file.size,
+      type: 'application/pdf',
+    }
+
+    return fileReturn; 
+  } catch (error) {
+    console.error("Something went wrong", error)
+  }
+
 }
 
 export async function uploadFileToS3 (file: any, fileName: string, fileType: string): Promise<void> {

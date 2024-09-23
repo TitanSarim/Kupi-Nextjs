@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import {
   ColumnDef,
   SortingState,
-  flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -11,19 +10,19 @@ import {
 } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
-import TransactionDetailDialgue from "./TransactionDetailDialgue";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { TransactionReturn, TransactionsType } from "@/types/transactions";
-import { TicketsDataType } from "@/types/ticket";
-import { getTicketById } from "@/actions/ticket.action";
-import TicketDetailDialgue from "../tickets/TicketDetailDialgue";
-import * as XLSX from "xlsx";
+import {
+  ManualTransactionReturn,
+  ManualTransactionsType,
+} from "@/types/transactions";
+import { openPdf } from "@/actions/transactions.actions";
+import UpdateTreansactionDialogue from "./UpdateTreansactionDialogue";
 import TableComponent from "../Table/Table";
 
-const TransactionTable: React.FC<TransactionReturn> = ({
+const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
   transactionData,
   paginationData,
-  cities,
+  operators,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,40 +33,22 @@ const TransactionTable: React.FC<TransactionReturn> = ({
     pageSize: paginationData.pageSize,
   });
   const [selectedTransaction, setSelectedTransaction] =
-    useState<TransactionsType | null>(null);
+    useState<ManualTransactionsType | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [ticketDialogue, setTicketDialogue] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(
-    null
-  );
 
   const handleShowDetail = (id: string) => {
     const transaction =
       transactionData.find((t) => t.transactions.id === id) || null;
+    if (!transaction) {
+      setDialogOpen(false);
+      return null;
+    }
     setSelectedTransaction(transaction);
     setDialogOpen(true);
   };
-
-  const handleShowTicketDetail = async (ticketId: string) => {
-    try {
-      const ticket = await getTicketById(ticketId);
-      if (!ticket) {
-        return null;
-      }
-      setSelectedTicket(ticket);
-      setTicketDialogue(true);
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  };
-
   const handleCloseDialog = () => {
     setDialogOpen(false);
-  };
-  const handleTicketDialog = () => {
-    setTicketDialogue(false);
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,19 +57,27 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       .map((sort) => `${sort.id}_${sort.desc ? "desc" : "asc"}`)
       .join(",");
     const params = new URLSearchParams(searchParams.toString());
-    params.set(
-      "pageIndex",
-      (newPageIndex !== undefined
-        ? newPageIndex
-        : pagination.pageIndex
-      ).toString()
-    );
+    params.set("pageIndex", pagination?.pageIndex?.toString() ?? "");
     params.set(
       "pageSize",
       (newPageSize !== undefined ? newPageSize : pagination.pageSize).toString()
     );
     params.set("sort", sortingParam);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handlePdfOpen = async (path: string | undefined) => {
+    if (!path) {
+      return null;
+    }
+    try {
+      const url = await openPdf(path);
+      if (url) {
+        window.open(url, "_blank");
+      }
+    } catch (error) {
+      console.error("Error opening PDF", error);
+    }
   };
 
   useEffect(() => {
@@ -98,59 +87,40 @@ const TransactionTable: React.FC<TransactionReturn> = ({
   }, [pagination, updateUrl]);
 
   // table initalizes here
-  const columns: ColumnDef<TransactionsType>[] = [
+  const columns: ColumnDef<ManualTransactionsType>[] = [
     {
-      accessorKey: "ticketId",
+      accessorKey: "id",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Ticket ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Transaction ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <div>
-          {row.original.tickets?.map((ticket, i) => (
-            <button
-              key={i}
-              onClick={() => handleShowTicketDetail(ticket.ticketId)}
-              className="bg-gray-200 rounded-md p-1 ml-1"
-            >
-              {ticket.ticketId}
-            </button>
-          ))}
-        </div>
-      ),
+      cell: ({ row }) => <span>{row.original.transactions.id}</span>,
     },
     {
-      accessorKey: "customer",
+      accessorKey: "BusOperator",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Customer <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Bus Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => <span>{row.original.operators[0].name}</span>,
+    },
+    {
+      accessorKey: "PaymentPeriod",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Payment Period <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => {
-        if (!row.original.customer) {
-          return <span>NA</span>;
-        }
-        return <span>{row.original?.customer.name}</span>;
-      },
-    },
-    {
-      accessorKey: "providerName",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Payment Method <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => {
-        return (
-          <span>{row.original?.paymentReference?.providerName || "N/A"}</span>
-        );
+        return <span>{row.original.transactions.paymentPeriod}</span>;
       },
     },
     {
@@ -165,27 +135,27 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       cell: ({ row }) => <div>${row.original.transactions.totalAmount}</div>,
     },
     {
-      accessorKey: "status",
-      header: ({ column }) => (
+      accessorKey: "invoice",
+      header: ({ column }) => <button>Invoice</button>,
+      cell: ({ row }) => (
         <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          onClick={() => handlePdfOpen(row.original.transactions.invoice?.path)}
         >
-          Status <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          <Image src="/img/icons/pdf.svg" alt="pdf" width={25} height={25} />
         </button>
       ),
+    },
+    {
+      accessorKey: "receipt",
+      header: ({ column }) => <button>Receipt</button>,
       cell: ({ row }) => (
-        <div>
-          {row.original?.paymentReference?.status === "paid" ? (
-            <p className="text-green-600">Paid</p>
-          ) : (
-            <p className="text-kupi-yellow">
-              {row.original?.paymentReference?.status}
-            </p>
-          )}
-        </div>
+        <button
+          onClick={() => handlePdfOpen(row.original.transactions.recipt?.path)}
+        >
+          <Image src="/img/icons/pdf.svg" alt="pdf" width={25} height={25} />
+        </button>
       ),
     },
-
     {
       accessorKey: "paidAt",
       header: ({ column }) => (
@@ -198,7 +168,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       cell: ({ row }) => (
         <span>
           {row.original.transactions.paidAt.toLocaleTimeString("en-US", {
-            timeZone: "UTC",
             day: "2-digit",
             month: "short",
             year: "numeric",
@@ -208,7 +177,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         </span>
       ),
     },
-
     {
       accessorKey: "action",
       header: "",
@@ -245,33 +213,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
     pageCount: Math.ceil(paginationData.totalCount / pagination.pageSize),
   });
 
-  const handleDownload = () => {
-    const exportData = transactionData.map((transaction) => ({
-      TicketID:
-        transaction.tickets?.map((ticket) => ticket.ticketId).join(", ") ||
-        "N/A",
-      Customer: transaction.customer?.name || "N/A",
-      PaymentMethod: transaction.paymentReference?.providerName || "N/A",
-      Amount: transaction.transactions?.totalAmount || "N/A",
-      Status: transaction.paymentReference?.status || "N/A",
-      Date: transaction.transactions?.paidAt
-        ? new Date(transaction.transactions.paidAt).toLocaleString("en-US", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })
-        : "N/A",
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-
-    XLSX.writeFile(workbook, "transactions_data.xlsx");
-  };
-
   // actual table
   return (
     <div className="w-full mt-8">
@@ -280,24 +221,18 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         setPagination={setPagination}
         pagination={pagination}
         tableData={table}
-        handleDownload={handleDownload}
       />
-
-      {/* dialogue */}
+      {/* Dialogue */}
       <div className="w-full">
-        <TransactionDetailDialgue
+        <UpdateTreansactionDialogue
           open={dialogOpen}
           onClose={handleCloseDialog}
-          TransactionData={selectedTransaction}
-        />
-        <TicketDetailDialgue
-          open={ticketDialogue}
-          onClose={handleTicketDialog}
-          TicketData={selectedTicket}
+          operators={operators}
+          transaction={selectedTransaction || undefined}
         />
       </div>
     </div>
   );
 };
 
-export default TransactionTable;
+export default ManualTransactionTable;

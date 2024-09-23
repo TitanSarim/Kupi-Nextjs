@@ -1,112 +1,164 @@
-import { Busses, Cities, Customers, File, Tickets, TicketSources, Transactions } from "@prisma/client";
-import { PassengerDetails } from "./ticket";
+import {
+  Busses,
+  Cities,
+  Customers,
+  Operators,
+  Tickets,
+  TicketSources,
+  Transactions,
+} from "@prisma/client";
 
 export enum TransactionStatus {
-    Paid = 'paid',
+  Paid = "paid",
 }
 
 export type TransactionQuery = {
-    searchParams: {
-      busId?: string;
-      source?: string;
-      destinationCity?: string;
-      arrivalCity?: string;
-      onlyPending?: boolean;
-      sort?: string;
-    };
+  searchParams: {
+    busId?: string;
+    source?: string;
+    destinationCity?: string;
+    arrivalCity?: string;
+    onlyPending?: boolean;
+    sort?: string;
+  };
+};
+
+export type ManualTransactionQuery = {
+  searchParams: {
+    source?: string;
+    id?: string;
+    startDate?: string;
+    endDate?: string;
+    period?: string;
+    sort?: string;
+  };
 };
 
 export type PaymentReference = {
-    account: string;
-    amount: number;
-    merchantId: number;
-    merchantCharge: number;
-    customerCharge: number;
-    clientKey: string;
-    contiPayRef: number;
-    firstName: string;
-    lastName: string;
-    email: string;
-    merchantRef: string;
-    message: string;
-    methodCode: string;
-    currencyCode: string;
-    providerCode: string;
-    providerName: string;
-    correlator: string;
-    statusCode: number;
-    status: string;
+  account: string;
+  amount: number;
+  merchantId: number;
+  merchantCharge: number;
+  customerCharge: number;
+  clientKey: string;
+  contiPayRef: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  merchantRef: string;
+  message: string;
+  methodCode: string;
+  currencyCode: string;
+  providerCode: string;
+  providerName: string;
+  correlator: string;
+  statusCode: number;
+  status: string;
 };
 
 export type TransactionsType = {
-    transactions: Transactions;
-    customer: Customers;
-    paymentReference?: PaymentReference | null;
-    tickets?: Tickets[] | null;
-    bus?: Busses | null;
-    sourceCity?: Cities | null;
-    arrivalCity?: Cities | null;
-  };
+  transactions: Transactions;
+  customer?: Customers | null;
+  paymentReference?: PaymentReference | null;
+  tickets?: Tickets[] | null;
+  bus?: Busses | null;
+  sourceCity?: Cities | null;
+  arrivalCity?: Cities | null;
+};
+
 export type TransactionReturn = {
-    transactionData: TransactionsType[],
-    paginationData: {
-        totalCount: number;
-        pageSize: number;
-        pageIndex: number;
-    }
-}
+  transactionData: TransactionsType[];
+  cities: Cities[];
+  paginationData: {
+    totalCount: number;
+    pageSize: number;
+    pageIndex: number;
+  };
+};
 
+export type TransactionActionReturn = {
+  transactionData: TransactionsType[];
+  paginationData: {
+    totalCount: number;
+    pageSize: number;
+    pageIndex: number;
+  };
+};
 
+export type ManualTransactionsType = {
+  transactions: Transactions;
+  operators: Operators[];
+};
+
+export type ManualTransactionReturn = {
+  transactionData: ManualTransactionsType[];
+  operators: Operators[];
+  paginationData: {
+    totalCount: number;
+    pageSize: number;
+    pageIndex: number;
+  };
+};
+
+export type ManualTransactionReturnActions = {
+  transactionData: ManualTransactionsType[];
+  paginationData: {
+    totalCount: number;
+    pageSize: number;
+    pageIndex: number;
+  };
+};
 
 export interface TransactionSortOrderProps {
-    [field: string]: 'asc' | 'desc';
+  [field: string]: "asc" | "desc";
 }
 
-
 export interface FilterProps {
-    selectedAvailability?: {
-        carrier?: {
-            contains?: string;
-            mode?: 'insensitive';
-        };
+  selectedAvailability?: {
+    carrier?: {
+      contains?: string;
+      mode?: "insensitive";
     };
-    source?: TicketSources;
-    sourceCity?: {
-        name?: {
-            contains?: string;
-            mode?: 'insensitive';
-        };
+  };
+  source?: TicketSources;
+  sourceCity?: {
+    name?: {
+      contains?: string;
+      mode?: "insensitive";
     };
-    arrivalCity?: {
-        name?: {
-            contains?: string;
-            mode?: 'insensitive';
-        };
+  };
+  arrivalCity?: {
+    name?: {
+      contains?: string;
+      mode?: "insensitive";
     };
-    paidAt?: {
-        gte?: Date;
-        lte?: Date;
-    };
-    status?: "RESERVED";
+  };
+  paidAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+  status?: "RESERVED";
+  id?: string;
+  paymentPeriod?: number;
 }
 
 export interface FileType {
-    path: string;
-    name: string;
-    size: number;
-    type: string;
+  path: string;
+  name: string;
+  size: number;
+  type: string;
 }
 
-export interface InvoiceFormData{
-    busOperator: string,
-    paymentPeriod?: number,
-    totalAmount?: number ,
-    invoiceFiles: File,
-    receiptFiles: File,
+export interface InvoiceFormData {
+  busOperator: string;
+  paymentPeriod?: number;
+  totalAmount?: number;
+  invoiceFiles: File;
+  receiptFiles: File;
 }
 
-export interface OperatorsType{
-    id: string,
-    name: string,
-    description: string,
+export interface OperatorsType {
+  id: string;
+  name: string;
+  description: string;
 }

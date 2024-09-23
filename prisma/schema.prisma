@@ -81,9 +81,9 @@ model Passenger {
   passportNumber String?
   customerId     String    @db.ObjectId
   customer       Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
   @@unique([customerId, name])
 }
-
 
 model CustomerLocationHistory {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -98,6 +98,8 @@ model Operators {
   id           String         @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   description  String
+  status       OperatorStatus
+  joiningDate  DateTime       @default(now())
   setting      Settings[]
   users        Users[]
   discounts    Discounts[]
@@ -137,24 +139,23 @@ model Routes {
 }
 
 model Transactions {
-  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  id               String     @id @default(auto()) @map("_id") @db.ObjectId
   tickets          Tickets[]
-  customerId       String    @db.ObjectId
-  customer         Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  operatorIds      String[]  @db.ObjectId
-  operators        Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  customerId       String?    @db.ObjectId
+  customer         Customers? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  operatorIds      String[]   @db.ObjectId
+  operators        Operators  @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
   paymentMethod    String
-  paymentRef       String    @unique
-  paidAt           DateTime  @default(now())
+  paymentRef       String     @unique
+  paidAt           DateTime   @default(now())
   totalAmount      Float
   currency         String
   paymentReference Json
   paymentPeriod    Int?
   recipt           File?
   invoice          File?
-  isDeleted        Boolean   @default(false)
+  isDeleted        Boolean    @default(false)
 }
-
 
 model Tickets {
   id               String             @id @default(auto()) @map("_id") @db.ObjectId
@@ -202,6 +203,7 @@ model Discounts {
   arrivalCity     Cities         @relation("arrivalCityDiscount", fields: [arrivalCityId], references: [id], onDelete: Cascade)
   source          TicketSources?
   maxUseCount     Int?
+  percentage      Int?
   expiryDate      DateTime?
   tickets         Tickets[]
   isDeleted       Boolean
@@ -274,7 +276,6 @@ model FAQs {
   enabled     Boolean @default(true)
 }
 
-
 type NextStateConfig {
   nextStateId String   @db.ObjectId
   value       String[]
@@ -301,7 +302,7 @@ type TicketPriceDetails {
 }
 
 type CarmaRouteDetails {
-  selectedAvailability      Json
+  selectedAvailability Json
 }
 
 type RoutePricing {
@@ -346,6 +347,12 @@ enum TicketStatus {
   CANCELED
 }
 
+enum OperatorStatus {
+  INVITED
+  SUSPENDED
+  REGISTERED
+}
+
 enum DAYS {
   SUN
   MON
@@ -370,8 +377,6 @@ enum BusClass {
   STANDARD
   LUXURY
 }
-
-
 
 enum Languages {
   en

@@ -10,20 +10,35 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useDropzone } from "react-dropzone";
-import { createInvoice, getBusOperators } from "@/actions/transactions.actions";
+import {
+  createInvoice,
+  getBusOperators,
+  updateInvoice,
+} from "@/actions/transactions.actions";
+import {
+  FileType,
+  InvoiceFormData,
+  ManualTransactionsType,
+  OperatorsType,
+} from "@/types/transactions";
 import { Operators } from "@prisma/client";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
   operators: Operators[];
+  transaction?: ManualTransactionsType;
 }
 
-const AddTreansactionDialogue: React.FC<DialogProps> = ({
+const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
   open,
   onClose,
   operators,
+  transaction,
 }) => {
+  const [transactionId, setTransactionId] = useState<string>("");
+  const [invoiceData, setInvoiceData] = useState<FileType>();
+  const [reciptData, setReciptData] = useState<FileType>();
   const [invoiceFiles, setInvoiceFiles] = useState<File[]>([]);
   const [receiptFiles, setReceiptFiles] = useState<File[]>([]);
   const [busOperator, setBusOperator] = useState<string>("");
@@ -80,6 +95,28 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
     maxFiles: 1,
   });
 
+  useEffect(() => {
+    if (transaction) {
+      setTransactionId(transaction.transactions.id);
+      const matchingOperator = operators.find(
+        (operator) => operator.id === transaction.operators?.[0]?.id
+      );
+      if (matchingOperator?.id !== busOperator) {
+        setBusOperator(matchingOperator?.id || "");
+      }
+      setPaymentPeriod(transaction.transactions.paymentPeriod || 0);
+      setTotalAmount(transaction.transactions.totalAmount);
+      setInvoiceData(transaction.transactions.invoice || undefined);
+      setReciptData(transaction.transactions.recipt || undefined);
+    }
+  }, [busOperator, operators, transaction]);
+
+  const clearInvoiceData = () => {
+    setInvoiceData(undefined);
+  };
+  const clearTransactionData = () => {
+    setReciptData(undefined);
+  };
   const clearInvoiceFiles = () => {
     setInvoiceFiles([]);
   };
@@ -101,10 +138,13 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
     e.preventDefault();
 
     setErrorState(["", false]);
-    if (invoiceFiles.length === 0) {
+    if (invoiceFiles.length === 0 && !invoiceData) {
       setErrorState(["Please upload invoice files.", true]);
       return;
-    } else if (receiptFiles.length === 0) {
+    } else if (!busOperator) {
+      setError("busOperator");
+      return;
+    } else if (receiptFiles.length === 0 && !reciptData) {
       setErrorState(["Please upload receipt files.", true]);
       return;
     }
@@ -114,10 +154,11 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
       const formData = new FormData();
       invoiceFiles.forEach((file) => formData.append("invoiceFiles", file));
       receiptFiles.forEach((file) => formData.append("receiptFiles", file));
+      formData.append("transactionId", transactionId);
       formData.append("busOperator", busOperator);
       formData.append("paymentPeriod", paymentPeriod?.toString() || "");
       formData.append("totalAmount", totalAmount?.toString() || "");
-      await createInvoice(formData);
+      await updateInvoice(formData);
     } catch (error) {
       console.error(error);
     } finally {
@@ -138,7 +179,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 duration-700 ease-out">
       <div className="lightGray py-6 px-8 rounded-lg shadow-lg add_transaction_dialguebox flex flex-col gap-1 duration-700 ease-out">
         <div className="w-full flex flex-row justify-between">
-          <p className="text-lg text-black font-semibold">Add Transaction</p>
+          <p className="text-lg text-black font-semibold">Update Transaction</p>
           <button
             onClick={onClose}
             className="text-gray-600 hover:text-gray-800"
@@ -163,6 +204,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             <Input
               type="text"
               placeholder="Enter ID"
+              value={transactionId}
               disabled
               className="h-12 rounded-lg bg-white text-gray-500 border-gray-300"
             />
@@ -171,7 +213,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             <p className="mb-1 darkGray-text font-normal text-sm">
               Bus Operator
             </p>
-            <Select value={busOperator} onValueChange={setBusOperator}>
+            <Select value={busOperator} onValueChange={setBusOperator} required>
               <SelectTrigger className="w-full h-12 rounded-lg bg-white text-gray-900 border-gray-300">
                 <SelectValue placeholder="Select bus operator" />
               </SelectTrigger>
@@ -183,6 +225,9 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                 ))}
               </SelectContent>
             </Select>
+            {error === "busOperator" && (
+              <p className="text-red-500">Bus Operator is required</p>
+            )}
           </div>
           <div>
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -218,7 +263,32 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                 <p className="mb-1 darkGray-text font-normal text-sm">
                   Upload Invoice
                 </p>
-                {invoiceFiles.length > 0 ? (
+                {invoiceData !== undefined && invoiceFiles.length <= 0 ? (
+                  <div className="relative flex flex-col items-center justify-evenly h-40 border-2 bg-white border-gray-400 rounded-lg p-6">
+                    <button
+                      onClick={clearInvoiceData}
+                      className="absolute bg-kupi-yellow remove-file"
+                    >
+                      <Image
+                        src="/img/icons/Close-Icon.svg"
+                        alt="Close"
+                        width={20}
+                        height={20}
+                      />
+                    </button>
+                    <Image
+                      src="/img/icons/pdf.svg"
+                      alt="Pdf"
+                      width={60}
+                      height={60}
+                    />
+                    {invoiceData.name.length > 15
+                      ? `${invoiceData.name.slice(0, 15)}.${invoiceData.name
+                          .split(".")
+                          .pop()}`
+                      : invoiceData.name}
+                  </div>
+                ) : invoiceFiles.length > 0 ? (
                   <div className="relative flex flex-col items-center justify-evenly h-40 border-2 bg-white border-gray-400 rounded-lg p-6">
                     <button
                       onClick={clearInvoiceFiles}
@@ -278,7 +348,32 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                 <p className="mb-1 darkGray-text font-normal text-sm">
                   Upload Receipt
                 </p>
-                {receiptFiles.length > 0 ? (
+                {reciptData !== undefined && receiptFiles.length <= 0 ? (
+                  <div className="relative flex flex-col items-center justify-evenly h-40 border-2 bg-white border-gray-400 rounded-lg p-6">
+                    <button
+                      onClick={clearInvoiceData}
+                      className="absolute bg-kupi-yellow remove-file"
+                    >
+                      <Image
+                        src="/img/icons/Close-Icon.svg"
+                        alt="Close"
+                        width={20}
+                        height={20}
+                      />
+                    </button>
+                    <Image
+                      src="/img/icons/pdf.svg"
+                      alt="Pdf"
+                      width={60}
+                      height={60}
+                    />
+                    {reciptData.name.length > 15
+                      ? `${reciptData.name.slice(0, 15)}.${reciptData.name
+                          .split(".")
+                          .pop()}`
+                      : reciptData.name}
+                  </div>
+                ) : receiptFiles.length > 0 ? (
                   <div className="relative flex flex-col items-center justify-evenly h-40 border-2 bg-white border-gray-400 rounded-lg p-6">
                     <button
                       onClick={clearReceiptFiles}
@@ -353,7 +448,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                 loading ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
             >
-              {loading ? "Please Wait" : "Add Transaction"}
+              {loading ? "Please Wait" : "Save"}
             </button>
           </div>
         </form>
@@ -362,4 +457,4 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
   );
 };
 
-export default AddTreansactionDialogue;
+export default UpdateTreansactionDialogue;

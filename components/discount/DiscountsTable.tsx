@@ -8,15 +8,17 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, ChevronRight, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { TicketsDataType, TicketsReturn } from "@/types/ticket";
-import TicketDetailDialgue from "./TicketDetailDialgue";
+import { discountDataType, DiscountReturn } from "@/types/discount";
+import UpdateDiscount from "./UpdateDiscount";
 import TableComponent from "../Table/Table";
 
-const TicketTable: React.FC<TicketsReturn> = ({
-  ticketData,
+const DiscountsTable: React.FC<DiscountReturn> = ({
+  discounts,
+  cities,
+  operators,
   paginationData,
 }) => {
   const router = useRouter();
@@ -27,15 +29,18 @@ const TicketTable: React.FC<TicketsReturn> = ({
     pageIndex: 0,
     pageSize: paginationData.pageSize,
   });
-  const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(
-    null
-  );
+  const [selectedDiscount, setSelectedDiscount] =
+    useState<discountDataType | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const handleShowDetail = (id: string) => {
-    const ticket = ticketData.find((t) => t.tickets.id === id) || null;
-    setSelectedTicket(ticket);
+    const discount = discounts.find((d) => d.discount.id === id) || null;
+    if (!discounts) {
+      setDialogOpen(false);
+      return null;
+    }
+    setSelectedDiscount(discount);
     setDialogOpen(true);
   };
 
@@ -71,50 +76,54 @@ const TicketTable: React.FC<TicketsReturn> = ({
   }, [pagination, updateUrl]);
 
   // Table initialization
-  const columns: ColumnDef<TicketsDataType>[] = [
+  const columns: ColumnDef<discountDataType>[] = [
     {
-      accessorKey: "busIdentifier",
+      accessorKey: "name",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Bus Number <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Discount Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => (
         <div>
-          <span>{row.original.tickets.busIdentifier}</span>
+          <span>{row.original.discount.name}</span>
         </div>
       ),
     },
     {
-      accessorKey: "ticketId",
+      accessorKey: "percentage",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Ticket ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Discount <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => (
         <div>
-          <span>{row.original.tickets.ticketId}</span>
+          <span>{row.original.discount.percentage}</span>
         </div>
       ),
     },
     {
-      accessorKey: "CustomerName",
+      accessorKey: "source",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Customer Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <span>{row.original.customer?.name}</span>,
+      cell: ({ row }) => {
+        const source = row.original.discount.source;
+        return <span>[{source ? source.charAt(0) : ""}] Operator</span>;
+      },
     },
+
     {
-      accessorKey: "sourceCity",
+      accessorKey: "departure",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -135,48 +144,27 @@ const TicketTable: React.FC<TicketsReturn> = ({
         </div>
       ),
     },
+
     {
-      accessorKey: "source",
+      accessorKey: "expiryDate",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => <span>{row.original.tickets.source}</span>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Status <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Expiry Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => (
         <div>
-          {row.original.tickets.status === "CONFIRMED" ? (
-            <p className="text-green-600">Confirmed</p>
-          ) : (
-            <p className="text-kupi-yellow">{row.original.tickets.status}</p>
-          )}
+          {row.original.discount?.expiryDate?.toLocaleTimeString("en-US", {
+            timeZone: "UTC",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </div>
-      ),
-    },
-
-    {
-      accessorKey: "totalPrice",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Price <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => (
-        <div>${row.original.tickets.priceDetails.totalPrice}</div>
       ),
     },
     {
@@ -186,7 +174,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
         <div className="flex justify-end">
           <button
             onClick={() => {
-              handleShowDetail(row.original.tickets.id);
+              handleShowDetail(row.original.discount.id);
             }}
             className="p-2 rounded-md hover:bg-gray-100"
           >
@@ -204,7 +192,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
   ];
 
   const table = useReactTable({
-    data: ticketData,
+    data: discounts,
     columns,
     state: { sorting, pagination },
     onSortingChange: setSorting,
@@ -226,14 +214,16 @@ const TicketTable: React.FC<TicketsReturn> = ({
 
       {/* Dialogue */}
       <div className="w-full">
-        <TicketDetailDialgue
+        <UpdateDiscount
           open={dialogOpen}
           onClose={handleCloseDialog}
-          TicketData={selectedTicket}
+          cities={cities}
+          operators={operators}
+          discount={selectedDiscount?.discount || undefined}
         />
       </div>
     </div>
   );
 };
 
-export default TicketTable;
+export default DiscountsTable;
