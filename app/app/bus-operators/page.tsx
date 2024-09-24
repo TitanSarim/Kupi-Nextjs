@@ -20,7 +20,7 @@ const BusOperators = async ({
   }
 
   return (
-    <div className="bg-page-backgound flex items-start justify-center h-screen mb-12 w-full">
+    <div className="bg-page-backgound flex items-start justify-center h-screen w-full">
       <div className="w-11/12">
         <OperatorsList
           operators={operators.operators}

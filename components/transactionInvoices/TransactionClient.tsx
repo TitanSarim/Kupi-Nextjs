@@ -3,9 +3,10 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import AddTreansactionDialogue from "./AddTreansactionDialogue";
 import { Operators } from "@prisma/client";
+import { OperatorsType } from "@/types/transactions";
 
 interface ClientInterface {
-  operators: Operators[];
+  operators: OperatorsType[];
 }
 
 const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {

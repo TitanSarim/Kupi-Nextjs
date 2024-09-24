@@ -12,11 +12,12 @@ import {
 import { useDropzone } from "react-dropzone";
 import { createInvoice, getBusOperators } from "@/actions/transactions.actions";
 import { Operators } from "@prisma/client";
+import { OperatorsType } from "@/types/transactions";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  operators: Operators[];
+  operators: OperatorsType[];
 }
 
 const AddTreansactionDialogue: React.FC<DialogProps> = ({
