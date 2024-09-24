@@ -10,9 +10,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendInvitationEmail(email: string): Promise<boolean> {
+export async function sendInvitationEmail(
+  email: string,
+  name: string
+): Promise<boolean> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  const url = `${baseUrl}/signup?email=${email}`;
+  const url = `${baseUrl}/signup?email=${email}?name=${name}`;
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,

@@ -182,7 +182,9 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
         </button>
         <button
           type="submit"
-          className="py-2 px-10 bg-kupi-yellow rounded-lg font-semibold"
+          className={`${
+            loading ? "opacity-50" : ""
+          } py-3 px-10 bg-kupi-yellow rounded-lg font-semibold`}
           disabled={loading}
         >
           Save

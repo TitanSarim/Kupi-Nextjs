@@ -31,7 +31,13 @@ const SignupForm = () => {
 
   useEffect(() => {
     const emailFromURL = searchParams.get("email");
-
+    const nameFromURL = searchParams.get("name");
+    if (nameFromURL) {
+      setFormData((prev) => ({
+        ...prev,
+        name: nameFromURL,
+      }));
+    }
     if (emailFromURL) {
       setFormData((prev) => ({
         ...prev,

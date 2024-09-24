@@ -3,6 +3,7 @@ import {
   Cities,
   Customers,
   Operators,
+  OperatorStatus,
   Tickets,
   TicketSources,
   Transactions,
@@ -87,12 +88,12 @@ export type TransactionActionReturn = {
 
 export type ManualTransactionsType = {
   transactions: Transactions;
-  operators: Operators[];
+  operators: OperatorsType[];
 };
 
 export type ManualTransactionReturn = {
   transactionData: ManualTransactionsType[];
-  operators: Operators[];
+  operators?: OperatorsType[];
   paginationData: {
     totalCount: number;
     pageSize: number;
@@ -157,8 +158,10 @@ export interface InvoiceFormData {
   receiptFiles: File;
 }
 
-export interface OperatorsType {
+export type OperatorsType = {
   id: string;
   name: string;
-  description: string;
-}
+  description?: string;
+  status: OperatorStatus;
+  joiningDate?: Date;
+};

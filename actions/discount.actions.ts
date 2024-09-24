@@ -129,7 +129,12 @@ export async function getAllDiscount(searchParams: {
       filter.arrivalCity = {
         name: { contains: arrivalCity, mode: "insensitive" },
       };
-    // filters
+
+    if (onlyExpiring) {
+      const currentDate = new Date();
+      filter.expiryDate = { lt: currentDate };
+    }
+
     const sortOrder: SortOrderProps[] = [];
     if (sort) {
       const [field, order] = sort.split("_");
@@ -153,6 +158,8 @@ export async function getAllDiscount(searchParams: {
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
+    } else {
+      sortOrder.push({ createdAt: "desc" });
     }
 
     const pageSizeNumber = Number(pageSize);

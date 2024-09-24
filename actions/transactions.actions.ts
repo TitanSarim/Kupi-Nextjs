@@ -186,7 +186,7 @@ export async function getBusOperators(): Promise<OperatorsType[] | null> {
       return null;
     }
 
-    return operators;
+    return operators || null;
   } catch (error) {
     console.error("Error getting bus operators:", error);
     return null;

@@ -1,4 +1,5 @@
 import { Cities, Discounts, Operators } from "@prisma/client";
+import { OperatorsType } from "./transactions";
 
 export interface DiscountFormData {
   discountname: string;
@@ -33,7 +34,7 @@ export type DiscountActionReturn = {
 
 export type DiscountReturn = {
   cities: Cities[];
-  operators: Operators[];
+  operators: OperatorsType[];
   discounts: discountDataType[];
   paginationData: {
     totalCount: number;
@@ -68,6 +69,10 @@ export interface FilterProps {
   };
   name?: {
     contains?: string;
+    mode?: "insensitive";
+  };
+  expiryDate?: {
+    lt?: Date;
     mode?: "insensitive";
   };
 }

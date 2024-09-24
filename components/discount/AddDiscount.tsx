@@ -27,12 +27,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { OperatorsType } from "@/types/transactions";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
   cities: Cities[];
-  operators: Operators[];
+  operators: OperatorsType[];
 }
 
 const AddDiscount: React.FC<DialogProps> = ({
@@ -99,6 +100,17 @@ const AddDiscount: React.FC<DialogProps> = ({
     } finally {
       setErrorState(["", false]);
       setLoading(false);
+      setDiscountname("");
+      setPercentage(0);
+      setSource("");
+      setCount(0);
+      setDate("");
+      setOperator("");
+      setOperatorId("");
+      setDestinationCity("");
+      setDestinationCityId("");
+      setArrivalCity("");
+      setArrivalCityId("");
       onClose();
     }
   };
@@ -431,7 +443,9 @@ const AddDiscount: React.FC<DialogProps> = ({
             </button>
             <button
               type="submit"
-              className="py-3 px-10 bg-kupi-yellow rounded-lg font-semibold"
+              className={`${
+                loading ? "opacity-50" : ""
+              } py-3 px-10 bg-kupi-yellow rounded-lg font-semibold`}
               disabled={loading}
             >
               {loading ? "Loading" : "Add Discount"}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import OperatorsTable from "./OperatorsTable";
 import { Input } from "../ui/input";
 import {
@@ -10,9 +10,16 @@ import {
   SelectItem,
 } from "../ui/select";
 import InviteOperator from "./InviteOperator";
+import { OperatorsData } from "@/types/operator";
+import { useRouter } from "next/navigation";
 
-const OperatorsList = () => {
+const OperatorsList: React.FC<OperatorsData> = ({
+  operators,
+  paginationData,
+}) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [status, setSatus] = useState("");
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
@@ -21,6 +28,29 @@ const OperatorsList = () => {
   const handleShowDetail = () => {
     setDialogOpen(true);
   };
+
+  const router = useRouter();
+  const params = new URLSearchParams();
+
+  const updateSearchParams = () => {
+    if (name) params.set("name", name);
+    if (status !== "clear") {
+      params.set("status", status);
+    } else {
+      setSatus("");
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateSearchParams();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [name, status]);
 
   return (
     <div className="w-full mt-10 h-fit flex items-center justify-center">
@@ -44,6 +74,8 @@ const OperatorsList = () => {
               Search Operator Name
             </p>
             <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               type="text"
               placeholder="Search by name"
               className="h-12 rounded-lg text-gray-500 border-gray-700"
@@ -63,22 +95,22 @@ const OperatorsList = () => {
             <p className="mb-1 darkGray-text font-normal text-sm">
               Search Status
             </p>
-            <Select>
+            <Select value={status} onValueChange={setSatus}>
               <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-700 ">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent className="select-dropdown z-50">
                 <SelectItem value="clear">Clear</SelectItem>
-                <SelectItem value="Invited">Invited</SelectItem>
-                <SelectItem value="Suspended">Suspended</SelectItem>
-                <SelectItem value="Registered">Registered</SelectItem>
+                <SelectItem value="INVITED">Invited</SelectItem>
+                <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                <SelectItem value="REGISTERED">Registered</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         {/* table */}
-        <OperatorsTable />
+        <OperatorsTable operators={operators} paginationData={paginationData} />
 
         <div className="w-full">
           <InviteOperator open={dialogOpen} onClose={handleCloseDialog} />

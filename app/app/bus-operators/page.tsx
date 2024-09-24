@@ -4,11 +4,16 @@ import Loading from "@/components/Loading";
 import NavBar from "@/components/NavBar";
 import OperatorsList from "@/components/operators/OperatorsList";
 import SideBar from "@/components/SideBar";
+import { OperatorsQuery } from "@/types/operator";
 import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
-const BusOperators = async () => {
-  const operators = await getAllOperators();
+const BusOperators = async ({
+  searchParams,
+}: {
+  searchParams: OperatorsQuery["searchParams"];
+}) => {
+  const operators = await getAllOperators(searchParams);
 
   if (!operators) {
     return null;
@@ -17,7 +22,10 @@ const BusOperators = async () => {
   return (
     <div className="bg-page-backgound flex items-start justify-center h-screen mb-12 w-full">
       <div className="w-11/12">
-        <OperatorsList />
+        <OperatorsList
+          operators={operators.operators}
+          paginationData={operators.paginationData}
+        />
       </div>
     </div>
   );

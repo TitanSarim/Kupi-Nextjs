@@ -189,6 +189,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
               Payment Period
             </p>
             <Input
+              min={0}
               type="number"
               placeholder="Enter period"
               value={paymentPeriod}
@@ -202,6 +203,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
               Total Amount
             </p>
             <Input
+              min={0}
               type="number"
               placeholder="$"
               value={totalAmount}

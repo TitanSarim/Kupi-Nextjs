@@ -1,21 +1,29 @@
 "use client";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
-import { AddOperator } from "@/actions/operators.action";
+import { UpdateOperatorInvitation } from "@/actions/operators.action";
+import { OperatorsType } from "@/types/transactions";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
+  operator?: OperatorsType | null;
 }
 
-const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
+const UpdateInviteOperator: React.FC<DialogProps> = ({
+  open,
+  onClose,
+  operator,
+}) => {
+  const [id, setId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [checked, setChecked] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +34,9 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
         name,
         email,
         description,
+        checked,
       };
-      const result = await AddOperator(formData);
+      const result = await UpdateOperatorInvitation(formData, id);
       if (typeof result === "string") {
         setError(result);
       }
@@ -35,13 +44,20 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
       setLoading(false);
       console.error(error);
     } finally {
-      setName("");
-      setEmail("");
-      setDescription("");
       onClose();
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (operator) {
+      setId(operator.id);
+      setName(operator.name);
+      if (operator.description) {
+        setDescription(operator.description);
+      }
+    }
+  }, [operator]);
 
   if (!open) return null;
 
@@ -49,7 +65,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 duration-700 ease-out">
       <div className="lightGray py-6 px-8 rounded-lg shadow-lg invite-dialguebox flex flex-wrap justify-between gap-2 duration-700 ease-out">
         <div className="w-full flex flex-row justify-between">
-          <p className="text-lg text-black font-semibold">Invite Operator</p>
+          <p className="text-lg text-black font-semibold">Update Invite</p>
           <button
             onClick={onClose}
             className="text-gray-600 hover:text-gray-800"
@@ -78,19 +94,35 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
               required
             />
           </div>
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Operator Email
-            </p>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
-              className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-              required
+          <div className="my-2 flex flex-row gap-3 items-center justify-start">
+            <input
+              type="checkbox"
+              id="checkBox"
+              checked={checked}
+              onChange={(e) => setChecked(e.target.checked)}
             />
+            <label
+              htmlFor="checkBox"
+              className="darkGray-text font-normal text-sm"
+            >
+              Check to send invitation again
+            </label>
           </div>
+          {checked === true && (
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Operator Email
+              </p>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email address"
+                className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
+                required
+              />
+            </div>
+          )}
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
               Invitation Message (Optional)
@@ -118,7 +150,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
                 loading ? "opacity-50" : ""
               } py-3 px-10 bg-kupi-yellow rounded-lg font-semibold`}
             >
-              {loading ? "Loading" : "Send Invitation"}
+              {loading ? "Loading" : "Update Invitation"}
             </button>
           </div>
         </form>
@@ -127,4 +159,4 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
   );
 };
 
-export default InviteOperator;
+export default UpdateInviteOperator;

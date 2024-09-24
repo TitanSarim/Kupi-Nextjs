@@ -98,7 +98,7 @@ model Operators {
   id           String         @id @default(auto()) @map("_id") @db.ObjectId
   name         String
   description  String
-  status       OperatorStatus
+  status       OperatorStatus @default(INVITED)
   joiningDate  DateTime       @default(now())
   setting      Settings[]
   users        Users[]
@@ -207,6 +207,7 @@ model Discounts {
   expiryDate      DateTime?
   tickets         Tickets[]
   isDeleted       Boolean
+  createdAt       DateTime       @default(now())
 }
 
 model Settings {
