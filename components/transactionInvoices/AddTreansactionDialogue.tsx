@@ -44,7 +44,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
         return;
       }
 
-      const file = acceptedFiles[0];
+      const file = acceptedFiles?.[0];
       if (file.type !== "application/pdf") {
         setError("Only PDF files are allowed.");
         return;
@@ -68,7 +68,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
         return;
       }
 
-      const file = acceptedFiles[0];
+      const file = acceptedFiles?.[0];
       if (file.type !== "application/pdf") {
         setError("Only PDF files are allowed.");
         return;
@@ -240,12 +240,12 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                       width={60}
                       height={60}
                     />
-                    {invoiceFiles[0].name.length > 15
-                      ? `${invoiceFiles[0].name.slice(
+                    {invoiceFiles?.[0]?.name.length > 15
+                      ? `${invoiceFiles?.[0]?.name.slice(
                           0,
                           15
-                        )}.${invoiceFiles[0].name.split(".").pop()}`
-                      : invoiceFiles[0].name}
+                        )}.${invoiceFiles?.[0]?.name.split(".").pop()}`
+                      : invoiceFiles?.[0]?.name}
                   </div>
                 ) : (
                   <div
@@ -300,12 +300,12 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                       width={60}
                       height={60}
                     />
-                    {receiptFiles[0].name.length > 15
-                      ? `${receiptFiles[0].name.slice(
+                    {receiptFiles?.[0]?.name.length > 15
+                      ? `${receiptFiles?.[0]?.name.slice(
                           0,
                           15
-                        )}.${receiptFiles[0].name.split(".").pop()}`
-                      : receiptFiles[0].name}
+                        )}.${receiptFiles?.[0]?.name.split(".").pop()}`
+                      : receiptFiles?.[0]?.name}
                   </div>
                 ) : (
                   <div

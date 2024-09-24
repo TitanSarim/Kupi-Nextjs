@@ -81,11 +81,11 @@ const UpdateDiscount: React.FC<DialogProps> = ({
       setDiscountId(discount.id || "");
       setDate(
         discount.expiryDate
-          ? new Date(discount.expiryDate).toISOString().split("T")[0]
+          ? new Date(discount.expiryDate).toISOString().split("T")?.[0]
           : ""
       );
       const matchingOperator = operators.find(
-        (operator) => operator.id === discount.operatorIds[0]
+        (operator) => operator.id === discount.operatorIds?.[0]
       );
       const matchingArrival = cities.find(
         (city) => city.id === discount.arrivalCityId
