@@ -17,7 +17,6 @@ import {
 } from "@/actions/transactions.actions";
 import {
   FileType,
-  InvoiceFormData,
   ManualTransactionsType,
   OperatorsType,
 } from "@/types/transactions";
@@ -26,7 +25,7 @@ import { Operators } from "@prisma/client";
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  operators: Operators[];
+  operators?: OperatorsType[];
   transaction?: ManualTransactionsType;
 }
 
@@ -98,7 +97,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
   useEffect(() => {
     if (transaction) {
       setTransactionId(transaction.transactions.id);
-      const matchingOperator = operators.find(
+      const matchingOperator = operators?.find(
         (operator) => operator.id === transaction.operators?.[0]?.id
       );
       if (matchingOperator?.id !== busOperator) {
@@ -218,11 +217,12 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
                 <SelectValue placeholder="Select bus operator" />
               </SelectTrigger>
               <SelectContent className="select-dropdown_add_trans z-50 max-h-28 overflow-y-auto">
-                {operators.map((operator) => (
-                  <SelectItem key={operator.id} value={operator.id}>
-                    {operator.name}
-                  </SelectItem>
-                ))}
+                {operators &&
+                  operators?.map((operator) => (
+                    <SelectItem key={operator.id} value={operator.id}>
+                      {operator.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             {error === "busOperator" && (
