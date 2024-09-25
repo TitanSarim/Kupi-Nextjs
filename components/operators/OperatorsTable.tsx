@@ -1,3 +1,4 @@
+"use client";
 import { OperatorsData } from "@/types/operator";
 import { OperatorsType } from "@/types/transactions";
 import {
@@ -47,7 +48,6 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     setDialogOpen(false);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
     const sortingParam = sorting
       .map((sort) => `${sort.id}_${sort.desc ? "desc" : "asc"}`)

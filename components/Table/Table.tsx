@@ -20,7 +20,7 @@ import {
   HeaderGroup,
   RowData,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronRight, ChevronLeft } from "lucide-react";
+import TablePagination from "./TablePagination";
 
 interface PaginationState {
   pageIndex: number;
@@ -50,16 +50,7 @@ const TableComponent = <TData extends RowData>({
   pagination,
   handleDownload,
 }: TableComponentProps<TData>) => {
-  const { pageIndex, pageSize } = pagination;
-  const totalCount = paginationData.totalCount;
-  const pageCount = Math.ceil(totalCount / pageSize);
-
-  const handlePageChange = (newPageIndex: number) => {
-    setPagination((prev) => ({
-      ...prev,
-      pageIndex: newPageIndex,
-    }));
-  };
+  const { pageSize } = pagination;
 
   const handlePageSizeChange = (size: number) => {
     setPagination((prev) => ({
@@ -67,57 +58,6 @@ const TableComponent = <TData extends RowData>({
       pageSize: size,
       pageIndex: 0,
     }));
-  };
-
-  const range = (start: number, end: number): number[] => {
-    let result = [];
-    for (let i = start; i <= end; i++) {
-      result.push(i);
-    }
-    return result;
-  };
-
-  const pageNumbers = (() => {
-    const firstTwoPages = [1, 2];
-    const lastPage = pageCount;
-
-    if (pageCount <= 4) {
-      return range(1, pageCount);
-    }
-
-    if (pageIndex + 1 <= 2) {
-      return [...range(1, 2), "...", lastPage];
-    } else if (pageIndex + 1 >= pageCount - 1) {
-      return [1, "...", ...range(pageCount - 2, pageCount)];
-    } else {
-      return [1, "...", pageIndex + 1, "...", lastPage];
-    }
-  })();
-
-  const renderPageNumbers = () => {
-    return pageNumbers.map((page, index) => {
-      if (page === "...") {
-        return (
-          <span key={`ellipsis-${index}`} className="px-3 py-1">
-            ...
-          </span>
-        );
-      }
-      const pageNumber = typeof page === "number" ? page : 0;
-      return (
-        <button
-          key={page}
-          onClick={() => handlePageChange(pageNumber - 1)}
-          className={`px-3 py-1 rounded-md ${
-            pageIndex + 1 === page
-              ? "bg-kupi-yellow text-gray-800"
-              : "bg-gray-300"
-          }`}
-        >
-          {page}
-        </button>
-      );
-    });
   };
 
   return (
@@ -187,31 +127,12 @@ const TableComponent = <TData extends RowData>({
         </div>
 
         {/* Pagination buttons */}
-        <div className="flex flex-row items-center gap-2">
-          <button
-            onClick={() => handlePageChange(pageIndex - 1)}
-            disabled={pageIndex === 0}
-            className={`px-1 py-1 rounded-md ${
-              pageIndex === 0 ? "bg-gray-300" : "bg-gray-800"
-            }`}
-          >
-            <ChevronLeft
-              style={{ color: pageIndex === 0 ? "gray" : "white" }}
-            />
-          </button>
-          <div className="flex gap-2">{renderPageNumbers()}</div>
-          <button
-            onClick={() => handlePageChange(pageIndex + 1)}
-            disabled={pageIndex >= pageCount - 1}
-            className={`px-1 py-1 rounded-md ${
-              pageIndex >= pageCount - 1 ? "bg-gray-300" : "bg-gray-800"
-            }`}
-          >
-            <ChevronRight
-              style={{ color: pageIndex >= pageCount - 1 ? "gray" : "white" }}
-            />
-          </button>
-        </div>
+        <TablePagination
+          paginationData={paginationData}
+          pagination={pagination}
+          setPagination={setPagination}
+          handleDownload={handleDownload}
+        />
       </div>
     </div>
   );

@@ -70,7 +70,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
     setTicketDialogue(false);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
     const sortingParam = sorting
       .map((sort) => `${sort.id}_${sort.desc ? "desc" : "asc"}`)

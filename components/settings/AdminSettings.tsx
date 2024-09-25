@@ -24,7 +24,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const [carmaCommission, setCarmaCommission] = useState<number>(0);
   const [kupiMarkup, setKupiMarkup] = useState<number>(0);
   const [tickets, setTickets] = useState<number>(0);
-  const [bookingAt, setBookingAt] = useState<number>(0);
+  const [bookingAt, setBookingAt] = useState("00:00");
   const [reminder, setReminder] = useState<number>(0);
   const [error, setError] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
@@ -76,14 +76,26 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const handleBookingAtRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = event.target.value;
+    const value = event.target.value.replace(/\D/g, "");
     const numericValue = Math.max(0, Math.min(59, parseInt(value, 10)));
-    setBookingAt(numericValue);
+    const minutes = Math.floor(numericValue / 60);
+    const seconds = numericValue % 60;
+    const formattedTime = `${String(minutes).padStart(2, "0")}:${String(
+      seconds
+    ).padStart(2, "0")}`;
+
+    setBookingAt(formattedTime);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const convertTimeToSeconds = (formattedTime: string): number => {
+      const [minutes, seconds] = formattedTime.split(":").map(Number);
+      return minutes * 60 + seconds;
+    };
+
     const formData: SettingsFormData[] = [
       {
         key: "EXCHANGE_RATE",
@@ -107,7 +119,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
       },
       {
         key: "TIMEOUT_BOOKING",
-        value: bookingAt,
+        value: convertTimeToSeconds(bookingAt),
       },
       {
         key: "EMAIL_REMINDER",
@@ -122,6 +134,15 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatTime = (timeInSeconds: number): string => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = timeInSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   const dataHandler = () => {
@@ -163,11 +184,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 break;
             }
           });
-
           setExchangeRate(parseInt(exchangeRate));
           setCommission(parseInt(commission));
           setTickets(parseInt(tickets));
-          setBookingAt(parseInt(bookingAt));
+          setBookingAt(formatTime(parseInt(bookingAt)));
           setReminder(parseInt(reminder));
           setKupiMarkup(parseInt(kupiMarkup));
           setCarmaCommission(parseInt(carmaCommission));
@@ -307,13 +327,13 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               </span>
             </p>
             <Input
-              type="number"
+              type="text"
               className="h-12 border-gray-400 rounded-lg"
               placeholder="00:00"
               value={bookingAt}
               onChange={handleBookingAtRateChange}
-              min={0}
-              max={59}
+              // min={0}
+              // max={59}
               required
             />
           </div>

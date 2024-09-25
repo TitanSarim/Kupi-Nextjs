@@ -14,6 +14,7 @@ import {
 import { Prisma, Transactions } from "@prisma/client";
 import { getSignedURL, uploadPdfToS3 } from "@/libs/s3";
 import { ObjectId } from "mongodb";
+import { revalidatePath } from "next/cache";
 
 export async function getAllTransactions(searchParams: {
   carrier?: string;
@@ -223,7 +224,7 @@ export async function createInvoice(
     const paymentPeriodNumber = Number(paymentPeriod);
     const totalAmountNumber = Number(totalAmount);
 
-    const transactions = await db.transactions.create({
+    const transaction = await db.transactions.create({
       data: {
         operatorIds: operatorIds,
         totalAmount: totalAmountNumber,
@@ -237,7 +238,8 @@ export async function createInvoice(
       },
     });
 
-    return transactions || null;
+    revalidatePath("/app/transactions/manualTransaction");
+    return transaction || null;
   } catch (error) {
     console.error("Error creating transaction:", error);
     return null;
@@ -293,14 +295,15 @@ export async function updateInvoice(
       updateData.receipt = receiptResult;
     }
 
-    const transactions = await db.transactions.update({
+    const transaction = await db.transactions.update({
       where: {
         id: id,
       },
       data: updateData,
     });
 
-    return transactions || null;
+    revalidatePath("/app/transactions/manualTransaction");
+    return transaction || null;
   } catch (error) {
     console.error("Error updating transaction:", error);
     return null;

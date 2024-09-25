@@ -8,7 +8,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronRight, ChevronLeft } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { discountDataType, DiscountReturn } from "@/types/discount";
@@ -48,7 +48,6 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
     setDialogOpen(false);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
     const sortingParam = sorting
       .map((sort) => `${sort.id}_${sort.desc ? "desc" : "asc"}`)
