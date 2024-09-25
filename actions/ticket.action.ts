@@ -60,7 +60,6 @@ export async function getAllTickets(searchParams: {
       filter.status = "RESERVED";
 
     const sortOrder: SortOrderProps[] = [];
-    sortOrder.push({ reservedAt: "desc" });
     if (sort) {
       const [field, order] = sort.split("_");
 
@@ -90,10 +89,14 @@ export async function getAllTickets(searchParams: {
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
+    } else {
+      sortOrder.push({ reservedAt: "desc" });
     }
 
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
+
+    console.log("sortOrder", sortOrder);
 
     const ticketData = await db.tickets.findMany({
       where: filter,

@@ -85,6 +85,10 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
     }
   }, [pagination, updateUrl]);
 
+  const handleCopy = (id: string) => {
+    navigator.clipboard.writeText(id);
+  };
+
   // table initalizes here
   const columns: ColumnDef<ManualTransactionsType>[] = [
     {
@@ -96,7 +100,14 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
           Transaction ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <span>{row.original.transactions.id}</span>,
+      cell: ({ row }) => (
+        <button
+          className="bg-yellow-300 px-3 p-1 rounded-md"
+          onClick={() => handleCopy(row.original.transactions.id)}
+        >
+          {row.original.transactions.id.slice(0, 5) + "..."}
+        </button>
+      ),
     },
     {
       accessorKey: "BusOperator",

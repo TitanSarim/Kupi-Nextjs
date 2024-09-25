@@ -270,6 +270,7 @@ const TransactionList: React.FC<TransactionReturn> = ({
             value={value}
             onChange={handleValueChange}
             showShortcuts={true}
+            containerClassName="relative"
             inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg"
             popoverDirection="down"
           />

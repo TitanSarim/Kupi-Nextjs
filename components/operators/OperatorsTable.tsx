@@ -17,6 +17,7 @@ import TableComponent from "../Table/Table";
 import Link from "next/link";
 import { OperatorStatus } from "@prisma/client";
 import UpdateInviteOperator from "./UpdateInviteOperator";
+import { TicketSources } from "@/types/discount";
 
 const OperatorsTable: React.FC<OperatorsData> = ({
   operators,
@@ -87,6 +88,17 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       cell: ({ row }) => <div>{row.original?.name}</div>,
     },
     {
+      accessorKey: "source",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => <div>{row.original?.source}</div>,
+    },
+    {
       accessorKey: "status",
       header: ({ column }) => (
         <button
@@ -96,15 +108,23 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div>
-          {row.original.status === OperatorStatus.INVITED ? (
-            <p className="text-yellow-500 font-semibold">Invited</p>
-          ) : row.original.status === OperatorStatus.REGISTERED ? (
-            <p className="text-green-600 font-semibold">Registered</p>
+        <>
+          {row.original.source === TicketSources.CARMA ? (
+            <div>
+              <p className="text-green-600 font-semibold">Registered</p>
+            </div>
           ) : (
-            <p className="text-red-500 font-semibold">Suspended</p>
+            <div>
+              {row.original.status === OperatorStatus.INVITED ? (
+                <p className="text-yellow-500 font-semibold">Invited</p>
+              ) : row.original.status === OperatorStatus.REGISTERED ? (
+                <p className="text-green-600 font-semibold">Registered</p>
+              ) : (
+                <p className="text-red-500 font-semibold">Suspended</p>
+              )}
+            </div>
           )}
-        </div>
+        </>
       ),
     },
     {
@@ -271,19 +291,21 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       header: "",
       cell: ({ row }) => (
         <div className="flex justify-end">
-          <button
-            onClick={() => {
-              handleShowDetail(row.original.id);
-            }}
-            className="p-2 rounded-md hover:bg-gray-100"
-          >
-            <Image
-              src="/img/icons/actions.svg"
-              alt="icon"
-              height={4.5}
-              width={4.5}
-            />
-          </button>
+          {row.original.source === TicketSources.KUPI && (
+            <button
+              onClick={() => {
+                handleShowDetail(row.original.id);
+              }}
+              className="p-2 rounded-md hover:bg-gray-100"
+            >
+              <Image
+                src="/img/icons/actions.svg"
+                alt="icon"
+                height={4.5}
+                width={4.5}
+              />
+            </button>
+          )}
         </div>
       ),
       enableSorting: false,

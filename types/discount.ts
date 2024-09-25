@@ -4,10 +4,10 @@ import { OperatorsType } from "./transactions";
 export interface DiscountFormData {
   discountname: string;
   percentage: number;
-  source: string;
+  source: string[];
   count: number;
   date: string;
-  operatorId: string;
+  selectedOperators: string[];
   destinationCityId: string;
   arrivalCityId: string;
 }
@@ -19,8 +19,8 @@ export enum TicketSources {
 
 export type discountDataType = {
   discount: Discounts;
-  sourceCity: Cities;
-  arrivalCity: Cities;
+  sourceCity?: Cities | null;
+  arrivalCity?: Cities | null;
 };
 
 export type DiscountActionReturn = {
@@ -76,3 +76,5 @@ export interface FilterProps {
     mode?: "insensitive";
   };
 }
+
+export const sources = ["CARMA", "KUPI"];

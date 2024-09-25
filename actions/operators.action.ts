@@ -128,6 +128,7 @@ export async function AddOperator(
         name: formData.name,
         description: formData.description || "",
         status: OperatorStatus.INVITED,
+        source: "KUPI",
       },
     });
 

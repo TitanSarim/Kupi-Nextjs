@@ -106,6 +106,7 @@ model Operators {
   transactions Transactions[]
   routes       Routes[]
   busses       Busses[]
+  source       TicketSources
 }
 
 model Busses {
@@ -193,21 +194,21 @@ model Tickets {
 }
 
 model Discounts {
-  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
   name            String
-  operatorIds     String[]       @db.ObjectId
-  operators       Operators      @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
-  departureCityId String         @db.ObjectId
-  departureCity   Cities         @relation("departureCityDiscount", fields: [departureCityId], references: [id], onDelete: Cascade)
-  arrivalCityId   String         @db.ObjectId
-  arrivalCity     Cities         @relation("arrivalCityDiscount", fields: [arrivalCityId], references: [id], onDelete: Cascade)
-  source          TicketSources?
+  operatorIds     String[]        @db.ObjectId
+  operators       Operators?      @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  departureCityId String?         @db.ObjectId
+  departureCity   Cities?         @relation("departureCityDiscount", fields: [departureCityId], references: [id], onDelete: Cascade)
+  arrivalCityId   String?         @db.ObjectId
+  arrivalCity     Cities?         @relation("arrivalCityDiscount", fields: [arrivalCityId], references: [id], onDelete: Cascade)
+  source          TicketSources[]
   maxUseCount     Int?
   percentage      Int?
   expiryDate      DateTime?
   tickets         Tickets[]
   isDeleted       Boolean
-  createdAt       DateTime       @default(now())
+  createdAt       DateTime        @default(now())
 }
 
 model Settings {

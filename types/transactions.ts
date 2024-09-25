@@ -164,4 +164,5 @@ export type OperatorsType = {
   description?: string;
   status: OperatorStatus;
   joiningDate?: Date;
+  source?: TicketSources;
 };

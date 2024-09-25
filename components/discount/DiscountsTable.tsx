@@ -117,7 +117,21 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
       ),
       cell: ({ row }) => {
         const source = row.original.discount.source;
-        return <span>[{source ? source.charAt(0) : ""}] Operator</span>;
+        return (
+          <>
+            {source && source.length <= 0 ? (
+              "All"
+            ) : (
+              <span>
+                [{source && source.length > 0 ? source?.[0]?.charAt(0) : ""}
+                {source && source.length > 1
+                  ? `, ${source?.[1]?.charAt(0)}`
+                  : ""}
+                ] Operator
+              </span>
+            )}
+          </>
+        );
       },
     },
 
@@ -134,11 +148,11 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
         <div>
           <div>
             <span className="midGray-text">Departure:</span>{" "}
-            {row.original.sourceCity.name}
+            {row.original?.sourceCity?.name}
           </div>
           <div>
             <span className="midGray-text">Arrival:</span>{" "}
-            {row.original.arrivalCity.name}
+            {row.original?.arrivalCity?.name}
           </div>
         </div>
       ),

@@ -11,6 +11,7 @@ import {
 } from "@/types/discount";
 import { Discounts } from "@prisma/client";
 import { SortOrderProps } from "@/types/ticket";
+import { revalidatePath } from "next/cache";
 
 export async function createDiscount(
   formData: DiscountFormData
@@ -22,25 +23,32 @@ export async function createDiscount(
       return null;
     }
 
-    const operatorIds = Array.isArray(formData.operatorId)
-      ? formData.operatorId
-      : [formData.operatorId];
-    const sourceEnum = formData.source.toUpperCase() as TicketSources;
+    const sourceEnumValues: TicketSources[] = formData.source.map(
+      (s: string) => {
+        if (s in TicketSources) {
+          return TicketSources[s as keyof typeof TicketSources];
+        }
+        throw new Error(`Invalid source: ${s}`);
+      }
+    );
 
     const discount = await db.discounts.create({
       data: {
         name: formData.discountname,
-        operatorIds: operatorIds,
-        departureCityId: formData.destinationCityId,
-        arrivalCityId: formData.arrivalCityId,
+        operatorIds:
+          formData.selectedOperators.length > 0
+            ? formData.selectedOperators
+            : [],
+        departureCityId: formData.destinationCityId || null,
+        arrivalCityId: formData.arrivalCityId || null,
         percentage: Number(formData.percentage),
-        source: sourceEnum,
-        maxUseCount: Number(formData.count),
+        source: sourceEnumValues.length > 0 ? sourceEnumValues : [],
+        maxUseCount: Number(formData.count) || null,
         expiryDate: new Date(formData.date),
         isDeleted: false,
       },
     });
-
+    revalidatePath("/app/discounts");
     return discount || null;
   } catch (error) {
     console.error(error);
@@ -59,11 +67,14 @@ export async function updateDiscount(
       return null;
     }
 
-    const operatorIds = Array.isArray(formData.operatorId)
-      ? formData.operatorId
-      : [formData.operatorId];
-
-    const sourceEnum = formData.source.toUpperCase() as TicketSources;
+    const sourceEnumValues: TicketSources[] = formData.source.map(
+      (s: string) => {
+        if (s in TicketSources) {
+          return TicketSources[s as keyof typeof TicketSources];
+        }
+        throw new Error(`Invalid source: ${s}`);
+      }
+    );
 
     const discount = await db.discounts.update({
       where: {
@@ -71,17 +82,20 @@ export async function updateDiscount(
       },
       data: {
         name: formData.discountname,
-        operatorIds: operatorIds,
-        departureCityId: formData.destinationCityId,
-        arrivalCityId: formData.arrivalCityId,
+        operatorIds:
+          formData.selectedOperators.length > 0
+            ? formData.selectedOperators
+            : [],
+        departureCityId: formData.destinationCityId || null,
+        arrivalCityId: formData.arrivalCityId || null,
         percentage: Number(formData.percentage),
-        source: sourceEnum,
-        maxUseCount: Number(formData.count),
+        source: sourceEnumValues.length > 0 ? sourceEnumValues : [],
+        maxUseCount: Number(formData.count) || null,
         expiryDate: new Date(formData.date),
         isDeleted: false,
       },
     });
-
+    revalidatePath("/app/discounts");
     return discount || null;
   } catch (error) {
     console.error(error);
@@ -153,7 +167,6 @@ export async function getAllDiscount(searchParams: {
       if (
         field === "name" ||
         field === "percentage" ||
-        field === "source" ||
         field === "expiryDate"
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });

@@ -19,14 +19,8 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Cities, Discounts, Operators } from "@prisma/client";
 import { updateDiscount } from "@/actions/discount.actions";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
 import { OperatorsType } from "@/types/transactions";
+import { sources } from "@/types/discount";
 
 interface DialogProps {
   open: boolean;
@@ -46,11 +40,10 @@ const UpdateDiscount: React.FC<DialogProps> = ({
   const [discountId, setDiscountId] = useState<string>("");
   const [discountname, setDiscountname] = useState<string>("");
   const [percentage, setPercentage] = useState<number>(0);
-  const [source, setSource] = useState<string>("");
+  const [source, setSource] = useState<string[]>([]);
   const [count, setCount] = useState<number>(0);
   const [date, setDate] = useState<string>("");
-  const [operator, setOperator] = useState<string>("");
-  const [operatorId, setOperatorId] = useState<string>("");
+  const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
   const [destinationCity, setDestinationCity] = useState<string>("");
   const [destinationCityId, setDestinationCityId] = useState<string>("");
   const [arrivalCity, setArrivalCity] = useState<string>("");
@@ -58,8 +51,8 @@ const UpdateDiscount: React.FC<DialogProps> = ({
   const [openDestination, setOpenDestination] = useState(false);
   const [openArrival, setOpenArrival] = useState(false);
   const [openOperator, setOpenOperator] = useState(false);
+  const [openSource, setOpenSource] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorState, setErrorState] = useState<[string, boolean]>(["", false]);
 
   const handlePercentageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -73,6 +66,26 @@ const UpdateDiscount: React.FC<DialogProps> = ({
     onClose();
   };
 
+  const handleOperatorSelect = (id: string) => {
+    setSelectedOperators((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((id) => id !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  const handleSourceChange = (value: string) => {
+    setSource((prev) => {
+      if (prev.includes(value)) {
+        return prev.filter((item) => item !== value);
+      } else {
+        return [...prev, value];
+      }
+    });
+  };
+
   useEffect(() => {
     if (discount && Array.isArray(discount) === false) {
       setDiscountname(discount.name || "");
@@ -84,62 +97,45 @@ const UpdateDiscount: React.FC<DialogProps> = ({
           ? new Date(discount.expiryDate).toISOString().split("T")?.[0]
           : ""
       );
-      const matchingOperator = operators.find(
-        (operator) => operator.id === discount.operatorIds?.[0]
-      );
       const matchingArrival = cities.find(
         (city) => city.id === discount.arrivalCityId
       );
       const matchingDestination = cities.find(
         (city) => city.id === discount.departureCityId
       );
-      if (matchingOperator) {
-        setOperator(matchingOperator.name);
-      }
       if (matchingArrival) {
         setArrivalCity(matchingArrival.name);
       }
       if (matchingDestination) {
         setDestinationCity(matchingDestination.name);
       }
-      if (discount.source !== source) {
-        setSource(discount.source || "");
-      }
-      setOperatorId(discount.operatorIds[0] || "");
       setDestinationCityId(discount.departureCityId || "");
       setArrivalCityId(discount.arrivalCityId || "");
+      const selectedIds = discount.operatorIds || [];
+      setSelectedOperators(selectedIds);
+      const sources = discount.source || [];
+      setSource(sources);
     }
   }, [cities, discount, operators, source]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorState(["", false]);
     const formData = {
       discountname,
       percentage,
       source,
       count,
       date,
-      operatorId,
+      selectedOperators,
       destinationCityId,
       arrivalCityId,
     };
-    for (const [key, value] of Object.entries(formData)) {
-      if (typeof value === "string" && !value.length) {
-        setErrorState([key, true]);
-        return;
-      } else if (typeof value === "number" && value <= 0) {
-        setErrorState([key, true]);
-        return;
-      }
-    }
     setLoading(true);
     try {
       await updateDiscount(formData, discountId);
     } catch (error) {
       console.error(error);
     } finally {
-      setErrorState(["", false]);
       setLoading(false);
       onClose();
     }
@@ -198,21 +194,25 @@ const UpdateDiscount: React.FC<DialogProps> = ({
             <Popover open={openOperator} onOpenChange={setOpenOperator}>
               <PopoverTrigger
                 asChild
-                className="w-full  h-12 rounded-lg  text-gray-500 border-gray-300"
+                className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
               >
                 <Button
                   variant="outline"
                   role="combobox"
-                  aria-expanded={open}
+                  aria-expanded={openOperator}
                   className="w-full justify-between outline-none"
                 >
-                  {operator || "Select operator"}
+                  {selectedOperators.length > 0
+                    ? selectedOperators
+                        .map((id) => operators.find((op) => op.id === id)?.name)
+                        .join(", ")
+                    : "Select operator"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0 select-discount-dropdown">
                 <Command>
-                  <CommandInput placeholder="Search city..." />
+                  <CommandInput placeholder="Search operator..." />
                   <CommandList className="w-full">
                     <CommandEmpty>No operator found.</CommandEmpty>
                     <CommandGroup>
@@ -220,36 +220,33 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                         key="clear"
                         value=""
                         onSelect={() => {
-                          setOperator("");
-                          setOperatorId("");
+                          setSelectedOperators([]);
                           setOpenOperator(false);
                         }}
                         className="cursor-pointer w-full"
                       >
                         <Check
                           className={`mr-2 h-4 w-4 ${
-                            operator === "" ? "opacity-100" : "opacity-0"
+                            selectedOperators.length === 0
+                              ? "opacity-100"
+                              : "opacity-0"
                           }`}
                         />
                         Clear
                       </CommandItem>
                       {operators &&
-                        operators?.map((data) => (
+                        operators.map((data) => (
                           <CommandItem
                             key={data.id}
                             value={data.name}
-                            onSelect={(currentValue) => {
-                              setOperator(
-                                currentValue === operator ? "" : currentValue
-                              );
-                              setOperatorId(data.id);
-                              setOpenOperator(false);
+                            onSelect={() => {
+                              handleOperatorSelect(data.id); // Use the handleOperatorSelect function
                             }}
                             className="cursor-pointer w-full"
                           >
                             <Check
                               className={`mr-2 h-4 w-4 ${
-                                data.name === destinationCity
+                                selectedOperators.includes(data.id)
                                   ? "opacity-100"
                                   : "opacity-0"
                               }`}
@@ -262,9 +259,6 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 </Command>
               </PopoverContent>
             </Popover>
-            {errorState[1] && errorState[0] === "operatorId" && (
-              <p className="text-red-500">Operator is required.</p>
-            )}
           </div>
           {/* break */}
           <div className="hrGap w-full my-2 bg-gray-300"></div>
@@ -342,9 +336,6 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 </Command>
               </PopoverContent>
             </Popover>
-            {errorState[1] && errorState[0] === "destinationCityId" && (
-              <p className="text-red-500">City is required.</p>
-            )}
           </div>
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -417,22 +408,72 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 </Command>
               </PopoverContent>
             </Popover>
-            {errorState[1] && errorState[0] === "arrivalCityId" && (
-              <p className="text-red-500">City is required.</p>
-            )}
           </div>
           {/* citites */}
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">Source</p>
-            <Select value={source} onValueChange={setSource} required>
-              <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-300">
-                <SelectValue placeholder="Select source" />
-              </SelectTrigger>
-              <SelectContent className="select-dropdown z-50">
-                <SelectItem value="CARMA">Carma</SelectItem>
-                <SelectItem value="KUPI">Kupi</SelectItem>
-              </SelectContent>
-            </Select>
+            <Popover open={openSource} onOpenChange={setOpenSource}>
+              <PopoverTrigger
+                asChild
+                className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
+              >
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openSource}
+                  className="w-full justify-between outline-none"
+                >
+                  {source.length > 0 ? source.join(", ") : "Select source..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 select-discount-dropdown">
+                <Command>
+                  {/* <CommandInput placeholder="Search city..." /> */}
+                  <CommandList className="w-full">
+                    <CommandEmpty>No city found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setSource([]);
+                          setOpenSource(false);
+                        }}
+                        className="cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            source.length === 0 ? "opacity-100" : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
+                      {sources &&
+                        sources.map((data: string) => (
+                          <CommandItem
+                            key={data}
+                            value={data}
+                            onSelect={() => {
+                              handleSourceChange(data);
+                            }}
+                            className="cursor-pointer w-full"
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                source.includes(data)
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {data}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -442,7 +483,6 @@ const UpdateDiscount: React.FC<DialogProps> = ({
               type="number"
               value={count}
               onChange={(e) => setCount(Number(e.target.value))}
-              required
               min={0}
               max={99}
               placeholder="Enter source"
@@ -457,8 +497,8 @@ const UpdateDiscount: React.FC<DialogProps> = ({
               type="date"
               value={date || ""}
               onChange={(e) => setDate(e.target.value)}
-              required
               placeholder="DD/MM/YYYY"
+              required
               className="h-12 w-full flex flex-row justify-between rounded-lg text-gray-500 border-gray-300 bg-white"
             />
           </div>
