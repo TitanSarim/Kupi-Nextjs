@@ -57,6 +57,13 @@ export type PaymentReference = {
   status: string;
 };
 
+export type carmaDetails = {
+  selectedAvailability: {
+    id: string;
+    carrier: string;
+  };
+};
+
 export type TransactionsType = {
   transactions: Transactions;
   customer?: Customers | null;
@@ -65,6 +72,7 @@ export type TransactionsType = {
   bus?: Busses | null;
   sourceCity?: Cities | null;
   arrivalCity?: Cities | null;
+  carmaDetails?: carmaDetails | null;
 };
 
 export type TransactionReturn = {

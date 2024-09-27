@@ -49,7 +49,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
           </button>
         </div>
 
-        <div className="w-full flex flex-row justify-between items-start">
+        <div className="w-full flex flex-row justify-between inner-dialguebox items-start">
           <div className="flex w-full flex-col items-start">
             <div className="relative w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
               {TicketData?.tickets.status === TicketStatus.CONFIRMED && (
@@ -205,11 +205,11 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
             </div>
           </div>
 
-          <div className="relative h-full passenger_info_dialgue bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-start gap-4 border-2">
+          <div className="relative passenger_info_dialgue bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-start gap-4 border-2">
             <p className="text-black font-semibold text-md">
               Passengers Information
             </p>
-            <div className="w-full flex flex-col gap-3">
+            <div className="w-full passenger_info_dialgue_inner flex flex-col gap-3">
               {TicketData?.passengerDetails?.map((passenger, i) => (
                 <div
                   className="flex w-full flex-col justify-between border-b-2 pb-2"

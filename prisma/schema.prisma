@@ -19,7 +19,7 @@ model Users {
   role          UserRoles? @relation(fields: [roleId], references: [id], onDelete: Cascade)
   email         String?    @unique
   emailVerified DateTime?
-  image         String?
+  image         File?
   company       String?
   description   String?
   createdAt     DateTime   @default(now())

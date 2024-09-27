@@ -4,10 +4,40 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { registerUser } from "../actions/registerUser";
 import Link from "next/link";
+import {
+  maxLength,
+  validateEmail,
+  isAlphabetic,
+  validateWhatsAppNumber,
+  validatePassword,
+} from "../libs/ClientSideHelpers";
+import ErrorMessage from "@/components/ErrorMessage";
+import InputField from "@/components/InputField";
+
+// types for form data and errors
+interface FormData {
+  name: string;
+  surname: string;
+  email: string;
+  password: string;
+  company: string;
+  description: string;
+  number: string;
+}
+
+interface FormErrors {
+  name?: string;
+  surname?: string;
+  email?: string;
+  password?: string;
+  company?: string;
+  description?: string;
+  number?: string;
+  form?: string;
+}
 
 const SignupForm = () => {
-  // States for form data, error, loading, and password visibility
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     surname: "",
     email: "",
@@ -16,17 +46,75 @@ const SignupForm = () => {
     description: "",
     number: "",
   });
-  const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Function to handle form data changes
+  // Centralized validation function
+  const validateField = (name: keyof FormData, value: string): string => {
+    const capitalize = (str: string) =>
+      str.charAt(0).toUpperCase() + str.slice(1);
+
+    if (name === "name" || name === "surname") {
+      if (!maxLength(value, 20)) {
+        return `${capitalize(name)} should not exceed 20 characters.`;
+      } else if (!isAlphabetic(value)) {
+        return `${capitalize(name)} should only contain alphabetic characters.`;
+      }
+    } else if (name === "email" && !validateEmail(value)) {
+      return "Please enter a valid email address.";
+    } else if (name === "number" && !validateWhatsAppNumber(value)) {
+      return "Please enter a valid WhatsApp number.";
+    } else if (name === "password" && !validatePassword(value)) {
+      return "Password must include a capital letter, a number, a symbol, and be at least 8 characters long.";
+    }
+    return "";
+  };
+
+  const validateAllFieldsSequentially = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    for (const key in formData) {
+      const error = validateField(
+        key as keyof FormData,
+        formData[key as keyof FormData]
+      );
+      if (error) {
+        newErrors[key as keyof FormErrors] = error;
+        setErrors(newErrors);
+        return false;
+      }
+    }
+
+    setErrors(newErrors);
+    return true;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Limit the length of 'name', 'surname', and 'company' fields to 20 characters
+    if (
+      (name === "name" || name === "surname" || name === "company") &&
+      value.length > 20
+    ) {
+      return;
+    }
+
+    // Convert email field to lowercase
+    const newValue = name === "email" ? value.toLowerCase() : value;
+
+    setFormData((prevData) => ({ ...prevData, [name]: newValue }));
+
+    // Clear errors on change only if the form hasn't been submitted yet
+    if (!submitted) {
+      setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+    }
   };
 
   useEffect(() => {
@@ -48,19 +136,25 @@ const SignupForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setSubmitted(true);
 
+    // Validate all fields sequentially
+    const isValid = validateAllFieldsSequentially();
+
+    if (!isValid) {
+      return;
+    }
+
+    setLoading(true);
     try {
       const response = await registerUser(formData);
-
       if (response?.error) {
-        setError(response.error);
+        setErrors({ form: response.error });
       } else {
         router.push(`/verification-code?email=${formData.email}`);
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      setErrors({ form: "An unexpected error occurred. Please try again." });
     } finally {
       setLoading(false);
     }
@@ -74,157 +168,80 @@ const SignupForm = () => {
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <div className="mt-5">
-          <label className="text-dark-grey text-md font-semibold">
-            Name<span className="text-kupi-yellow">*</span>
-          </label>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/user.svg"
-                alt="User Icon"
-              />
-            </div>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="Enter name"
-              required
-            />
-          </div>
-        </div>
-        <div className="mt-5">
-          <label className="text-dark-grey text-md font-semibold">
-            Surname<span className="text-kupi-yellow">*</span>
-          </label>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/user.svg"
-                alt="User Icon"
-              />
-            </div>
-            <input
-              type="text"
-              name="surname"
-              value={formData.surname}
-              onChange={handleChange}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="Enter surname"
-              required
-            />
-          </div>
-        </div>
-        <div className="mt-5">
-          <label className="text-dark-grey text-md font-semibold">
-            Whatsapp Number<span className="text-kupi-yellow">*</span>
-          </label>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/whatsapp.svg"
-                alt="Whatsapp Icon"
-              />
-            </div>
-            <input
-              type="text"
-              name="number"
-              value={formData.number}
-              onChange={handleChange}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="Enter phone"
-              required
-            />
-          </div>
-        </div>
-        <div className="mt-5">
-          <label className="text-dark-grey text-md font-semibold">
-            Email<span className="text-kupi-yellow">*</span>
-          </label>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/email.svg"
-                alt="Email Icon"
-              />
-            </div>
-            <input
-              type="email"
-              name="email"
-              disabled
-              value={formData.email}
-              onChange={handleChange}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="demo@email.com"
-              required
-            />
-          </div>
-        </div>
-        <div className="mt-5">
-          <h5 className="text-dark-grey text-md font-semibold">
-            Password<span className="text-kupi-yellow">*</span>
-          </h5>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/password.svg"
-                alt="Password Icon"
-              />
-            </div>
-            <div
-              className="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer"
-              onClick={togglePasswordVisibility}
-            >
-              <img
-                className="w-5"
-                src={`/img/auth-screens/${
-                  showPassword ? "view-on.svg" : "view-off.svg"
-                }`}
-                alt={showPassword ? "Hide Password" : "Show Password"}
-              />
-            </div>
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="********"
-              required
-            />
-          </div>
-        </div>
-        <div className="mt-5">
-          <label className="text-dark-grey text-md font-semibold">
-            Company<span className="text-kupi-yellow">*</span>
-          </label>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center pointer-events-none border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/company.svg"
-                alt="Company Icon"
-              />
-            </div>
-            <input
-              type="text"
-              name="company"
-              value={formData.company}
-              onChange={handleChange}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="Company name"
-              required
-            />
-          </div>
-        </div>
+        <InputField
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="Enter name"
+          label="Name"
+          iconSrc="/img/auth-screens/user.svg"
+          error={submitted ? errors.name : ""}
+          disabled={loading}
+        />
+
+        <InputField
+          type="text"
+          name="surname"
+          value={formData.surname}
+          onChange={handleChange}
+          placeholder="Enter surname"
+          label="Surname"
+          iconSrc="/img/auth-screens/user.svg"
+          error={submitted ? errors.surname : ""}
+          disabled={loading}
+        />
+
+        <InputField
+          type="text"
+          name="number"
+          value={formData.number}
+          onChange={handleChange}
+          placeholder="Enter phone"
+          label="Whatsapp Number"
+          iconSrc="/img/auth-screens/whatsapp.svg"
+          error={submitted ? errors.number : ""}
+          disabled={loading}
+        />
+
+        <InputField
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="demo@email.com"
+          label="Email"
+          iconSrc="/img/auth-screens/email.svg"
+          error={submitted ? errors.email : ""}
+          disabled={loading}
+        />
+
+        <InputField
+          type={showPassword ? "text" : "password"}
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="********"
+          label="Password"
+          iconSrc="/img/auth-screens/password.svg"
+          showPasswordToggle={true}
+          togglePasswordVisibility={togglePasswordVisibility}
+          error={submitted ? errors.password : ""}
+          disabled={loading}
+        />
+
+        <InputField
+          type="text"
+          name="company"
+          value={formData.company}
+          onChange={handleChange}
+          placeholder="Company name"
+          label="Company"
+          iconSrc="/img/auth-screens/company.svg"
+          error={submitted ? errors.company : ""}
+          disabled={loading}
+        />
+
         <div className="mt-5">
           <label className="text-dark-grey text-md font-semibold">
             Company Description<span className="text-kupi-yellow">*</span>
@@ -234,12 +251,17 @@ const SignupForm = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="px-4 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full outline-none"
+              className={`px-4 py-2 bg-transparent border-b ${
+                errors.description ? "border-red-500" : "border-gray-900"
+              } text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full outline-none`}
               placeholder="Type something about your company for customers to see"
               required
+              disabled={loading}
             ></textarea>
+            <ErrorMessage message={submitted ? errors.description : ""} />
           </div>
         </div>
+
         <button
           type="submit"
           className={`${
@@ -249,7 +271,7 @@ const SignupForm = () => {
         >
           {loading ? "Please Wait..." : "Create Account"}
         </button>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
+        <ErrorMessage message={submitted ? errors.form : ""} />
       </form>
       <div className="flex justify-center mt-5">
         <label className="text-dark-grey text-md font-semibold text-center">

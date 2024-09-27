@@ -119,10 +119,12 @@ const ManualTransactionList: React.FC<ManualTransactionReturn> = ({
           <p className="mb-1 darkGray-text font-normal text-sm">Select Date</p>
           <Datepicker
             primaryColor={"yellow"}
+            useRange={false}
             value={value}
             onChange={handleValueChange}
-            showShortcuts={true}
+            showShortcuts={false}
             inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg"
+            popoverDirection="down"
           />
         </div>
       </div>

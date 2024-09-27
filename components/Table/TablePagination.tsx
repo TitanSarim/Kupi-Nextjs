@@ -48,19 +48,31 @@ const TablePagination: React.FC<PaginationComponentProps> = ({
   };
 
   const pageNumbers = (() => {
-    const firstTwoPages = [1, 2];
     const lastPage = pageCount;
 
     if (pageCount <= 4) {
       return range(1, pageCount);
     }
 
-    if (pageIndex + 1 <= 2) {
+    if (pageIndex + 1 <= 1) {
       return [...range(1, 2), "...", lastPage];
     } else if (pageIndex + 1 >= pageCount - 1) {
       return [1, "...", ...range(pageCount - 2, pageCount)];
     } else {
-      return [1, "...", pageIndex + 1, "...", lastPage];
+      // Define the current page
+      const currentPage = pageIndex + 1; // Adjusting to 1-based index
+      const showPreviousPage = currentPage - 1; // One page before current
+      const showNextPage = currentPage + 1; // One page after current
+
+      return [
+        ...(showPreviousPage > 1 ? [1] : []), // Show 1 only if there's a page before the current page
+        ...(showPreviousPage > 1 ? ["..."] : []), // Add ellipsis if needed
+        ...(showPreviousPage >= 1 ? [showPreviousPage] : []), // Show the previous page if it exists
+        currentPage, // Always show the current page
+        ...(showNextPage < lastPage ? [showNextPage] : []), // Show the next page if it exists
+        ...(showNextPage < lastPage ? ["..."] : []), // Add ellipsis if there are more pages after
+        ...(showNextPage < lastPage ? [lastPage] : []), // Include lastPage if needed
+      ];
     }
   })();
 

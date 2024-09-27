@@ -22,12 +22,6 @@ const Page = () => {
       >
         Login
       </button>
-      <button
-        className="px-4 py-2 bg-green-500 text-white rounded-md"
-        onClick={handleSignup}
-      >
-        Sign Up
-      </button>
     </div>
   );
 };

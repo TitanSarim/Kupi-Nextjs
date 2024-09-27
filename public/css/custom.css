@@ -63,82 +63,75 @@
   src: url(../font/Geomanist/Geomanist-Regular.otf);
 }
 
-.ml_20
-{
+.ml_20 {
   margin-left: -20px;
 }
 
-.inline-flex
-{
+.inline-flex {
   display: inline-flex;
 }
 
-.mt_5
-{
+.mt_5 {
   margin: -3px 0 0 0;
 }
 
-.rounded-popup
-{
+.rounded-popup {
   border-radius: 1.3rem;
 }
 
-.btnPadding
-{
+.btnPadding {
   padding: 0.45rem 1rem;
 }
 
-.input[type=checkbox]{
-	height: 0;
-	width: 0;
-	visibility: hidden;
+.input[type=checkbox] {
+  height: 0;
+  width: 0;
+  visibility: hidden;
 }
 
 .label {
-	cursor: pointer;
-    text-indent: -9999px;
-    width: 40px;
-    height: 23px;
-    background: white;
-    display: block;
-    border-radius: 100px;
-    position: relative;
-    border: 1px solid #57707A;
+  cursor: pointer;
+  text-indent: -9999px;
+  width: 40px;
+  height: 23px;
+  background: white;
+  display: block;
+  border-radius: 100px;
+  position: relative;
+  border: 1px solid #57707A;
 }
 
 .label:after {
-	content: '';
-    position: absolute;
-    top: 2px;
-    left: 3px;
-    width: 17px;
-    height: 17px;
-    background: #57707A;
-    border-radius: 90px;
-    transition: 0.3s;
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  background: #57707A;
+  border-radius: 90px;
+  transition: 0.3s;
 }
 
-.input:checked + label {
-	background: white;
+.input:checked+label {
+  background: white;
   border: 1px solid #FFC107;
 }
 
-.input:checked + label:after {
-	left: calc(100% - 5px);
-	transform: translateX(-100%);
+.input:checked+label:after {
+  left: calc(100% - 5px);
+  transform: translateX(-100%);
 }
 
 .label:active:after {
-	width: 130px;
+  width: 130px;
 }
 
-.mt_13
-{
+.mt_13 {
   margin-top: -13px;
 }
 
-.auth-login::after
-{
+.auth-login::after {
   content: '';
   width: 230px;
   height: 100%;
@@ -148,8 +141,7 @@
   background-repeat: no-repeat;
 }
 
-.auth-signup::before
-{
+.auth-signup::before {
   content: '';
   width: 230px;
   height: 1030px;
@@ -159,24 +151,27 @@
   background-repeat: no-repeat;
   max-height: 833px !important;
   min-height: 100% !important;
-} 
+}
 
 
 
 
 
-.bottom-4
-{
+.bottom-4 {
   bottom: 4px;
 }
-.auth-login, .auth-signup {
+
+.auth-login,
+.auth-signup {
   font-family: 'Geomanist', sans-serif !important;
-  
+
 }
 
 .loader {
-  border: 4px solid #f3f3f3; /* Light grey */
-  border-top: 4px solid #3498db; /* Blue */
+  border: 4px solid #f3f3f3;
+  /* Light grey */
+  border-top: 4px solid #3498db;
+  /* Blue */
   border-radius: 50%;
   width: 20px;
   height: 20px;
@@ -187,7 +182,16 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
+}
+
+.error-message {
+  min-height: 1.5em;
+
+  color: red;
+  margin-top: 0.25em;
+
 }

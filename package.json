@@ -54,6 +54,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
+    "react-easy-crop": "^5.0.8",
+    "react-hot-toast": "^2.4.1",
     "react-tailwindcss-datepicker": "^1.7.2",
     "rxjs": "^7.8.1",
     "tailwind-merge": "^2.5.2",

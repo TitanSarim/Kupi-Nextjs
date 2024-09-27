@@ -77,6 +77,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value.replace(/\D/g, "");
+    if (value.length === 0) {
+      setBookingAt("00:00");
+      return;
+    }
     const numericValue = Math.max(0, Math.min(59, parseInt(value, 10)));
     const minutes = Math.floor(numericValue / 60);
     const seconds = numericValue % 60;
@@ -209,10 +213,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md px-8 py-8">
+      <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md px-8 py-6">
         <p className="text-lg text-black font-semibold">Admin Settings</p>
-        <div className="relative mt-10 w-full flex flex-wrap items-start justify-between gap-3">
-          <div className="w-5/12 mb-5">
+        <div className="relative mt-6 w-full flex flex-wrap items-start justify-between gap-3">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal pb-1">
               Global Exchange Rate
               <span className="text-gray-500">
@@ -231,7 +235,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal pb-1">
               Kupi Commission
             </p>
@@ -244,7 +248,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               required
             />
           </div>
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal pb-1">Kupi Markup</p>
             <Input
               type="text"
@@ -255,7 +259,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               required
             />
           </div>
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal pb-1">
               Carma Comission
             </p>
@@ -271,7 +275,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
               Number of Ticket Per Route
               <span>
@@ -304,7 +308,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
               Close Booking at 30 minutes before Departure
               <span>
@@ -332,13 +336,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               placeholder="00:00"
               value={bookingAt}
               onChange={handleBookingAtRateChange}
-              // min={0}
-              // max={59}
               required
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal pb-1">
               Email Reminder<span className="text-gray-500"> [days]</span>
             </p>

@@ -72,17 +72,24 @@ const TicketTable: React.FC<TicketsReturn> = ({
   // Table initialization
   const columns: ColumnDef<TicketsDataType>[] = [
     {
-      accessorKey: "busIdentifier",
+      accessorKey: "confirmedAt",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Bus Number <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => (
         <div>
-          <span>{row.original.tickets.busIdentifier}</span>
+          {row.original?.tickets.confirmedAt?.toLocaleTimeString("en-US", {
+            timeZone: "UTC",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </div>
       ),
     },
@@ -133,17 +140,6 @@ const TicketTable: React.FC<TicketsReturn> = ({
           </div>
         </div>
       ),
-    },
-    {
-      accessorKey: "source",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => <span>{row.original.tickets.source}</span>,
     },
     {
       accessorKey: "status",

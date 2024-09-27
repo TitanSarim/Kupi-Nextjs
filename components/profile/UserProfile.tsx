@@ -35,9 +35,10 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    field: string
+    field: string,
+    maxLength: number
   ) => {
-    const newValue = e.target.value;
+    const newValue = filterAlpha(e.target.value, maxLength); // Apply the filterAlpha function
     setFormData((prevData) => ({
       ...prevData,
       [field]: newValue,
@@ -56,7 +57,9 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     const minLength = /.{8,}/;
     const hasUpperCase = /[A-Z]/;
     const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/;
-
+    if (password.length === 0) {
+      return null;
+    }
     if (!minLength.test(password)) {
       return "Password must be at least 8 characters long.";
     }
@@ -119,37 +122,37 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
   };
 
   return (
-    <form className="w-11/12 mt-12" onSubmit={handleSubmit}>
+    <form className="w-11/12 mt-4" onSubmit={handleSubmit}>
       <div className="bg-white w-full shadow-sm rounded-md px-8 py-8">
         {/* Update Profile */}
         <p className="text-lg text-black font-semibold">Personal Information</p>
 
-        <div className="relative mt-10 w-full flex flex-wrap items-start justify-between gap-3">
-          <div className="w-5/12 mb-5">
+        <div className="relative mt-5 w-full flex flex-wrap items-start justify-between gap-3">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal">
               Name<span className="text-yellow-400">*</span>
             </p>
             <Input
               type="text"
               value={formData.name}
-              onChange={(e) => handleInputChange(e, "name")}
+              onChange={(e) => handleInputChange(e, "name", 15)}
               className="h-12 border-gray-400 rounded-lg"
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal">
               Surname<span className="text-yellow-400">*</span>
             </p>
             <Input
               type="text"
               value={formData.surname}
-              onChange={(e) => handleInputChange(e, "surname")}
+              onChange={(e) => handleInputChange(e, "surname", 15)}
               className="h-12 border-gray-400 rounded-lg"
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal">
               Email Address<span className="text-yellow-400">*</span>
             </p>
@@ -161,7 +164,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal">
               Phone Number<span className="text-yellow-400">*</span>
             </p>
@@ -173,7 +176,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
             />
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal">
               Password<span className="text-yellow-400">*</span>
             </p>
@@ -189,7 +192,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
             )}
           </div>
 
-          <div className="w-5/12 mb-5">
+          <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal">
               Re-enter New Password<span className="text-yellow-400">*</span>
             </p>
@@ -205,6 +208,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
             )}
           </div>
         </div>
+        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
       </div>
 
       <div className="w-full mt-5 mb-8 flex flex-row items-center justify-end gap-4">

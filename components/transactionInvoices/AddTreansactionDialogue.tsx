@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -10,8 +10,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useDropzone } from "react-dropzone";
-import { createInvoice, getBusOperators } from "@/actions/transactions.actions";
-import { Operators } from "@prisma/client";
+import { createInvoice } from "@/actions/transactions.actions";
 import { OperatorsType } from "@/types/transactions";
 
 interface DialogProps {

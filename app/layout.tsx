@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import "/public/css/style.css";
 import "/public/css/custom.css";
 import "/global.css";
-
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,18 +20,16 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
- 
-
-  const session = await auth().catch(() => null) ?? null;
+  const session = (await auth().catch(() => null)) ?? null;
 
   return (
     <SessionProvider session={session}>
       <html lang="en">
         <body className={inter.className}>
+          <Toaster position="top-right" reverseOrder={true} />
           {children}
         </body>
       </html>
     </SessionProvider>
   );
 }
-

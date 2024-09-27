@@ -15,6 +15,7 @@ import { Prisma, Transactions } from "@prisma/client";
 import { getSignedURL, uploadPdfToS3 } from "@/libs/s3";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
+import { SortOrderProps } from "@/types/ticket";
 
 export async function getAllTransactions(searchParams: {
   carrier?: string;
@@ -91,14 +92,37 @@ export async function getAllTransactions(searchParams: {
           customer: { name: order === "asc" ? "asc" : "desc" },
         });
       }
-      if (field === "ticketId") {
-        sortOrder.push({ paidAt: order === "asc" ? "asc" : "desc" });
+      if (field === "source" || field === "ticketId") {
+        sortOrder.push({
+          tickets: {
+            _count: order === "asc" ? "asc" : "desc",
+          },
+        });
       }
-      if (field === "totalAmount" || field === "paidAt") {
+      if (
+        field === "totalAmount" ||
+        field === "paidAt" ||
+        field === "paymentMethod"
+      ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
     } else {
       sortOrder.push({ paidAt: "desc" });
+    }
+    const ticketsSortOrder: Array<Prisma.TicketsOrderByWithAggregationInput> =
+      [];
+    if (sort) {
+      const [field, order] = sort.split("_");
+      if (field === "operator") {
+        ticketsSortOrder.push({
+          busIdentifier: order === "asc" ? "asc" : "desc",
+        });
+      }
+      if (field === "source") {
+        ticketsSortOrder.push({
+          source: order === "asc" ? "asc" : "desc",
+        });
+      }
     }
 
     const transactionData = await db.transactions.findMany({
@@ -120,6 +144,7 @@ export async function getAllTransactions(searchParams: {
       include: {
         customer: true,
         tickets: {
+          orderBy: ticketsSortOrder,
           include: {
             customer: true,
             bus: true,
@@ -137,6 +162,24 @@ export async function getAllTransactions(searchParams: {
     const wrappedTransactionData: TransactionsType[] = transactionData.map(
       (transaction) => {
         const firstTicket = transaction.tickets[0];
+        const carmaDetails =
+          firstTicket?.carmaDetails?.selectedAvailability &&
+          typeof firstTicket.carmaDetails.selectedAvailability === "object" &&
+          "id" in firstTicket.carmaDetails.selectedAvailability &&
+          typeof firstTicket.carmaDetails.selectedAvailability.id ===
+            "string" &&
+          "carrier" in firstTicket.carmaDetails.selectedAvailability &&
+          typeof firstTicket.carmaDetails.selectedAvailability.carrier ===
+            "string"
+            ? {
+                selectedAvailability: {
+                  id: firstTicket.carmaDetails.selectedAvailability.id,
+                  carrier:
+                    firstTicket.carmaDetails.selectedAvailability.carrier,
+                },
+              }
+            : null;
+
         return {
           transactions: transaction,
           customer: transaction?.customer,
@@ -149,6 +192,7 @@ export async function getAllTransactions(searchParams: {
           bus: firstTicket?.bus || null,
           sourceCity: firstTicket?.sourceCity || null,
           arrivalCity: firstTicket?.arrivalCity || null,
+          carmaDetails,
         };
       }
     );

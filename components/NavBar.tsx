@@ -10,7 +10,11 @@ import { signOut } from "@/auth";
 import { auth } from "@/auth";
 import Link from "next/link";
 
-const NavBar = async () => {
+type NavProps = {
+  profileImage: string;
+};
+
+const NavBar: React.FC<NavProps> = async ({ profileImage }) => {
   const session = (await auth().catch(() => null)) ?? null;
 
   return (
@@ -19,7 +23,7 @@ const NavBar = async () => {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <Avatar>
-              <AvatarImage src="/img/icons/Dummy-user.png" alt="@shadcn" />
+              <AvatarImage src={profileImage} alt="@shadcn" />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
@@ -27,7 +31,7 @@ const NavBar = async () => {
           <DropdownMenuContent className="px-6 py-4 w-48 relative">
             <div className="w-[200px] flex flex-row items-center justify-start gap-3">
               <Avatar>
-                <AvatarImage src="/img/icons/Dummy-user.png" alt="@shadcn" />
+                <AvatarImage src={profileImage} alt="@shadcn" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
               <div>

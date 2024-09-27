@@ -135,345 +135,353 @@ const AddDiscount: React.FC<DialogProps> = ({
 
         {/* form */}
         <form className="mt-5 w-full flex flex-col" onSubmit={handleSubmit}>
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Discount Name
-            </p>
-            <Input
-              type="text"
-              placeholder="Enter name"
-              value={discountname}
-              onChange={(e) => setDiscountname(e.target.value)}
-              required
-              className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-            />
-          </div>
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Discount Percentage
-            </p>
-            <Input
-              type="text"
-              placeholder="%"
-              value={percentage > 0 ? `${percentage.toFixed(0)}%` : ""}
-              onChange={handlePercentageChange}
-              required
-              className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-            />
-          </div>
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">Operator</p>
-            <Popover open={openOperator} onOpenChange={setOpenOperator}>
-              <PopoverTrigger
-                asChild
-                className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
-              >
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openOperator}
-                  className="w-full justify-between outline-none"
+          <div className="discount-dialoguebox-inner">
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Discount Name
+              </p>
+              <Input
+                type="text"
+                placeholder="Enter name"
+                value={discountname}
+                onChange={(e) => setDiscountname(e.target.value)}
+                required
+                className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
+              />
+            </div>
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Discount Percentage
+              </p>
+              <Input
+                type="text"
+                placeholder="%"
+                value={percentage > 0 ? `${percentage.toFixed(0)}%` : ""}
+                onChange={handlePercentageChange}
+                required
+                className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
+              />
+            </div>
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">Operator</p>
+              <Popover open={openOperator} onOpenChange={setOpenOperator}>
+                <PopoverTrigger
+                  asChild
+                  className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
                 >
-                  {selectedOperators.length > 0
-                    ? selectedOperators
-                        .map((id) => operators.find((op) => op.id === id)?.name)
-                        .join(", ")
-                    : "Select operator"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0 select-discount-dropdown">
-                <Command>
-                  <CommandInput placeholder="Search operator..." />
-                  <CommandList className="w-full">
-                    <CommandEmpty>No operator found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        key="clear"
-                        value=""
-                        onSelect={() => {
-                          setSelectedOperators([]); // Clear all selections
-                          setOpenOperator(false);
-                        }}
-                        className="cursor-pointer w-full"
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${
-                            selectedOperators.length === 0
-                              ? "opacity-100"
-                              : "opacity-0"
-                          }`}
-                        />
-                        Clear
-                      </CommandItem>
-                      {operators &&
-                        operators.map((data) => (
-                          <CommandItem
-                            key={data.id}
-                            value={data.name}
-                            onSelect={() => {
-                              handleOperatorSelect(data.id); // Use the handleOperatorSelect function
-                            }}
-                            className="cursor-pointer w-full"
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${
-                                selectedOperators.includes(data.id)
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
-                            />
-                            {data.name}
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-          {/* break */}
-          <div className="hrGap w-full my-2 bg-gray-300"></div>
-          {/* citites */}
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Search Departure City
-            </p>
-            <Popover open={openDestination} onOpenChange={setOpenDestination}>
-              <PopoverTrigger
-                asChild
-                className="w-full  h-12 rounded-lg  text-gray-500 border-gray-300"
-              >
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={open}
-                  className="w-full justify-between outline-none"
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openOperator}
+                    className="w-full justify-between outline-none"
+                  >
+                    {selectedOperators.length > 0
+                      ? selectedOperators
+                          .map(
+                            (id) => operators.find((op) => op.id === id)?.name
+                          )
+                          .join(", ")
+                      : "Select operator"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 select-discount-dropdown">
+                  <Command>
+                    <CommandInput placeholder="Search operator..." />
+                    <CommandList className="w-full">
+                      <CommandEmpty>No operator found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          key="clear"
+                          value=""
+                          onSelect={() => {
+                            setSelectedOperators([]); // Clear all selections
+                            setOpenOperator(false);
+                          }}
+                          className="cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              selectedOperators.length === 0
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          Clear
+                        </CommandItem>
+                        {operators &&
+                          operators.map((data) => (
+                            <CommandItem
+                              key={data.id}
+                              value={data.name}
+                              onSelect={() => {
+                                handleOperatorSelect(data.id); // Use the handleOperatorSelect function
+                              }}
+                              className="cursor-pointer w-full"
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  selectedOperators.includes(data.id)
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {data.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* break */}
+            <div className="hrGap w-full my-2 bg-gray-300"></div>
+            {/* citites */}
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Search Departure City
+              </p>
+              <Popover open={openDestination} onOpenChange={setOpenDestination}>
+                <PopoverTrigger
+                  asChild
+                  className="w-full  h-12 rounded-lg  text-gray-500 border-gray-300"
                 >
-                  {destinationCity || "Select city..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0 select-discount-dropdown">
-                <Command>
-                  <CommandInput placeholder="Search city..." />
-                  <CommandList className="w-full">
-                    <CommandEmpty>No city found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        key="clear"
-                        value=""
-                        onSelect={() => {
-                          setDestinationCity("");
-                          setDestinationCityId("");
-                          setOpenDestination(false);
-                        }}
-                        className="cursor-pointer w-full"
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${
-                            destinationCity === "" ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                        Clear
-                      </CommandItem>
-                      {cities &&
-                        cities?.map((city) => (
-                          <CommandItem
-                            key={city.id}
-                            value={city.name}
-                            onSelect={(currentValue) => {
-                              setDestinationCity(
-                                currentValue === destinationCity
-                                  ? ""
-                                  : currentValue
-                              );
-                              setDestinationCityId(city.id);
-                              setOpenDestination(false);
-                            }}
-                            className="cursor-pointer w-full"
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${
-                                city.name === destinationCity
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
-                            />
-                            {city.name}
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Search Arrival City
-            </p>
-            <Popover open={openArrival} onOpenChange={setOpenArrival}>
-              <PopoverTrigger
-                asChild
-                className="w-full  h-12 rounded-lg  text-gray-500 border-gray-300"
-              >
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openArrival}
-                  className="w-full justify-between outline-none"
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between outline-none"
+                  >
+                    {destinationCity || "Select city..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 select-discount-dropdown">
+                  <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList className="w-full">
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          key="clear"
+                          value=""
+                          onSelect={() => {
+                            setDestinationCity("");
+                            setDestinationCityId("");
+                            setOpenDestination(false);
+                          }}
+                          className="cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              destinationCity === ""
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          Clear
+                        </CommandItem>
+                        {cities &&
+                          cities?.map((city) => (
+                            <CommandItem
+                              key={city.id}
+                              value={city.name}
+                              onSelect={(currentValue) => {
+                                setDestinationCity(
+                                  currentValue === destinationCity
+                                    ? ""
+                                    : currentValue
+                                );
+                                setDestinationCityId(city.id);
+                                setOpenDestination(false);
+                              }}
+                              className="cursor-pointer w-full"
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  city.name === destinationCity
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {city.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Search Arrival City
+              </p>
+              <Popover open={openArrival} onOpenChange={setOpenArrival}>
+                <PopoverTrigger
+                  asChild
+                  className="w-full  h-12 rounded-lg  text-gray-500 border-gray-300"
                 >
-                  {arrivalCity || "Select city..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0 select-discount-dropdown">
-                <Command>
-                  <CommandInput placeholder="Search city..." />
-                  <CommandList className="w-full">
-                    <CommandEmpty>No city found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        key="clear"
-                        value=""
-                        onSelect={() => {
-                          setArrivalCity("");
-                          setArrivalCityId("");
-                          setOpenArrival(false);
-                        }}
-                        className="cursor-pointer w-full"
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${
-                            arrivalCity === "" ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                        Clear
-                      </CommandItem>
-                      {cities &&
-                        cities.map((city) => (
-                          <CommandItem
-                            key={city.id}
-                            value={city.name}
-                            onSelect={(currentValue) => {
-                              setArrivalCity(
-                                currentValue === arrivalCity ? "" : currentValue
-                              );
-                              setArrivalCityId(city.id);
-                              setOpenArrival(false);
-                            }}
-                            className="cursor-pointer w-full"
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${
-                                city.name === arrivalCity
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
-                            />
-                            {city.name}
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-          {/* citites */}
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">Source</p>
-            <Popover open={openSource} onOpenChange={setOpenSource}>
-              <PopoverTrigger
-                asChild
-                className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
-              >
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openSource}
-                  className="w-full justify-between outline-none"
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openArrival}
+                    className="w-full justify-between outline-none"
+                  >
+                    {arrivalCity || "Select city..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 select-discount-dropdown">
+                  <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList className="w-full">
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          key="clear"
+                          value=""
+                          onSelect={() => {
+                            setArrivalCity("");
+                            setArrivalCityId("");
+                            setOpenArrival(false);
+                          }}
+                          className="cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              arrivalCity === "" ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          Clear
+                        </CommandItem>
+                        {cities &&
+                          cities.map((city) => (
+                            <CommandItem
+                              key={city.id}
+                              value={city.name}
+                              onSelect={(currentValue) => {
+                                setArrivalCity(
+                                  currentValue === arrivalCity
+                                    ? ""
+                                    : currentValue
+                                );
+                                setArrivalCityId(city.id);
+                                setOpenArrival(false);
+                              }}
+                              className="cursor-pointer w-full"
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  city.name === arrivalCity
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {city.name}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            {/* citites */}
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">Source</p>
+              <Popover open={openSource} onOpenChange={setOpenSource}>
+                <PopoverTrigger
+                  asChild
+                  className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
                 >
-                  {source.length > 0 ? source.join(", ") : "Select source..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0 select-discount-dropdown">
-                <Command>
-                  {/* <CommandInput placeholder="Search city..." /> */}
-                  <CommandList className="w-full">
-                    <CommandEmpty>No city found.</CommandEmpty>
-                    <CommandGroup>
-                      <CommandItem
-                        key="clear"
-                        value=""
-                        onSelect={() => {
-                          setSource([]);
-                          setOpenSource(false);
-                        }}
-                        className="cursor-pointer w-full"
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${
-                            source.length === 0 ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                        Clear
-                      </CommandItem>
-                      {sources &&
-                        sources.map((data: string) => (
-                          <CommandItem
-                            key={data}
-                            value={data}
-                            onSelect={() => {
-                              handleSourceChange(data);
-                            }}
-                            className="cursor-pointer w-full"
-                          >
-                            <Check
-                              className={`mr-2 h-4 w-4 ${
-                                source.includes(data)
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              }`}
-                            />
-                            {data}
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openSource}
+                    className="w-full justify-between outline-none"
+                  >
+                    {source.length > 0 ? source.join(", ") : "Select source..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 select-discount-dropdown">
+                  <Command>
+                    {/* <CommandInput placeholder="Search city..." /> */}
+                    <CommandList className="w-full">
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          key="clear"
+                          value=""
+                          onSelect={() => {
+                            setSource([]);
+                            setOpenSource(false);
+                          }}
+                          className="cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              source.length === 0 ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          Clear
+                        </CommandItem>
+                        {sources &&
+                          sources.map((data: string) => (
+                            <CommandItem
+                              key={data}
+                              value={data}
+                              onSelect={() => {
+                                handleSourceChange(data);
+                              }}
+                              className="cursor-pointer w-full"
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  source.includes(data)
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {data}
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Max Use Count
-            </p>
-            <Input
-              type="number"
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-              min={0}
-              max={99}
-              placeholder="Enter source"
-              className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-            />
-          </div>
-          <div className="w-full mb-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Expiry Date
-            </p>
-            <Input
-              type="date"
-              value={date || ""}
-              onChange={(e) => setDate(e.target.value)}
-              placeholder="DD/MM/YYYY"
-              required
-              className="h-12 w-full flex flex-row justify-between rounded-lg text-gray-500 border-gray-300 bg-white"
-            />
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Max Use Count
+              </p>
+              <Input
+                type="number"
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+                min={0}
+                max={99}
+                placeholder="Enter source"
+                className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
+              />
+            </div>
+            <div className="w-full mb-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Expiry Date
+              </p>
+              <Input
+                type="date"
+                value={date || ""}
+                onChange={(e) => setDate(e.target.value)}
+                placeholder="DD/MM/YYYY"
+                required
+                className="h-12 w-full flex flex-row justify-between rounded-lg text-gray-500 border-gray-300 bg-white"
+              />
+            </div>
           </div>
           {/* buttons */}
           <div className="w-full mt-5 flex flex-row items-center justify-end gap-4">

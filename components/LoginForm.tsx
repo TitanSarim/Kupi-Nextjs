@@ -1,10 +1,13 @@
 "use client";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authenticateUser } from "../actions/authenticateUser";
+import ErrorMessage from "@/components/ErrorMessage";
+import InputField from "@/components/InputField";
 
 const LoginForm: React.FC = () => {
-  // States for email, password, showPassword, error and loading
+  // States for email, password, showPassword, error, and loading
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -33,6 +36,7 @@ const LoginForm: React.FC = () => {
       console.error("An unexpected error occurred:", error);
     }
   };
+
   // Function to toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword((prev) => !prev);
@@ -40,58 +44,30 @@ const LoginForm: React.FC = () => {
 
   return (
     <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
-      <div>
-        <label className="text-dark-grey text-md font-semibold">Email</label>
-        <div className="relative w-full mt-2">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <img
-              className="w-5"
-              src="/img/auth-screens/email.svg"
-              alt="Email Icon"
-            />
-          </div>
-          <input
-            type="email"
-            className="block w-full pl-10 pr-4 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 outline-none"
-            placeholder="demo@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-      </div>
-      <div>
-        <label className="text-dark-grey text-md font-semibold">Password</label>
-        <div className="relative w-full mt-2">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <img
-              className="w-5"
-              src="/img/auth-screens/password.svg"
-              alt="Password Icon"
-            />
-          </div>
-          <div
-            className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
-            onClick={togglePasswordVisibility}
-          >
-            <img
-              className="w-5"
-              src={`/img/auth-screens/${
-                showPassword ? "view-on.svg" : "view-off.svg"
-              }`}
-              alt={showPassword ? "Hide Password" : "Show Password"}
-            />
-          </div>
-          <input
-            type={showPassword ? "text" : "password"}
-            className="block w-full pl-10 pr-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 outline-none"
-            placeholder="********"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-      </div>
+      {/* Email Input Field */}
+      <InputField
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="demo@email.com"
+        label="Email"
+        iconSrc="/img/auth-screens/email.svg"
+        disabled={loading}
+      />
+
+      {/* Password Input Field with Toggle Visibility */}
+      <InputField
+        type={showPassword ? "text" : "password"}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="********"
+        label="Password"
+        iconSrc="/img/auth-screens/password.svg"
+        showPasswordToggle={true}
+        togglePasswordVisibility={togglePasswordVisibility}
+        disabled={loading}
+      />
+
       <div className="flex justify-between items-center">
         <div className="flex items-center">
           <input
@@ -113,6 +89,7 @@ const LoginForm: React.FC = () => {
           Forgot Password?
         </a>
       </div>
+
       <button
         type="submit"
         className={`${
@@ -122,9 +99,8 @@ const LoginForm: React.FC = () => {
       >
         {loading ? "Please Wait..." : "Login"}
       </button>
-      {error && (
-        <p className="text-red-500 mt-4">Email or password is incorrect</p>
-      )}
+
+      {error && <ErrorMessage message="Incorrect email or password, please try again." />}
     </form>
   );
 };

@@ -28,7 +28,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: paginationData.pageSize,
@@ -99,6 +98,28 @@ const TransactionTable: React.FC<TransactionReturn> = ({
   // table initalizes here
   const columns: ColumnDef<TransactionsType>[] = [
     {
+      accessorKey: "paidAt",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => (
+        <span>
+          {row.original.transactions.paidAt.toLocaleTimeString("en-US", {
+            timeZone: "UTC",
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      ),
+    },
+    {
       accessorKey: "ticketId",
       header: ({ column }) => (
         <button
@@ -122,23 +143,25 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       ),
     },
     {
-      accessorKey: "customer",
+      accessorKey: "operator",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Customer <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => {
         if (!row.original.customer) {
           return <span>NA</span>;
         }
-        return <span>{row.original?.customer.name}</span>;
+        return (
+          <span>{row.original.carmaDetails?.selectedAvailability.carrier}</span>
+        );
       },
     },
     {
-      accessorKey: "providerName",
+      accessorKey: "paymentMethod",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -147,10 +170,19 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => {
-        return (
-          <span>{row.original?.paymentReference?.providerName || "N/A"}</span>
-        );
+        return <span>{row.original?.transactions.paymentMethod || "N/A"}</span>;
       },
+    },
+    {
+      accessorKey: "source",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => <div>{row.original?.tickets?.[0]?.source}</div>,
     },
     {
       accessorKey: "totalAmount",
@@ -162,50 +194,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => <div>${row.original.transactions.totalAmount}</div>,
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Status <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => (
-        <div>
-          {row.original?.paymentReference?.status === "paid" ? (
-            <p className="text-green-600">Paid</p>
-          ) : (
-            <p className="text-kupi-yellow">
-              {row.original?.paymentReference?.status}
-            </p>
-          )}
-        </div>
-      ),
-    },
-
-    {
-      accessorKey: "paidAt",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => (
-        <span>
-          {row.original.transactions.paidAt.toLocaleTimeString("en-US", {
-            timeZone: "UTC",
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-      ),
     },
 
     {

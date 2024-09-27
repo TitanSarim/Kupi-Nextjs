@@ -2,9 +2,11 @@
 
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { isValidEmail } from "@/libs/ClientSideHelpers";
+import { isValidEmail, validateEmail } from "@/libs/ClientSideHelpers";
 import { sendVerificationCode } from "../actions/sendVerificationCode";
 import Link from "next/link";
+import ErrorMessage from "@/components/ErrorMessage";
+import InputField from "@/components/InputField";
 
 const ForgotPasswordForm = () => {
   // States for email, message, loading and error
@@ -20,10 +22,11 @@ const ForgotPasswordForm = () => {
     setError(null);
 
     // Check if the email is valid
-    if (!isValidEmail(email)) {
+    if (!validateEmail(email)) {
       setError("Please enter a valid email address");
       return;
     }
+  
 
     setLoading(true); // Set loading to true
 
@@ -39,41 +42,35 @@ const ForgotPasswordForm = () => {
     setLoading(false);
   };
 
+
   return (
     <>
-      <div className="mt-5">
-        <label className="text-dark-grey text-md font-semibold">Email</label>
-        <form className="flex items-center" onSubmit={handleSubmit}>
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center border-r border-gray-500 pr-2 h-5 mt-2">
-              <img
-                className="w-5"
-                src="/img/auth-screens/email.svg"
-                alt="Email"
-              />
-            </div>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="px-10 py-2 bg-transparent border-b border-gray-900 text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full ps-10 p-2.5 outline-none"
-              placeholder="demo@email.com"
-              required
-            />
-          </div>
-        </form>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
-      </div>
-      <button
-        type="submit"
-        className={`${
-          loading ? "opacity-50" : ""
-        } bg-kupi-yellow px-8 py-3 rounded-lg w-full text-dark-grey text-md font-semibold mt-10`}
-        onClick={handleSubmit}
-        disabled={loading || !isValidEmail(email)}
-      >
-        {loading ? "Please Wait..." : "Forgot password"}
-      </button>
+      <form className="mt-5" onSubmit={handleSubmit}>
+        {/* Email Input Field */}
+        <InputField
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="demo@email.com"
+          label="Email"
+          iconSrc="/img/auth-screens/email.svg"
+          error={error || undefined}
+          disabled={loading}
+        />
+
+        <ErrorMessage message={error || undefined} />
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className={`${
+            loading ? "opacity-50" : ""
+          } bg-kupi-yellow px-8 py-3 rounded-lg w-full text-dark-grey text-md font-semibold mt-10`}
+          disabled={loading}
+        >
+          {loading ? "Please Wait..." : "Forgot password"}
+        </button>
+      </form>
 
       <div className="flex justify-center mt-5">
         <label className="text-dark-grey text-md font-semibold text-center">

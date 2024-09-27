@@ -96,8 +96,6 @@ export async function getAllTickets(searchParams: {
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
 
-    console.log("sortOrder", sortOrder);
-
     const ticketData = await db.tickets.findMany({
       where: filter,
       orderBy: sortOrder.length > 0 ? sortOrder : undefined,
