@@ -115,7 +115,6 @@ export async function getAllDiscount(searchParams: {
 }): Promise<DiscountActionReturn | null> {
   try {
     const session = await auth();
-
     if (!session || !session.userId) {
       return null;
     }

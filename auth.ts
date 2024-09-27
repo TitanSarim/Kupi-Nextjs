@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
+import { User } from "./types/user";
 
 export const {
   handlers: { GET, POST },
@@ -36,7 +37,7 @@ export const {
         if (!isValidPassword) {
           throw new Error("Incorrect password");
         }
-        return user;
+        return user as User;
       },
     }),
   ],
