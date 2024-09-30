@@ -1,8 +1,7 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import AddTreansactionDialogue from "./AddTreansactionDialogue";
-import { Operators } from "@prisma/client";
 import { OperatorsType } from "@/types/transactions";
 
 interface ClientInterface {
@@ -34,6 +33,7 @@ const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {
       setSelectedView(true);
     } else {
       setSelectedView(false);
+      localStorage.setItem("manualTransaction", "false");
     }
     if (selectedView === false) {
       router.push("/app/transactions/transactions");

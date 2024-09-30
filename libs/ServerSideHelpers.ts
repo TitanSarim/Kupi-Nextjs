@@ -125,7 +125,7 @@ export const decryptData = (
   });
 };
 
-export const isExpired = (expiresAt: string) => {
+export const isExpired = (expiresAt: string): boolean => {
   const expirationDate = new Date(expiresAt);
   const currentDate = new Date();
   return expirationDate < currentDate;

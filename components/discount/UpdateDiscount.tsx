@@ -207,7 +207,10 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 type="text"
                 placeholder="Enter name"
                 value={discountname}
-                onChange={(e) => setDiscountname(e.target.value)}
+                onChange={(e) => {
+                  const filteredValue = e.target.value.replace(/\s/g, "");
+                  setDiscountname(filteredValue);
+                }}
                 required
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />

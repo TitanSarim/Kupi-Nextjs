@@ -4,9 +4,12 @@ import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
 
-const SideBar : React.FC = () => {
+const SideBar: React.FC = () => {
   const pathname = usePathname();
 
+  const handleClientChnage = () => {
+    localStorage.setItem("manualTransaction", "false");
+  };
   return (
     <div className="relative lightGray h-[100%] w-72 px-2 py-2 shadow-sm">
       <Image
@@ -121,10 +124,12 @@ const SideBar : React.FC = () => {
         <Link
           href={"/app/transactions/transactions"}
           className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base ${
-            pathname === "/app/transactions/transactions" || pathname === "/app/transactions/manualTransaction"
+            pathname === "/app/transactions/transactions" ||
+            pathname === "/app/transactions/manualTransaction"
               ? "bg-kupi-yellow"
               : ""
           }`}
+          onClick={handleClientChnage}
         >
           <Image
             src="/img/sidebar/transactions.svg"
