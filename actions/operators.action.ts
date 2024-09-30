@@ -3,18 +3,22 @@
 import { db } from "@/db";
 import { auth } from "@/auth";
 import { Operators, Prisma } from "@prisma/client";
+import { randomBytes } from "crypto";
 import {
   FilterProps,
   FormData,
   OperatorsData,
+  OperatorsDataReturn,
   OperatorStatus,
   UpdateFormData,
 } from "@/types/operator";
 import { sendInvitationEmail } from "@/libs/SendInvitationMail";
 import { SortOrderProps } from "@/types/ticket";
+import { encryptData } from "@/libs/ServerSideHelpers";
 
 export async function getAllOperators(searchParams: {
   name?: string;
+  email?: string;
   status?: string;
   sort?: string;
   pageIndex?: number;
@@ -27,7 +31,14 @@ export async function getAllOperators(searchParams: {
       return null;
     }
 
-    const { name, status, sort, pageIndex = 0, pageSize = 10 } = searchParams;
+    const {
+      name,
+      email,
+      status,
+      sort,
+      pageIndex = 0,
+      pageSize = 10,
+    } = searchParams;
 
     const pageSizeNumber = Number(pageSize);
     const pageIndexNumber = Number(pageIndex);
@@ -35,12 +46,17 @@ export async function getAllOperators(searchParams: {
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
 
-    const filter: Prisma.OperatorsWhereInput = {};
+    const filter: FilterProps = {};
 
     if (name) {
       filter.name = { contains: name, mode: "insensitive" };
     }
-
+    if (email)
+      filter.OperatorsSessions = {
+        some: {
+          email: { contains: email, mode: "insensitive" },
+        },
+      };
     if (status) {
       filter.status = status as OperatorStatus;
     }
@@ -60,16 +76,26 @@ export async function getAllOperators(searchParams: {
       orderBy: sortOrder,
       skip,
       take,
+      include: {
+        OperatorsSessions: true,
+      },
     });
 
-    const totalCount = await db.operators.count();
+    const totalCount = await db.operators.count({ where: filter });
 
     if (!operatorsData) {
       return null;
     }
 
+    const wrappedOperators: OperatorsDataReturn[] = operatorsData.map(
+      (operator) => ({
+        operators: operator,
+        sessionData: operator.OperatorsSessions,
+      })
+    );
+
     return {
-      operators: operatorsData,
+      operators: wrappedOperators,
       paginationData: {
         totalCount,
         pageSize,
@@ -90,16 +116,6 @@ export async function AddOperator(
 
     if (!session || !session.userId) {
       return null;
-    }
-
-    const invitationEmail = await sendInvitationEmail(
-      formData.email,
-      formData.name
-    );
-
-    if (!invitationEmail) {
-      console.error("Error sending invitation email");
-      return "Error sending invitation email";
     }
 
     const existingOperator = await db.operators.findFirst({
@@ -123,6 +139,31 @@ export async function AddOperator(
       return "Operator with the same email already exists";
     }
 
+    const expirationTime = new Date();
+    expirationTime.setHours(expirationTime.getHours() + 48);
+    const secret = process.env.SECURE_AUTH_KEY;
+    if (!secret) {
+      console.error("SECURE_AUTH_KEY environment variable not set");
+      return "SECURE_AUTH_KEY environment variable not set";
+    }
+    const dataToEncrypt = {
+      email: formData.email,
+      name: formData.name,
+      expiresAt: expirationTime.toISOString(),
+    };
+    const encryptedData = await encryptData(dataToEncrypt, secret);
+
+    const invitationEmail = await sendInvitationEmail(
+      formData.email,
+      formData.name,
+      encryptedData
+    );
+
+    if (!invitationEmail) {
+      console.error("Error sending invitation email");
+      return "Error sending invitation email";
+    }
+
     const operator = await db.operators.create({
       data: {
         name: formData.name,
@@ -131,6 +172,34 @@ export async function AddOperator(
         source: "KUPI",
       },
     });
+
+    const isSession = await db.operatorsSessions.findFirst({
+      where: {
+        email: formData.email,
+      },
+    });
+
+    if (!isSession) {
+      await db.operatorsSessions.create({
+        data: {
+          operatorId: operator.id,
+          email: formData.email,
+          expires: expirationTime,
+          sessionToken: encryptedData,
+        },
+      });
+    } else if (isSession) {
+      await db.operatorsSessions.update({
+        where: {
+          id: isSession?.id,
+        },
+        data: {
+          email: formData.email,
+          expires: expirationTime,
+          sessionToken: encryptedData,
+        },
+      });
+    }
 
     if (!operator) {
       return null;
@@ -144,7 +213,8 @@ export async function AddOperator(
 
 export async function UpdateOperatorInvitation(
   formData: UpdateFormData,
-  id: string
+  id: string,
+  sessionId: string
 ): Promise<Operators | null | string> {
   try {
     const session = await auth();
@@ -153,10 +223,25 @@ export async function UpdateOperatorInvitation(
       return null;
     }
 
+    const expirationTime = new Date();
+    expirationTime.setHours(expirationTime.getHours() + 48);
+    const secret = process.env.SECURE_AUTH_KEY;
+    if (!secret) {
+      console.error("SECURE_AUTH_KEY environment variable not set");
+      return "SECURE_AUTH_KEY environment variable not set";
+    }
+    const dataToEncrypt = {
+      email: formData.email,
+      name: formData.name,
+      expiresAt: expirationTime.toISOString(),
+    };
+    const encryptedData = await encryptData(dataToEncrypt, secret);
+
     if (formData.checked === true && formData.email) {
       const invitationEmail = await sendInvitationEmail(
         formData.email,
-        formData.name
+        formData.name,
+        encryptedData
       );
       if (!invitationEmail) {
         console.error("Error sending invitation email");
@@ -172,6 +257,17 @@ export async function UpdateOperatorInvitation(
         name: formData.name,
         description: formData.description || "",
         status: OperatorStatus.INVITED,
+      },
+    });
+
+    await db.operatorsSessions.update({
+      where: {
+        id: sessionId,
+      },
+      data: {
+        email: formData.email,
+        expires: expirationTime,
+        sessionToken: encryptedData,
       },
     });
 

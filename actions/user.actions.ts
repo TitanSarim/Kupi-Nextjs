@@ -83,7 +83,13 @@ export async function updateProfile(formData: {
       data: updateData,
     });
 
-    return { success: true };
+    const response = {
+      name: updateData.name,
+      surname: updateData.surname,
+    };
+
+    revalidatePath("/app/profile");
+    return { success: true, user: response };
   } catch (error) {
     console.error("Error updating user:", error);
     return { error: "An unexpected error occurred. Please try again later." };

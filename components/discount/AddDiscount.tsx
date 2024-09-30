@@ -41,15 +41,17 @@ const AddDiscount: React.FC<DialogProps> = ({
   const [count, setCount] = useState<number>(0);
   const [date, setDate] = useState<string>("");
   const [selectedOperators, setSelectedOperators] = useState<string[]>([]);
-  const [destinationCity, setDestinationCity] = useState<string>("");
-  const [destinationCityId, setDestinationCityId] = useState<string>("");
-  const [arrivalCity, setArrivalCity] = useState<string>("");
-  const [arrivalCityId, setArrivalCityId] = useState<string>("");
+  const [destinationCityIds, setDestinationCityIds] = useState<string[]>([]);
+  const [arrivalCityIds, setArrivalCityIds] = useState<string[]>([]);
   const [openDestination, setOpenDestination] = useState(false);
   const [openArrival, setOpenArrival] = useState(false);
   const [openOperator, setOpenOperator] = useState(false);
   const [openSource, setOpenSource] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorState, setErrorState] = useState<{
+    field: string;
+    message: string;
+  } | null>(null);
 
   const handlePercentageChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -64,11 +66,50 @@ const AddDiscount: React.FC<DialogProps> = ({
   };
 
   const handleOperatorSelect = (operatorId: string) => {
+    const selectedOperator = operators.find((op) => op.id === operatorId);
+
+    if (!selectedOperator) return;
+
     setSelectedOperators((prev) => {
       if (prev.includes(operatorId)) {
         return prev.filter((id) => id !== operatorId);
       } else {
         return [...prev, operatorId];
+      }
+    });
+
+    if (selectedOperator.source) {
+      setSource([selectedOperator.source]);
+    }
+  };
+
+  const handleArrivalSelect = (arrivalCityId: string) => {
+    const selectedArrivalCity = cities.find((cy) => cy.id === arrivalCityId);
+
+    if (!selectedArrivalCity) return;
+
+    // Update the state without overwriting
+    setArrivalCityIds((prev) => {
+      if (prev.includes(arrivalCityId)) {
+        return prev.filter((id) => id !== arrivalCityId);
+      } else {
+        return [...prev, arrivalCityId];
+      }
+    });
+  };
+
+  const handleDestinationSelect = (destinationCityId: string) => {
+    const selectedDestinationCity = cities.find(
+      (cy) => cy.id === destinationCityId
+    );
+
+    if (!selectedDestinationCity) return;
+
+    setDestinationCityIds((prev) => {
+      if (prev.includes(destinationCityId)) {
+        return prev.filter((id) => id !== destinationCityId);
+      } else {
+        return [...prev, destinationCityId];
       }
     });
   };
@@ -82,8 +123,10 @@ const AddDiscount: React.FC<DialogProps> = ({
       }
     });
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorState(null);
     const formData = {
       discountname,
       percentage,
@@ -91,9 +134,16 @@ const AddDiscount: React.FC<DialogProps> = ({
       count,
       date,
       selectedOperators,
-      destinationCityId,
-      arrivalCityId,
+      destinationCityIds,
+      arrivalCityIds,
     };
+    if (selectedOperators.length > 0 && source.length === 0) {
+      setErrorState({
+        field: "source",
+        message: "Source is required when operators are selected.",
+      });
+      return;
+    }
     setLoading(true);
     try {
       await createDiscount(formData);
@@ -106,9 +156,10 @@ const AddDiscount: React.FC<DialogProps> = ({
       setSource([]);
       setCount(0);
       setDate("");
-      setDestinationCityId("");
-      setArrivalCityId("");
+      setDestinationCityIds([]);
+      setArrivalCityIds([]);
       setSelectedOperators([]);
+      setErrorState(null);
       onClose();
     }
   };
@@ -253,7 +304,11 @@ const AddDiscount: React.FC<DialogProps> = ({
                     aria-expanded={open}
                     className="w-full justify-between outline-none"
                   >
-                    {destinationCity || "Select city..."}
+                    {destinationCityIds.length > 0
+                      ? destinationCityIds
+                          .map((id) => cities.find((cy) => cy.id === id)?.name)
+                          .join(", ")
+                      : "Select city..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -267,15 +322,14 @@ const AddDiscount: React.FC<DialogProps> = ({
                           key="clear"
                           value=""
                           onSelect={() => {
-                            setDestinationCity("");
-                            setDestinationCityId("");
+                            setDestinationCityIds([]);
                             setOpenDestination(false);
                           }}
                           className="cursor-pointer w-full"
                         >
                           <Check
                             className={`mr-2 h-4 w-4 ${
-                              destinationCity === ""
+                              destinationCityIds.length === 0
                                 ? "opacity-100"
                                 : "opacity-0"
                             }`}
@@ -283,31 +337,27 @@ const AddDiscount: React.FC<DialogProps> = ({
                           Clear
                         </CommandItem>
                         {cities &&
-                          cities?.map((city) => (
-                            <CommandItem
-                              key={city.id}
-                              value={city.name}
-                              onSelect={(currentValue) => {
-                                setDestinationCity(
-                                  currentValue === destinationCity
-                                    ? ""
-                                    : currentValue
-                                );
-                                setDestinationCityId(city.id);
-                                setOpenDestination(false);
-                              }}
-                              className="cursor-pointer w-full"
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  city.name === destinationCity
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                }`}
-                              />
-                              {city.name}
-                            </CommandItem>
-                          ))}
+                          cities
+                            .filter((city) => !arrivalCityIds.includes(city.id))
+                            ?.map((city) => (
+                              <CommandItem
+                                key={city.id}
+                                value={city.name}
+                                onSelect={() =>
+                                  handleDestinationSelect(city.id)
+                                }
+                                className="cursor-pointer w-full"
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    destinationCityIds.includes(city.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  }`}
+                                />
+                                {city.name}
+                              </CommandItem>
+                            ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -326,10 +376,14 @@ const AddDiscount: React.FC<DialogProps> = ({
                   <Button
                     variant="outline"
                     role="combobox"
-                    aria-expanded={openArrival}
+                    aria-expanded={open}
                     className="w-full justify-between outline-none"
                   >
-                    {arrivalCity || "Select city..."}
+                    {arrivalCityIds.length > 0
+                      ? arrivalCityIds
+                          .map((id) => cities.find((cy) => cy.id === id)?.name)
+                          .join(", ")
+                      : "Select city..."}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
@@ -343,45 +397,42 @@ const AddDiscount: React.FC<DialogProps> = ({
                           key="clear"
                           value=""
                           onSelect={() => {
-                            setArrivalCity("");
-                            setArrivalCityId("");
+                            setArrivalCityIds([]);
                             setOpenArrival(false);
                           }}
                           className="cursor-pointer w-full"
                         >
                           <Check
                             className={`mr-2 h-4 w-4 ${
-                              arrivalCity === "" ? "opacity-100" : "opacity-0"
+                              arrivalCityIds.length === 0
+                                ? "opacity-100"
+                                : "opacity-0"
                             }`}
                           />
                           Clear
                         </CommandItem>
                         {cities &&
-                          cities.map((city) => (
-                            <CommandItem
-                              key={city.id}
-                              value={city.name}
-                              onSelect={(currentValue) => {
-                                setArrivalCity(
-                                  currentValue === arrivalCity
-                                    ? ""
-                                    : currentValue
-                                );
-                                setArrivalCityId(city.id);
-                                setOpenArrival(false);
-                              }}
-                              className="cursor-pointer w-full"
-                            >
-                              <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  city.name === arrivalCity
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                }`}
-                              />
-                              {city.name}
-                            </CommandItem>
-                          ))}
+                          cities
+                            .filter(
+                              (city) => !destinationCityIds.includes(city.id)
+                            )
+                            ?.map((city) => (
+                              <CommandItem
+                                key={city.id}
+                                value={city.name}
+                                onSelect={() => handleArrivalSelect(city.id)}
+                                className="cursor-pointer w-full"
+                              >
+                                <Check
+                                  className={`mr-2 h-4 w-4 ${
+                                    arrivalCityIds.includes(city.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  }`}
+                                />
+                                {city.name}
+                              </CommandItem>
+                            ))}
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -453,6 +504,9 @@ const AddDiscount: React.FC<DialogProps> = ({
                   </Command>
                 </PopoverContent>
               </Popover>
+              {errorState?.field === "source" && (
+                <span className="text-red-500">{errorState.message}</span>
+              )}
             </div>
 
             <div className="w-full mb-3">

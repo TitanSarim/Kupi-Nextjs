@@ -8,8 +8,8 @@ export interface DiscountFormData {
   count: number;
   date: string;
   selectedOperators: string[];
-  destinationCityId: string;
-  arrivalCityId: string;
+  destinationCityIds: string[];
+  arrivalCityIds: string[];
 }
 
 export enum TicketSources {
@@ -17,10 +17,14 @@ export enum TicketSources {
   KUPI = "KUPI",
 }
 
+export type CitiesType = {
+  name: string;
+  id: string;
+};
 export type discountDataType = {
   discount: Discounts;
-  sourceCity?: Cities | null;
-  arrivalCity?: Cities | null;
+  sourceCities?: CitiesType[] | null;
+  arrivalCities?: CitiesType[] | null;
 };
 
 export type DiscountActionReturn = {

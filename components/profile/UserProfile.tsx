@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { updateProfile } from "@/actions/user.actions";
 import { Users } from "@prisma/client";
 import toast from "react-hot-toast";
+import { passwordValidation } from "@/libs/ClientSideHelpers";
 
 type ProfileProps = {
   userData: Users;
@@ -52,25 +53,6 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
       confirmPassword !== "";
     setIsModified(isDataModified);
   }, [formData, password, confirmPassword]);
-
-  const passwordValidation = (password: string) => {
-    const minLength = /.{8,}/;
-    const hasUpperCase = /[A-Z]/;
-    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/;
-    if (password.length === 0) {
-      return null;
-    }
-    if (!minLength.test(password)) {
-      return "Password must be at least 8 characters long.";
-    }
-    if (!hasUpperCase.test(password)) {
-      return "Password must contain at least one uppercase letter.";
-    }
-    if (!hasSymbol.test(password)) {
-      return "Password must contain at least one special symbol.";
-    }
-    return null;
-  };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;

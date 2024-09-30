@@ -296,6 +296,12 @@ input:checked + .slider:before {
   height: 500px;
 }
 
+@media screen and (max-width: 1300px){
+  .passenger_info_dialgue {
+      min-height: 102.6vh !important;
+      max-height: 102.6vh !important;
+    }
+}
 @media screen and (max-height: 900px) {
 
   .dialguebox-container{
@@ -312,8 +318,8 @@ input:checked + .slider:before {
     padding-top: 10px;
   }
   .passenger_info_dialgue{
-    min-height: 89vh;
-    max-height: 89vh;
+    min-height: 88.9vh;
+    max-height: 88.9vh;
   }
   .transaction_dialguebox-container{
     max-height: 800px;

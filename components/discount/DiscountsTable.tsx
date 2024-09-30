@@ -120,7 +120,7 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
         return (
           <>
             {source && source.length <= 0 ? (
-              "All"
+              "NA"
             ) : (
               <span>
                 [{source && source.length > 0 ? source?.[0]?.charAt(0) : ""}
@@ -148,11 +148,35 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
         <div>
           <div>
             <span className="midGray-text">Departure:</span>{" "}
-            {row.original?.sourceCity?.name}
+            {row.original?.sourceCities &&
+            row.original?.sourceCities?.length > 0 ? (
+              <>
+                {row.original?.sourceCities?.slice(0, 3).map((city) => (
+                  <span key={city.id} className="city-name">
+                    {city.name},{" "}
+                  </span>
+                ))}
+                {row.original?.sourceCities?.length > 3 && <span> ... </span>}
+              </>
+            ) : (
+              <span>NA</span>
+            )}
           </div>
           <div>
             <span className="midGray-text">Arrival:</span>{" "}
-            {row.original?.arrivalCity?.name}
+            {row.original?.arrivalCities &&
+            row.original.arrivalCities.length > 0 ? (
+              <>
+                {row.original.arrivalCities.slice(0, 3).map((city) => (
+                  <span key={city.id} className="city-name">
+                    {city.name},{" "}
+                  </span>
+                ))}
+                {row.original.arrivalCities.length > 3 && <span> ... </span>}
+              </>
+            ) : (
+              <span>NA</span>
+            )}
           </div>
         </div>
       ),

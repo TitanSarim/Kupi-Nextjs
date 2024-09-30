@@ -28,6 +28,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const [reminder, setReminder] = useState<number>(0);
   const [error, setError] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [maintainanace, setMaintainanace] = useState<boolean>(false);
 
   const handleExchangeRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -203,18 +204,56 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     fetchData();
   };
 
+  const handleMaintainace = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const toggle = event.target.checked;
+    setMaintainanace(toggle);
+    localStorage.setItem("maintainance", toggle ? "true" : "false");
+    try {
+    } catch (error) {
+      console.error("Error");
+    }
+  };
+
+  const loadMaintainanceFromStorage = () => {
+    const storedValue = localStorage.getItem("maintainance");
+    if (storedValue === "true") {
+      setMaintainanace(true);
+    } else {
+      setMaintainanace(false);
+    }
+  };
+
   const handleReset = () => {
     dataHandler();
   };
 
   useEffect(() => {
+    loadMaintainanceFromStorage();
     dataHandler();
   }, [settings]);
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
       <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md px-8 py-6">
-        <p className="text-lg text-black font-semibold">Admin Settings</p>
+        <div className="w-full flex flex-row items-center justify-between">
+          <p className="text-lg text-black font-semibold">Admin Settings</p>
+          <div className="flex flex-row gap-6">
+            <button type="button" className="bg-kupi-yellow rounded-lg px-6">
+              Fetch Operators
+            </button>
+            <div className="flex flex-row gap-10 border-2 border-gray-400 px-4 py-3 rounded-lg box-bg">
+              <p className="darkGray-text font-normal text-sm">Maintenance</p>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={maintainanace}
+                  onChange={handleMaintainace}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+          </div>
+        </div>
         <div className="relative mt-6 w-full flex flex-wrap items-start justify-between gap-3">
           <div className="w-5/12 mb-2">
             <p className="mb-1 darkGray-text font-normal pb-1">

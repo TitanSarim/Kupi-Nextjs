@@ -1,4 +1,10 @@
-export type UpdateProfileResponseType = { success: true } | { error: string };
+export type UserResponse = {
+  name?: string;
+  surname?: string;
+};
+export type UpdateProfileResponseType =
+  | { success: true; user?: UserResponse }
+  | { error: string };
 
 export interface User {
   id: string;

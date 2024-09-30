@@ -16,17 +16,29 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errorState, setErrorState] = useState<{
+    field: string;
+    message: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setErrorState(null);
+    const formData = {
+      name,
+      email,
+      description,
+    };
+    for (const [key, value] of Object.entries(formData)) {
+      if (key !== "description" && !value) {
+        setErrorState({ field: key, message: `${key} is required` });
+        setLoading(false);
+        return;
+      }
+    }
     try {
-      const formData = {
-        name,
-        email,
-        description,
-      };
       const result = await AddOperator(formData);
       if (typeof result === "string") {
         setError(result);
@@ -40,6 +52,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
       setDescription("");
       onClose();
       setLoading(false);
+      setErrorState(null);
     }
   };
 
@@ -75,8 +88,10 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
               onChange={(e) => setName(e.target.value.toUpperCase())}
               placeholder="Enter name"
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-              required
             />
+            {errorState?.field === "name" && (
+              <span className="text-red-500">{errorState.message}</span>
+            )}
           </div>
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -85,11 +100,13 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
             <Input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value.toLowerCase())}
               placeholder="Enter email address"
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-              required
             />
+            {errorState?.field === "email" && (
+              <span className="text-red-500">{errorState.message}</span>
+            )}
           </div>
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">

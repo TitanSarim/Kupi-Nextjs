@@ -1,4 +1,6 @@
+import { OperatorsSessions, TicketSources } from "@prisma/client";
 import { OperatorsType } from "./transactions";
+import { Prisma } from "@prisma/client";
 
 export type FormData = {
   name: string;
@@ -8,7 +10,7 @@ export type FormData = {
 
 export type UpdateFormData = {
   name: string;
-  email?: string;
+  email: string;
   description?: string;
   checked: boolean;
 };
@@ -27,8 +29,13 @@ export enum OperatorStatus {
   REGISTERED = "REGISTERED",
 }
 
+export type OperatorsDataReturn = {
+  operators: OperatorsType;
+  sessionData: OperatorsSessions[];
+};
+
 export type OperatorsData = {
-  operators: OperatorsType[];
+  operators: OperatorsDataReturn[];
   paginationData: {
     totalCount: number;
     pageSize: number;
@@ -37,12 +44,16 @@ export type OperatorsData = {
 };
 
 export interface FilterProps {
-  status?: {
-    contains?: string;
-    mode?: "insensitive";
-  };
+  status?: OperatorStatus;
   name?: {
     contains?: string;
     mode?: "insensitive";
   };
+  OperatorsSessions?: Prisma.OperatorsSessionsListRelationFilter;
 }
+
+export type IncryptedDataType = {
+  email: string;
+  name: string;
+  expiresAt: string;
+};

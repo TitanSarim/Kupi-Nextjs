@@ -72,7 +72,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
   // Table initialization
   const columns: ColumnDef<TicketsDataType>[] = [
     {
-      accessorKey: "confirmedAt",
+      accessorKey: "reservedAt",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -82,7 +82,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
       ),
       cell: ({ row }) => (
         <div>
-          {row.original?.tickets.confirmedAt?.toLocaleTimeString("en-US", {
+          {row.original?.tickets.reservedAt?.toLocaleTimeString("en-US", {
             timeZone: "UTC",
             day: "2-digit",
             month: "short",

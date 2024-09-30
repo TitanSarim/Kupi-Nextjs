@@ -18,6 +18,7 @@ import {
 import { openPdf } from "@/actions/transactions.actions";
 import UpdateTreansactionDialogue from "./UpdateTreansactionDialogue";
 import TableComponent from "../Table/Table";
+import toast from "react-hot-toast";
 
 const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
   transactionData,
@@ -36,6 +37,7 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
     useState<ManualTransactionsType | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handleShowDetail = (id: string) => {
     const transaction =
@@ -85,10 +87,6 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
     }
   }, [pagination, updateUrl]);
 
-  const handleCopy = (id: string) => {
-    navigator.clipboard.writeText(id);
-  };
-
   // table initalizes here
   const columns: ColumnDef<ManualTransactionsType>[] = [
     {
@@ -100,14 +98,25 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
           Transaction ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <button
-          className="bg-yellow-300 px-3 p-1 rounded-md"
-          onClick={() => handleCopy(row.original.transactions.id)}
-        >
-          {row.original.transactions.id.slice(0, 5) + "..."}
-        </button>
-      ),
+      cell: ({ row }) => {
+        const transactionId = row.original.transactions.id;
+        const isFullIdVisible = expandedId === transactionId;
+
+        return (
+          <div className="relative inline-block">
+            <button
+              className="bg-yellow-300 px-3 p-1 rounded-md"
+              onClick={() =>
+                setExpandedId(isFullIdVisible ? null : transactionId)
+              }
+            >
+              {isFullIdVisible
+                ? transactionId
+                : transactionId.slice(0, 5) + "..."}
+            </button>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "BusOperator",

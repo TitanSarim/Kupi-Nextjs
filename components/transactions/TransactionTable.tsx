@@ -108,7 +108,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       ),
       cell: ({ row }) => (
         <span>
-          {row.original.transactions.paidAt.toLocaleTimeString("en-US", {
+          {row.original?.transactions?.paidAt?.toLocaleTimeString("en-US", {
             timeZone: "UTC",
             day: "2-digit",
             month: "short",

@@ -1,5 +1,5 @@
 "use client";
-import { OperatorsData } from "@/types/operator";
+import { OperatorsData, OperatorsDataReturn } from "@/types/operator";
 import { OperatorsType } from "@/types/transactions";
 import {
   ColumnDef,
@@ -15,7 +15,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import TableComponent from "../Table/Table";
 import Link from "next/link";
-import { OperatorStatus } from "@prisma/client";
+import { OperatorsSessions, OperatorStatus } from "@prisma/client";
 import UpdateInviteOperator from "./UpdateInviteOperator";
 import { TicketSources } from "@/types/discount";
 
@@ -32,12 +32,12 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     pageSize: paginationData.pageSize,
   });
   const [selectedOperator, setSelectedOperator] =
-    useState<OperatorsType | null>(null);
+    useState<OperatorsDataReturn | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const handleShowDetail = (id: string) => {
-    const operator = operators.find((O) => O.id === id) || null;
+    const operator = operators.find((O) => O.operators.id === id) || null;
     if (!operator) {
       return null;
     }
@@ -75,7 +75,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     }
   }, [pagination, updateUrl]);
 
-  const columns: ColumnDef<OperatorsType>[] = [
+  const columns: ColumnDef<OperatorsDataReturn>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -85,7 +85,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
           Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <div>{row.original?.name}</div>,
+      cell: ({ row }) => <div>{row.original?.operators.name}</div>,
     },
     {
       accessorKey: "source",
@@ -96,7 +96,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
           Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <div>{row.original?.source}</div>,
+      cell: ({ row }) => <div>{row.original?.operators.source}</div>,
     },
     {
       accessorKey: "status",
@@ -109,15 +109,16 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       ),
       cell: ({ row }) => (
         <>
-          {row.original.source === TicketSources.CARMA ? (
+          {row.original.operators.source === TicketSources.CARMA ? (
             <div>
               <p className="text-green-600 font-semibold">Registered</p>
             </div>
           ) : (
             <div>
-              {row.original.status === OperatorStatus.INVITED ? (
+              {row.original.operators.status === OperatorStatus.INVITED ? (
                 <p className="text-yellow-500 font-semibold">Invited</p>
-              ) : row.original.status === OperatorStatus.REGISTERED ? (
+              ) : row.original.operators.status ===
+                OperatorStatus.REGISTERED ? (
                 <p className="text-green-600 font-semibold">Registered</p>
               ) : (
                 <p className="text-red-500 font-semibold">Suspended</p>
@@ -138,12 +139,15 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       ),
       cell: ({ row }) => (
         <div>
-          {row.original?.joiningDate &&
-            new Date(row.original.joiningDate).toLocaleDateString("en-US", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
+          {row.original?.operators.joiningDate &&
+            new Date(row.original.operators.joiningDate).toLocaleDateString(
+              "en-US",
+              {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              }
+            )}
         </div>
       ),
     },
@@ -291,10 +295,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       header: "",
       cell: ({ row }) => (
         <div className="flex justify-end">
-          {row.original.source === TicketSources.KUPI && (
+          {row.original.operators.source === TicketSources.KUPI && (
             <button
               onClick={() => {
-                handleShowDetail(row.original.id);
+                handleShowDetail(row.original.operators.id);
               }}
               className="p-2 rounded-md hover:bg-gray-100"
             >

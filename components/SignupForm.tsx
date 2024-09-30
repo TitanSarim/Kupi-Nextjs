@@ -46,6 +46,7 @@ const SignupForm = () => {
     description: "",
     number: "",
   });
+  const [token, setToken] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -120,11 +121,15 @@ const SignupForm = () => {
   useEffect(() => {
     const emailFromURL = searchParams.get("email");
     const nameFromURL = searchParams.get("name");
+    const tokenFromUrl = searchParams.get("token");
     if (nameFromURL) {
       setFormData((prev) => ({
         ...prev,
-        name: nameFromURL,
+        company: nameFromURL,
       }));
+    }
+    if (tokenFromUrl) {
+      setToken(tokenFromUrl);
     }
     if (emailFromURL) {
       setFormData((prev) => ({
@@ -147,7 +152,7 @@ const SignupForm = () => {
 
     setLoading(true);
     try {
-      const response = await registerUser(formData);
+      const response = await registerUser(formData, token);
       if (response?.error) {
         setErrors({ form: response.error });
       } else {
@@ -213,7 +218,7 @@ const SignupForm = () => {
           label="Email"
           iconSrc="/img/auth-screens/email.svg"
           error={submitted ? errors.email : ""}
-          disabled={loading}
+          disabled
         />
 
         <InputField
@@ -239,7 +244,7 @@ const SignupForm = () => {
           label="Company"
           iconSrc="/img/auth-screens/company.svg"
           error={submitted ? errors.company : ""}
-          disabled={loading}
+          disabled
         />
 
         <div className="mt-5">

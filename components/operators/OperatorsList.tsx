@@ -19,6 +19,7 @@ const OperatorsList: React.FC<OperatorsData> = ({
 }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [status, setSatus] = useState("");
 
   const handleCloseDialog = () => {
@@ -34,6 +35,7 @@ const OperatorsList: React.FC<OperatorsData> = ({
 
   const updateSearchParams = () => {
     if (name) params.set("name", name);
+    if (email) params.set("email", email);
     if (status !== "clear") {
       params.set("status", status);
     } else {
@@ -50,7 +52,7 @@ const OperatorsList: React.FC<OperatorsData> = ({
     return () => {
       clearTimeout(timer);
     };
-  }, [name, status]);
+  }, [name, email, status]);
 
   return (
     <div className="w-full mt-10 h-fit flex items-center justify-center">
@@ -88,6 +90,8 @@ const OperatorsList: React.FC<OperatorsData> = ({
             <Input
               type="text"
               placeholder="Search by email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="h-12 rounded-lg text-gray-500 border-gray-700"
             />
           </div>

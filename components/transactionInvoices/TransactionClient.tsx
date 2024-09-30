@@ -12,14 +12,29 @@ interface ClientInterface {
 const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {
   const [selectedView, setSelectedView] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
-
   const router = useRouter();
+
+  const handleMaintainace = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const toggle = event.target.checked;
+    setSelectedView(toggle);
+    localStorage.setItem("manualTransaction", toggle ? "true" : "false");
+    try {
+    } catch (error) {
+      console.error("Error");
+    }
+  };
 
   const handleAddTransaction = () => {
     setShowAddDialog(false);
   };
 
   useEffect(() => {
+    const storedValue = localStorage.getItem("manualTransaction");
+    if (storedValue === "true") {
+      setSelectedView(true);
+    } else {
+      setSelectedView(false);
+    }
     if (selectedView === false) {
       router.push("/app/transactions/transactions");
     } else {
@@ -37,7 +52,7 @@ const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {
             <input
               type="checkbox"
               checked={selectedView}
-              onChange={() => setSelectedView((prevChecked) => !prevChecked)}
+              onChange={handleMaintainace}
             />
             <span className="slider round"></span>
           </label>

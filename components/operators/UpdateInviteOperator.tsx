@@ -5,11 +5,13 @@ import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { UpdateOperatorInvitation } from "@/actions/operators.action";
 import { OperatorsType } from "@/types/transactions";
+import { OperatorsSessions } from "@prisma/client";
+import { OperatorsDataReturn } from "@/types/operator";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  operator?: OperatorsType | null;
+  operator?: OperatorsDataReturn | null;
 }
 
 const UpdateInviteOperator: React.FC<DialogProps> = ({
@@ -18,6 +20,7 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
   operator,
 }) => {
   const [id, setId] = useState("");
+  const [sessionId, setSessionId] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [description, setDescription] = useState("");
@@ -36,7 +39,7 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
         description,
         checked,
       };
-      const result = await UpdateOperatorInvitation(formData, id);
+      const result = await UpdateOperatorInvitation(formData, id, sessionId);
       if (typeof result === "string") {
         setError(result);
       }
@@ -51,10 +54,14 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
 
   useEffect(() => {
     if (operator) {
-      setId(operator.id);
-      setName(operator.name);
-      if (operator.description) {
-        setDescription(operator.description);
+      setId(operator.operators.id);
+      setName(operator.operators.name);
+      if (operator.sessionData) {
+        setSessionId(operator.sessionData?.[0]?.id);
+        setEmail(operator.sessionData?.[0]?.email);
+      }
+      if (operator.operators.description) {
+        setDescription(operator.operators.description);
       }
     }
   }, [operator]);

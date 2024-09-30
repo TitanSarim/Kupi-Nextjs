@@ -1,6 +1,8 @@
 import { db } from "@/db";
 import nodemailer from "nodemailer";
 import bcrypt from "bcryptjs";
+import { IncryptedDataType } from "@/types/operator";
+const crypto = require("crypto");
 
 // Shared SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -73,3 +75,58 @@ export async function initiateVerification(
   // Send the code via email
   await sendVerificationEmail(email, verificationCode);
 }
+
+export const encryptData = (
+  data: IncryptedDataType,
+  secret: string
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const iv = crypto.randomBytes(16);
+      const key = crypto.createHash("sha256").update(secret).digest();
+
+      const cipher = crypto.createCipheriv("aes-256-cbc", key, iv);
+
+      const dataString = JSON.stringify(data);
+
+      let encrypted = cipher.update(dataString, "utf8", "hex");
+      encrypted += cipher.final("hex");
+
+      resolve(iv.toString("hex") + ":" + encrypted);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export const decryptData = (
+  encryptedData: string,
+  secret: string
+): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const parts = encryptedData.split(":");
+      const iv = Buffer.from(parts[0], "hex");
+      const encryptedText = parts[1];
+
+      const key = crypto.createHash("sha256").update(secret).digest();
+
+      const decipher = crypto.createDecipheriv("aes-256-cbc", key, iv);
+
+      let decrypted = decipher.update(encryptedText, "hex", "utf8");
+      decrypted += decipher.final("utf8");
+
+      const decryptedData = JSON.parse(decrypted);
+
+      resolve(decryptedData);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export const isExpired = (expiresAt: string) => {
+  const expirationDate = new Date(expiresAt);
+  const currentDate = new Date();
+  return expirationDate < currentDate;
+};

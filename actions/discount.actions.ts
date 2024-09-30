@@ -39,8 +39,8 @@ export async function createDiscount(
           formData.selectedOperators.length > 0
             ? formData.selectedOperators
             : [],
-        departureCityId: formData.destinationCityId || null,
-        arrivalCityId: formData.arrivalCityId || null,
+        departureCityIds: formData.destinationCityIds || [],
+        arrivalCityIds: formData.arrivalCityIds || [],
         percentage: Number(formData.percentage),
         source: sourceEnumValues.length > 0 ? sourceEnumValues : [],
         maxUseCount: Number(formData.count) || null,
@@ -86,8 +86,8 @@ export async function updateDiscount(
           formData.selectedOperators.length > 0
             ? formData.selectedOperators
             : [],
-        departureCityId: formData.destinationCityId || null,
-        arrivalCityId: formData.arrivalCityId || null,
+        departureCityIds: formData.destinationCityIds || [],
+        arrivalCityIds: formData.arrivalCityIds || [],
         percentage: Number(formData.percentage),
         source: sourceEnumValues.length > 0 ? sourceEnumValues : [],
         maxUseCount: Number(formData.count) || null,
@@ -158,10 +158,8 @@ export async function getAllDiscount(searchParams: {
         });
       }
 
-      if (field === "departure") {
-        sortOrder.push({
-          arrivalCity: { name: order === "asc" ? "asc" : "desc" },
-        });
+      if (field === "departure" || field === "source") {
+        sortOrder.push({ name: order === "asc" ? "asc" : "desc" });
       }
       if (
         field === "name" ||
@@ -179,7 +177,7 @@ export async function getAllDiscount(searchParams: {
 
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
-
+    const cities = await db.cities.findMany();
     const discounts = await db.discounts.findMany({
       where: filter,
       orderBy: sortOrder,
@@ -197,11 +195,27 @@ export async function getAllDiscount(searchParams: {
 
     const totalCount = await db.discounts.count();
 
-    const wrappedDiscounts: discountDataType[] = discounts.map((discount) => ({
-      discount: discount,
-      arrivalCity: discount.arrivalCity,
-      sourceCity: discount.departureCity,
-    }));
+    const wrappedDiscounts: discountDataType[] = discounts.map((discount) => {
+      const arrivalCitiesMap = cities.filter((city) =>
+        discount.arrivalCityIds.includes(city.id)
+      );
+
+      const departureCitiesMap = cities.filter((city) =>
+        discount.departureCityIds.includes(city.id)
+      );
+
+      return {
+        discount: discount,
+        arrivalCities: arrivalCitiesMap.map((city) => ({
+          id: city.id,
+          name: city.name,
+        })),
+        sourceCities: departureCitiesMap.map((city) => ({
+          id: city.id,
+          name: city.name,
+        })),
+      };
+    });
 
     return {
       discounts: wrappedDiscounts,

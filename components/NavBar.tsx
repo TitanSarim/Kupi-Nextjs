@@ -7,16 +7,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Image from "next/image";
 import { signOut } from "@/auth";
-import { auth } from "@/auth";
-import Link from "next/link";
+import NavDropDown from "./NavDropDown";
 
 type NavProps = {
   profileImage: string;
+  name?: string | null;
 };
 
-const NavBar: React.FC<NavProps> = async ({ profileImage }) => {
-  const session = (await auth().catch(() => null)) ?? null;
-
+const NavBar: React.FC<NavProps> = ({ profileImage, name }) => {
   return (
     <div className="relative h-16 w-full bg-white flex justify-end items-center shadow-sm">
       <div className="pr-10">
@@ -36,7 +34,7 @@ const NavBar: React.FC<NavProps> = async ({ profileImage }) => {
               </Avatar>
               <div>
                 <p className="text-black text-base	font-medium mb-0 capitalize">
-                  {session?.user?.name}
+                  {name}
                 </p>
                 <span className=" text-slate-700	 text-sm font-light	capitalize">
                   Admin
@@ -46,36 +44,12 @@ const NavBar: React.FC<NavProps> = async ({ profileImage }) => {
 
             <DropdownMenuSeparator className="mt-3" />
 
-            <Link
-              href={"/app/profile"}
-              className="relative flex flex-row items-center justify-start gap-2 mt-3"
-            >
-              <Image
-                src="/img/icons/user-icon.png"
-                alt="user img"
-                width={20}
-                height={20}
-              />
-              <p className="text-gray-700 text-base font-light">My Profile</p>
-            </Link>
-
-            <Link
-              href={"/app/settings/admin"}
-              className="relative flex flex-row items-center justify-start gap-2 mt-2"
-            >
-              <Image
-                src="/img/icons/setting-icon.png"
-                alt="user img"
-                width={20}
-                height={20}
-              />
-              <p className="text-gray-700 text-base font-light">Settings</p>
-            </Link>
+            <NavDropDown />
 
             <form
               action={async () => {
                 "use server";
-                await signOut({ redirectTo: "/login" });
+                await signOut({ redirectTo: "/" });
               }}
             >
               <button className="bg-kupi-yellow	w-full rounded-md mt-3 py-2 px-3 relative flex flex-row items-center justify-between">

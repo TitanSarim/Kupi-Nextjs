@@ -85,7 +85,8 @@ export async function getAllTickets(searchParams: {
         field === "busIdentifier" ||
         field === "ticketId" ||
         field === "source" ||
-        field === "status"
+        field === "status" ||
+        field === "reservedAt"
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }

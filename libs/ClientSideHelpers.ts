@@ -106,3 +106,22 @@ export const createImage = (url: string) =>
     image.addEventListener("error", (error) => reject(error));
     image.src = url;
   });
+
+export const passwordValidation = (password: string) => {
+  const minLength = /.{8,}/;
+  const hasUpperCase = /[A-Z]/;
+  const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/;
+  if (password.length === 0) {
+    return null;
+  }
+  if (!minLength.test(password)) {
+    return "Password must be at least 8 characters long.";
+  }
+  if (!hasUpperCase.test(password)) {
+    return "Password must contain at least one uppercase letter.";
+  }
+  if (!hasSymbol.test(password)) {
+    return "Password must contain at least one special symbol.";
+  }
+  return null;
+};
