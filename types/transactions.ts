@@ -151,6 +151,35 @@ export interface FilterProps {
   paymentPeriod?: number;
 }
 
+export interface ManualFilterProps {
+  selectedAvailability?: {
+    carrier?: {
+      contains?: string;
+      mode?: "insensitive";
+    };
+  };
+  source?: TicketSources;
+  sourceCity?: {
+    name?: {
+      contains?: string;
+      mode?: "insensitive";
+    };
+  };
+  arrivalCity?: {
+    name?: {
+      contains?: string;
+      mode?: "insensitive";
+    };
+  };
+  paidAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+  status?: "RESERVED";
+  id?: string | { contains: string; mode: "insensitive" };
+  paymentPeriod?: number;
+}
+
 export interface FileType {
   path: string;
   name: string;

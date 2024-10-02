@@ -127,7 +127,15 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
           Bus Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <span>{row.original.operators?.[0]?.name}</span>,
+      cell: ({ row }) => {
+        const operatorName = row.original.operators?.[0]?.name || "";
+        const limitedName =
+          operatorName.length > 9
+            ? `${operatorName.slice(0, 9)}...`
+            : operatorName;
+
+        return <span>{limitedName}</span>;
+      },
     },
     {
       accessorKey: "PaymentPeriod",

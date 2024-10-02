@@ -4,7 +4,6 @@ import { Input } from "../ui/input";
 import { useRouter } from "next/navigation";
 import { TransactionReturn } from "@/types/transactions";
 import Datepicker from "react-tailwindcss-datepicker";
-import { getAllMatchedCity } from "@/actions/search.action";
 import TransactionTable from "./TransactionTable";
 import {
   Popover,
@@ -21,7 +20,7 @@ import {
 } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Cities } from "@prisma/client";
+import { useSession } from "next-auth/react";
 
 const TransactionList: React.FC<TransactionReturn> = ({
   transactionData,

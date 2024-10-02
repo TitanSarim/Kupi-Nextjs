@@ -16,7 +16,7 @@ type NavProps = {
 
 const NavBar: React.FC<NavProps> = ({ profileImage, name }) => {
   return (
-    <div className="relative h-16 w-full bg-white flex justify-end items-center shadow-sm">
+    <div className="sticky top-0 z-10 h-16 w-full bg-white flex justify-end items-center shadow-sm">
       <div className="pr-10">
         <DropdownMenu>
           <DropdownMenuTrigger>

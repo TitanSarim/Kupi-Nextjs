@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { User } from "./types/user";
+import { JWT } from "next-auth/jwt";
 
 export const {
   handlers: { GET, POST },
@@ -23,8 +24,10 @@ export const {
       async authorize(credentials) {
         const user = await db.users.findUnique({
           where: { email: credentials?.email as string },
+          include: {
+            role: true,
+          },
         });
-
         if (!user) {
           throw new Error("No user found with the given email");
         }
@@ -37,20 +40,28 @@ export const {
         if (!isValidPassword) {
           throw new Error("Incorrect password");
         }
-        return user as User;
+
+        const transformedUser = {
+          ...user,
+          role: user.role ? { name: user.role.roleName } : undefined,
+        };
+
+        return transformedUser as User;
       },
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
-      session.userId = token.id as string; // Attach the user ID to the session
-      return session;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role?.name;
       }
-      return token;
+      return token as JWT;
+    },
+    async session({ session, token }) {
+      session.userId = token.id as string;
+      session.role = token.role;
+      return session;
     },
   },
 });

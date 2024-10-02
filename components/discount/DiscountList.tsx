@@ -34,7 +34,9 @@ const DiscountList: React.FC<DiscountReturn> = ({
   const [onlyExpiring, setOnlyExpiring] = useState(false);
   const [busOperator, setBusOperator] = useState("");
   const [destinationCity, setDestinationCity] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState<string>("");
   const [arrivalCity, setArrivalCity] = useState("");
+  const [arrivalCityId, setArrivalCityId] = useState("");
   const [open, setOpen] = React.useState(false);
   const [openArrival, setOpenArrival] = React.useState(false);
 
@@ -47,14 +49,16 @@ const DiscountList: React.FC<DiscountReturn> = ({
       params.set("name", name);
     }
     if (destinationCity !== "clear") {
-      params.set("destinationCity", destinationCity);
+      params.set("destinationCity", selectedCityId);
     } else {
       setDestinationCity("");
+      setSelectedCityId("");
     }
     if (arrivalCity !== "clear") {
-      params.set("arrivalCity", arrivalCity);
+      params.set("arrivalCity", arrivalCityId);
     } else {
       setArrivalCity("");
+      setArrivalCityId("");
     }
     if (onlyExpiring) params.set("onlyExpiring", String(onlyExpiring));
     router.push(`?${params.toString()}`, { scroll: false });
@@ -151,6 +155,7 @@ const DiscountList: React.FC<DiscountReturn> = ({
                         value=""
                         onSelect={() => {
                           setDestinationCity("");
+                          setSelectedCityId("");
                           setOpen(false);
                         }}
                         className="cursor-pointer w-full"
@@ -167,12 +172,9 @@ const DiscountList: React.FC<DiscountReturn> = ({
                           <CommandItem
                             key={city.id}
                             value={city.name}
-                            onSelect={(currentValue) => {
-                              setDestinationCity(
-                                currentValue === destinationCity
-                                  ? ""
-                                  : currentValue
-                              );
+                            onSelect={() => {
+                              setDestinationCity(city.name);
+                              setSelectedCityId(city.id);
                               setOpen(false);
                             }}
                             className="cursor-pointer w-full"
@@ -223,6 +225,7 @@ const DiscountList: React.FC<DiscountReturn> = ({
                         value=""
                         onSelect={() => {
                           setArrivalCity("");
+                          setArrivalCityId("");
                           setOpenArrival(false);
                         }}
                         className="cursor-pointer w-full"
@@ -239,10 +242,9 @@ const DiscountList: React.FC<DiscountReturn> = ({
                           <CommandItem
                             key={city.id}
                             value={city.name}
-                            onSelect={(currentValue) => {
-                              setArrivalCity(
-                                currentValue === arrivalCity ? "" : currentValue
-                              );
+                            onSelect={() => {
+                              setArrivalCity(city.name);
+                              setArrivalCityId(city.id);
                               setOpenArrival(false);
                             }}
                             className="cursor-pointer w-full"

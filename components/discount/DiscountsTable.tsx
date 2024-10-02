@@ -85,11 +85,15 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
           Discount Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <div>
-          <span>{row.original.discount.name}</span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const discountName = row.original.discount.name || "";
+        const limitedName =
+          discountName.length > 9
+            ? `${discountName.slice(0, 9)}...`
+            : discountName;
+
+        return <span>{limitedName}</span>;
+      },
     },
     {
       accessorKey: "percentage",
@@ -151,12 +155,12 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
             {row.original?.sourceCities &&
             row.original?.sourceCities?.length > 0 ? (
               <>
-                {row.original?.sourceCities?.slice(0, 3).map((city) => (
+                {row.original?.sourceCities?.slice(0, 2).map((city) => (
                   <span key={city.id} className="city-name">
                     {city.name},{" "}
                   </span>
                 ))}
-                {row.original?.sourceCities?.length > 3 && <span> ... </span>}
+                {row.original?.sourceCities?.length > 2 && <span> ... </span>}
               </>
             ) : (
               <span>NA</span>
@@ -167,12 +171,12 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
             {row.original?.arrivalCities &&
             row.original.arrivalCities.length > 0 ? (
               <>
-                {row.original.arrivalCities.slice(0, 3).map((city) => (
+                {row.original.arrivalCities.slice(0, 2).map((city) => (
                   <span key={city.id} className="city-name">
                     {city.name},{" "}
                   </span>
                 ))}
-                {row.original.arrivalCities.length > 3 && <span> ... </span>}
+                {row.original.arrivalCities.length > 2 && <span> ... </span>}
               </>
             ) : (
               <span>NA</span>

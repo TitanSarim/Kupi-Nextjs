@@ -12,7 +12,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = (await auth().catch(() => null)) ?? null;
-
   if (!session) {
     return null;
   }
@@ -24,7 +23,7 @@ export default async function RootLayout({
 
   return (
     <div className="flex h-full">
-      <SideBar />
+      <SideBar role={session.role} />
       <div className="flex flex-col w-full">
         <Toaster />
         <NextTopLoader color="#FFC107" />

@@ -3,15 +3,23 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { Input } from "../ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useDropzone } from "react-dropzone";
 import { createInvoice } from "@/actions/transactions.actions";
 import { OperatorsType } from "@/types/transactions";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "../ui/button";
 
 interface DialogProps {
   open: boolean;
@@ -31,6 +39,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
   const [totalAmount, setTotalAmount] = useState<number>();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [openOperator, setOpenOperator] = useState(false);
   const [errorState, setErrorState] = useState<[string, boolean]>(["", false]);
   const {
     getRootProps: getInvoiceRootProps,
@@ -56,6 +65,10 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
     maxFiles: 1,
   });
 
+  const selectedOperator = operators.find(
+    (operator) => operator.id === busOperator
+  );
+  console.log("busOperator", busOperator);
   const {
     getRootProps: getReceiptRootProps,
     getInputProps: getReceiptInputProps,
@@ -89,12 +102,33 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === "" ? undefined : Number(e.target.value);
-    setTotalAmount(value);
+    const value = e.target.value;
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length > 6) {
+      return;
+    }
+    const amountValue = numericValue === "" ? undefined : Number(numericValue);
+    setTotalAmount(amountValue);
   };
+
   const handlePeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === "" ? undefined : Number(e.target.value);
-    setPaymentPeriod(value);
+    const value = e.target.value;
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length > 3) {
+      return;
+    }
+    const periodValue = numericValue === "" ? undefined : Number(numericValue);
+    setPaymentPeriod(periodValue);
+  };
+
+  const handleClose = () => {
+    setErrorState(["", false]);
+    setInvoiceFiles([]);
+    setReceiptFiles([]);
+    setBusOperator("");
+    setPaymentPeriod(0);
+    setTotalAmount(0);
+    onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,7 +174,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
         <div className="w-full flex flex-row justify-between">
           <p className="text-lg text-black font-semibold">Add Transaction</p>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-600 hover:text-gray-800"
           >
             <Image
@@ -171,18 +205,68 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             <p className="mb-1 darkGray-text font-normal text-sm">
               Bus Operator
             </p>
-            <Select value={busOperator} onValueChange={setBusOperator}>
-              <SelectTrigger className="w-full h-12 rounded-lg bg-white text-gray-900 border-gray-300">
-                <SelectValue placeholder="Select bus operator" />
-              </SelectTrigger>
-              <SelectContent className="select-dropdown_add_trans z-50 max-h-28 overflow-y-auto">
-                {operators.map((operator) => (
-                  <SelectItem key={operator.id} value={operator.id}>
-                    {operator.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={openOperator} onOpenChange={setOpenOperator}>
+              <PopoverTrigger
+                asChild
+                className="w-full h-12 rounded-lg text-gray-500 border-gray-700"
+              >
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openOperator}
+                  className="w-full justify-between outline-none"
+                >
+                  {selectedOperator?.name || "Select operator..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 select-dropdown_add_trans">
+                <Command>
+                  <CommandInput placeholder="Search operator..." />
+                  <CommandList className="w-full">
+                    <CommandEmpty>No operator found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setBusOperator(""); // Clear selection
+                          setOpenOperator(false);
+                        }}
+                        className="cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            busOperator === "" ? "opacity-100" : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
+                      {operators.map((operator) => (
+                        <CommandItem
+                          key={operator.id}
+                          value={operator.id}
+                          onSelect={() => {
+                            setBusOperator(operator.id); // Save operator ID instead of name
+                            setOpenOperator(false);
+                          }}
+                          className="cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              operator.id === busOperator
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          {operator.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div>
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -190,6 +274,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             </p>
             <Input
               min={0}
+              max={3}
               type="number"
               placeholder="Enter period"
               value={paymentPeriod}
@@ -204,6 +289,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             </p>
             <Input
               min={0}
+              max={6}
               type="number"
               placeholder="$"
               value={totalAmount}
@@ -343,7 +429,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
 
           <div className="w-full flex justify-end gap-3 mt-4">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="border-gray-600 py-1 px-8 bg-transparent border-2 rounded-lg text-gray-600"
             >
               Cancel

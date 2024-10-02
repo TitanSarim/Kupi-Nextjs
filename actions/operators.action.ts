@@ -1,12 +1,13 @@
 "use server";
-
+import axios from "axios";
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { Operators, Prisma } from "@prisma/client";
-import { randomBytes } from "crypto";
+import { Operators } from "@prisma/client";
 import {
   FilterProps,
   FormData,
+  LookupModel,
+  OperatorLookupModel,
   OperatorsData,
   OperatorsDataReturn,
   OperatorStatus,
@@ -15,6 +16,8 @@ import {
 import { sendInvitationEmail } from "@/libs/SendInvitationMail";
 import { SortOrderProps } from "@/types/ticket";
 import { encryptData } from "@/libs/ServerSideHelpers";
+import { revalidatePath } from "next/cache";
+import { parseStringPromise } from "xml2js";
 
 export async function getAllOperators(searchParams: {
   name?: string;
@@ -132,7 +135,7 @@ export async function AddOperator(
 
     if (existingOperator) {
       console.error("Operator with the same name already exists");
-      return "perator with the same name already exists";
+      return "Operator with the same name already exists";
     }
     if (existingEmail) {
       console.error("Operator with the same email already exists");
@@ -186,6 +189,7 @@ export async function AddOperator(
           email: formData.email,
           expires: expirationTime,
           sessionToken: encryptedData,
+          isActive: true,
         },
       });
     } else if (isSession) {
@@ -197,6 +201,7 @@ export async function AddOperator(
           email: formData.email,
           expires: expirationTime,
           sessionToken: encryptedData,
+          isActive: true,
         },
       });
     }
@@ -204,6 +209,7 @@ export async function AddOperator(
     if (!operator) {
       return null;
     }
+    revalidatePath("/app/bus-operators");
     return operator || null;
   } catch (error) {
     console.error(error);
@@ -237,44 +243,150 @@ export async function UpdateOperatorInvitation(
     };
     const encryptedData = await encryptData(dataToEncrypt, secret);
 
-    if (formData.checked === true && formData.email) {
-      const invitationEmail = await sendInvitationEmail(
-        formData.email,
-        formData.name,
-        encryptedData
-      );
-      if (!invitationEmail) {
-        console.error("Error sending invitation email");
-        return "Error sending invitation email";
-      }
+    const invitationEmail = await sendInvitationEmail(
+      formData.email,
+      formData.name,
+      encryptedData
+    );
+    if (!invitationEmail) {
+      console.error("Error sending invitation email");
+      return "Error sending invitation email";
     }
 
-    const operator = await db.operators.update({
+    const status = await db.operators.findUnique({
       where: {
         id: id,
       },
-      data: {
-        name: formData.name,
-        description: formData.description || "",
-        status: OperatorStatus.INVITED,
-      },
     });
 
-    await db.operatorsSessions.update({
-      where: {
-        id: sessionId,
-      },
-      data: {
-        email: formData.email,
-        expires: expirationTime,
-        sessionToken: encryptedData,
-      },
-    });
+    let operator;
+    if (status?.status === "INVITED" || status?.status === "SUSPENDED") {
+      operator = await db.operators.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: formData.name,
+          description: formData.description || "",
+          status: OperatorStatus.INVITED,
+        },
+      });
+      await db.operatorsSessions.update({
+        where: {
+          id: sessionId,
+        },
+        data: {
+          email: formData.email,
+          expires: expirationTime,
+          sessionToken: encryptedData,
+          isActive: true,
+        },
+      });
+    } else if (status?.status === "REGISTERED") {
+      operator = await db.operators.update({
+        where: {
+          id: id,
+        },
+        data: {
+          name: formData.name,
+          description: formData.description || "",
+        },
+      });
+      await db.operatorsSessions.update({
+        where: {
+          id: sessionId,
+        },
+        data: {
+          email: formData.email,
+          isActive: false,
+        },
+      });
+    }
 
     if (!operator) {
       return null;
     }
+    revalidatePath("/app/bus-operators");
     return operator || null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function CheckPrevRequest(email: string): Promise<true | null> {
+  try {
+    const session = await db.operatorsSessions.findFirst({
+      where: {
+        email: email,
+        isActive: false,
+      },
+    });
+
+    if (session) {
+      return true;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function SyncBusOperators() {
+  try {
+    let data =
+      '<?xml version="1.0" encoding="utf-8"?>\r\n\r\n<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">\r\n  <soap:Body>\r\n    <GetLookup xmlns="http://tempuri.org/">\r\n      <STImpID>KPI</STImpID>\r\n      <STTerm>INTERNET</STTerm>\r\n      <INTrace>0</INTrace>\r\n      <STLookup>Carriers</STLookup>\r\n      <STVersion>0</STVersion>\r\n    </GetLookup>\r\n  </soap:Body>\r\n</soap:Envelope>';
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://129.232.159.230/CarmatestSwitchKPI/Lookup.asmx",
+      headers: {
+        "Content-Type": "text/xml",
+        SOAPAction: '"http://tempuri.org/GetLookup"',
+      },
+      data: data,
+    };
+    const response = await axios.request(config);
+    const result = await parseStringPromise(response.data);
+
+    const lookupModels =
+      result["soap:Envelope"]["soap:Body"][0]["GetLookupResponse"][0][
+        "GetLookupResult"
+      ][0]["Response"][0]["LookupModel"];
+
+    const jsonResponse = lookupModels.map((model: LookupModel) => ({
+      STDescription: model["STDescription"][0],
+      STCarrier: model["STCarrier"][0],
+    }));
+
+    const allOperators = await db.operators.findMany({
+      select: {
+        name: true,
+      },
+    });
+
+    const existingOperatorNames = allOperators.map((operator) => operator.name);
+
+    const newOperators: OperatorLookupModel[] = jsonResponse.filter(
+      (operator: OperatorLookupModel) =>
+        !existingOperatorNames.includes(operator.STDescription.toLowerCase())
+    );
+
+    if (newOperators.length > 0) {
+      await db.operators.createMany({
+        data: newOperators.map((operator) => ({
+          name: operator.STDescription.toUpperCase(),
+          status: "REGISTERED",
+          description: "",
+          source: "CARMA",
+        })),
+      });
+    }
+
+    return true;
   } catch (error) {
     console.error(error);
     return null;

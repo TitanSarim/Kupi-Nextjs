@@ -3,18 +3,22 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { useDropzone } from "react-dropzone";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
-  createInvoice,
-  getBusOperators,
-  updateInvoice,
-} from "@/actions/transactions.actions";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "../ui/button";
+import { useDropzone } from "react-dropzone";
+import { updateInvoice } from "@/actions/transactions.actions";
 import {
   FileType,
   ManualTransactionsType,
@@ -45,6 +49,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
   const [totalAmount, setTotalAmount] = useState<number>();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [openOperator, setOpenOperator] = useState(false);
   const [errorState, setErrorState] = useState<[string, boolean]>(["", false]);
   const {
     getRootProps: getInvoiceRootProps,
@@ -94,21 +99,36 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
     maxFiles: 1,
   });
 
-  useEffect(() => {
+  const handleData = () => {
     if (transaction) {
       setTransactionId(transaction.transactions.id);
       const matchingOperator = operators?.find(
         (operator) => operator.id === transaction.operators?.[0]?.id
       );
-      if (matchingOperator?.id !== busOperator) {
-        setBusOperator(matchingOperator?.id || "");
+      if (matchingOperator?.id && matchingOperator?.id !== busOperator) {
+        setBusOperator(matchingOperator.id);
       }
       setPaymentPeriod(transaction.transactions.paymentPeriod || 0);
       setTotalAmount(transaction.transactions.totalAmount);
       setInvoiceData(transaction.transactions.invoice || undefined);
       setReciptData(transaction.transactions.recipt || undefined);
     }
-  }, [busOperator, operators, transaction]);
+  };
+
+  const selectedOperator = operators?.find(
+    (operator) => operator.id === busOperator
+  );
+
+  useEffect(() => {
+    handleData();
+  }, [operators, transaction]);
+
+  const handleClose = () => {
+    handleData();
+    setErrorState(["", false]);
+    setError("");
+    onClose();
+  };
 
   const clearInvoiceData = () => {
     setInvoiceData(undefined);
@@ -125,12 +145,23 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === "" ? undefined : Number(e.target.value);
-    setTotalAmount(value);
+    const value = e.target.value;
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length > 6) {
+      return;
+    }
+    const amountValue = numericValue === "" ? undefined : Number(numericValue);
+    setTotalAmount(amountValue);
   };
+
   const handlePeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value === "" ? undefined : Number(e.target.value);
-    setPaymentPeriod(value);
+    const value = e.target.value;
+    const numericValue = value.replace(/\D/g, "");
+    if (numericValue.length > 3) {
+      return;
+    }
+    const periodValue = numericValue === "" ? undefined : Number(numericValue);
+    setPaymentPeriod(periodValue);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -162,6 +193,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
       console.error(error);
     } finally {
       setErrorState(["", false]);
+      setError("");
       setLoading(false);
       setInvoiceFiles([]);
       setReceiptFiles([]);
@@ -180,7 +212,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
         <div className="w-full flex flex-row justify-between">
           <p className="text-lg text-black font-semibold">Update Transaction</p>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-600 hover:text-gray-800"
           >
             <Image
@@ -212,19 +244,69 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
             <p className="mb-1 darkGray-text font-normal text-sm">
               Bus Operator
             </p>
-            <Select value={busOperator} onValueChange={setBusOperator} required>
-              <SelectTrigger className="w-full h-12 rounded-lg bg-white text-gray-900 border-gray-300">
-                <SelectValue placeholder="Select bus operator" />
-              </SelectTrigger>
-              <SelectContent className="select-dropdown_add_trans z-50 max-h-28 overflow-y-auto">
-                {operators &&
-                  operators?.map((operator) => (
-                    <SelectItem key={operator.id} value={operator.id}>
-                      {operator.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+            <Popover open={openOperator} onOpenChange={setOpenOperator}>
+              <PopoverTrigger
+                asChild
+                className="w-full h-12 rounded-lg text-gray-500 border-gray-700"
+              >
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openOperator}
+                  className="w-full justify-between outline-none"
+                >
+                  {selectedOperator?.name || "Select operator..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 select-dropdown_add_trans">
+                <Command>
+                  <CommandInput placeholder="Search operator..." />
+                  <CommandList className="w-full">
+                    <CommandEmpty>No operator found.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setBusOperator(""); // Clear selection
+                          setOpenOperator(false);
+                        }}
+                        className="cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            busOperator === "" ? "opacity-100" : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
+                      {operators &&
+                        operators?.map((operator) => (
+                          <CommandItem
+                            key={operator.id}
+                            value={operator.id}
+                            onSelect={() => {
+                              setBusOperator(operator.id);
+                              setOpenOperator(false);
+                            }}
+                            className="cursor-pointer w-full"
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                operator.id === busOperator
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {operator.name}
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {error === "busOperator" && (
               <p className="text-red-500">Bus Operator is required</p>
             )}
@@ -351,7 +433,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
                 {reciptData !== undefined && receiptFiles.length <= 0 ? (
                   <div className="relative flex flex-col items-center justify-evenly h-40 border-2 bg-white border-gray-400 rounded-lg p-6">
                     <button
-                      onClick={clearInvoiceData}
+                      onClick={clearTransactionData}
                       className="absolute bg-kupi-yellow remove-file"
                     >
                       <Image
@@ -436,7 +518,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
 
           <div className="w-full flex justify-end gap-3 mt-4">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="border-gray-600 py-1 px-8 bg-transparent border-2 rounded-lg text-gray-600"
             >
               Cancel

@@ -20,8 +20,8 @@ const BusOperators = async ({
   }
 
   return (
-    <div className="bg-page-backgound flex items-start justify-center h-screen w-full">
-      <div className="w-11/12">
+    <div className="bg-page-backgound flex items-start justify-center h-full w-full">
+      <div className="w-11/12 h-full">
         <OperatorsList
           operators={operators.operators}
           paginationData={operators.paginationData}

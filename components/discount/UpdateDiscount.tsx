@@ -61,7 +61,12 @@ const UpdateDiscount: React.FC<DialogProps> = ({
   ) => {
     const value = event.target.value;
     const numericValue = value.replace(/[^0-9.]/g, "");
-    setPercentage(Number(numericValue));
+    let percentageValue = Number(numericValue);
+
+    if (percentageValue > 100) percentageValue = 100;
+    if (percentageValue < 0) percentageValue = 0;
+
+    setPercentage(percentageValue);
   };
 
   const handleClose = () => {
@@ -139,12 +144,11 @@ const UpdateDiscount: React.FC<DialogProps> = ({
       );
       setDestinationCityIds(discount.departureCityIds || "");
       setArrivalCityIds(discount.arrivalCityIds || "");
-      const selectedIds = discount.operatorIds || [];
-      setSelectedOperators(selectedIds);
-      const sources = discount.source || [];
-      setSource(sources);
+
+      setSource(discount.source || []);
+      setSelectedOperators(discount.operatorIds || []);
     }
-  }, [cities, discount, operators, source]);
+  }, [cities, discount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,7 +213,9 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 value={discountname}
                 onChange={(e) => {
                   const filteredValue = e.target.value.replace(/\s/g, "");
-                  setDiscountname(filteredValue);
+                  if (filteredValue.length <= 12) {
+                    setDiscountname(filteredValue);
+                  }
                 }}
                 required
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
@@ -261,7 +267,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                           key="clear"
                           value=""
                           onSelect={() => {
-                            setSelectedOperators([]);
+                            setSelectedOperators([]); // Clear all selections
                             setOpenOperator(false);
                           }}
                           className="cursor-pointer w-full"
@@ -523,6 +529,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 <span className="text-red-500">{errorState.message}</span>
               )}
             </div>
+            {/*  */}
             <div className="w-full mb-3">
               <p className="mb-1 darkGray-text font-normal text-sm">
                 Max Use Count

@@ -21,6 +21,40 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
     message: string;
   } | null>(null);
 
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value.toLowerCase();
+    setEmail(newEmail);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      setErrorState({
+        field: "validEmail",
+        message: `Please enter a valid email`,
+      });
+    } else {
+      setErrorState(null);
+    }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newName = e.target.value;
+
+    if (newName.length > 20) {
+      newName = newName.slice(0, 20);
+    }
+
+    setName(newName.toUpperCase());
+
+    if (newName.length < 3) {
+      setErrorState({
+        field: "nameLength",
+        message: "Name must be at least 3 to 20 characters.",
+      });
+    } else {
+      setErrorState(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -50,7 +84,6 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
       setName("");
       setEmail("");
       setDescription("");
-      onClose();
       setLoading(false);
       setErrorState(null);
     }
@@ -80,31 +113,31 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
         <form className="mt-5 w-full flex flex-col" onSubmit={handleSubmit}>
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
-              Company Name
+              Company Name *
             </p>
             <Input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value.toUpperCase())}
+              onChange={handleNameChange}
               placeholder="Enter name"
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
             />
-            {errorState?.field === "name" && (
+            {errorState?.field === "nameLength" && (
               <span className="text-red-500">{errorState.message}</span>
             )}
           </div>
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
-              Operator Email
+              Operator Email *
             </p>
             <Input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value.toLowerCase())}
+              onChange={handleEmailChange}
               placeholder="Enter email address"
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
             />
-            {errorState?.field === "email" && (
+            {errorState?.field === "validEmail" && (
               <span className="text-red-500">{errorState.message}</span>
             )}
           </div>

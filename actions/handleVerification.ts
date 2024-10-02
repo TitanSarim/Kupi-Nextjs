@@ -34,7 +34,7 @@ export async function handleVerification(
     // Fetch the role ID based on the role name
     const role = await db.userRoles.findUnique({
       where: {
-        roleName: RolesEnum.SuperAdmin,
+        roleName: RolesEnum.BusCompanyAdmin,
       },
     });
 
@@ -42,6 +42,25 @@ export async function handleVerification(
       return { status: 500, message: "Role not found." };
     }
 
+    const operatorsSession = await db.operatorsSessions.findFirst({
+      where: {
+        email: verification.email,
+      },
+    });
+
+    if (!operatorsSession) {
+      return undefined;
+    }
+
+    const operator = await db.operators.findUnique({
+      where: {
+        id: operatorsSession.operatorId,
+      },
+    });
+
+    if (!operator) {
+      return undefined;
+    }
     // Create the user account with the fetched role ID
     await db.users.create({
       data: {
@@ -49,11 +68,11 @@ export async function handleVerification(
         name: verification.name ?? "",
         surname: verification.surname ?? "",
         password: verification.password ?? "",
-        company: verification.company,
+        company: operator.name,
         description: verification.description,
         number: verification.number ?? "",
         emailVerified: new Date(),
-        operatorsId: verification.operatorsId ?? null,
+        operatorsId: operatorsSession.operatorId,
         roleId: role.id,
       },
     });

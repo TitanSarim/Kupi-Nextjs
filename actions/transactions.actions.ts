@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { auth } from "@/auth";
 import {
   FilterProps,
+  ManualFilterProps,
   ManualTransactionReturnActions,
   ManualTransactionsType,
   OperatorsType,
@@ -15,7 +16,6 @@ import { Prisma, Transactions } from "@prisma/client";
 import { getSignedURL, uploadPdfToS3 } from "@/libs/s3";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
-import { SortOrderProps } from "@/types/ticket";
 
 export async function getAllTransactions(searchParams: {
   carrier?: string;
@@ -388,8 +388,13 @@ export async function getAllManualTransactions(searchParams: {
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
 
-    const filter: FilterProps = {};
-    if (id) filter.id = new ObjectId(id).toHexString();
+    const filter: ManualFilterProps = {};
+    if (id) {
+      filter.id = {
+        contains: id,
+        mode: "insensitive",
+      };
+    }
     if (period) filter.paymentPeriod = Number(period);
     if (carrier) {
       filter.selectedAvailability = {

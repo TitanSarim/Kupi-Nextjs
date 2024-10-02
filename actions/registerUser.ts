@@ -69,6 +69,23 @@ export async function registerUser(
       },
     });
 
+    const session = await db.operatorsSessions.findFirst({
+      where: {
+        operatorId: operator.id,
+      },
+    });
+    if (!session) {
+      return null;
+    }
+    await db.operatorsSessions.update({
+      where: {
+        id: session?.id,
+      },
+      data: {
+        isActive: false,
+      },
+    });
+
     return { success: true };
   } catch (error) {
     console.error("Error registering user:", error);

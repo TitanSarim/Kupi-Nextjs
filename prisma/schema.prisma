@@ -116,6 +116,7 @@ model OperatorsSessions {
   operatorId   String    @db.ObjectId
   operator     Operators @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   expires      DateTime
+  isActive     Boolean
   sessionToken Json?     @unique
 }
 

@@ -12,6 +12,8 @@ import { adminSetting } from "@/actions/settings.action";
 import { SettingsFormData } from "@/types/settings";
 import Rates from "@/libs/Rates";
 import { Settings } from "@prisma/client";
+import { SyncBusOperators } from "@/actions/operators.action";
+import toast from "react-hot-toast";
 
 interface AdminSettingsProps {
   settings: Settings[];
@@ -28,68 +30,116 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const [reminder, setReminder] = useState<number>(0);
   const [error, setError] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const [fetchLoading, setFetchLoading] = useState<boolean>(false);
   const [maintainanace, setMaintainanace] = useState<boolean>(false);
+  const [formChanged, setFormChanged] = useState<boolean>(false);
 
   const handleExchangeRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = event.target.value;
-    const numericValue = value.replace(/[^0-9.]/g, "");
-    setExchangeRate(Number(numericValue));
+    let value = event.target.value;
+
+    let numericValue = value.replace(/[^0-9]/g, "");
+    if (numericValue.length > 3) {
+      numericValue = numericValue.substring(0, 3);
+    }
+    const exchangeRate = Math.min(Number(numericValue), 999);
+    setExchangeRate(exchangeRate);
+    setFormChanged(true);
   };
 
   const handleKupiCommissionChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value;
-    const numericValue = value.replace(/[^0-9.]/g, "");
-    setKupiMarkup(Number(numericValue));
+    let numericValue = value.replace(/[^0-9]/g, "");
+    if (numericValue.length > 3) {
+      numericValue = numericValue.substring(0, 3);
+    }
+    const exchangeRate = Math.min(Number(numericValue), 999);
+    setKupiMarkup(exchangeRate);
+    setFormChanged(true);
   };
 
   const handleCommissionChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = event.target.value;
-    const numericValue = value.replace(/[^0-9.]/g, "");
-    setCommission(Number(numericValue));
+    let value = event.target.value;
+    let numericValue = value.replace(/[^0-9]/g, "");
+    let commission = Number(numericValue);
+    if (commission < 0) {
+      commission = 0;
+    } else if (commission > 100) {
+      commission = 100;
+    }
+
+    setCommission(commission);
+    setFormChanged(true);
   };
 
   const handleCarmaCommissionChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = event.target.value;
-    const numericValue = value.replace(/[^0-9.]/g, "");
-    setCarmaCommission(Number(numericValue));
+    let value = event.target.value;
+    let numericValue = value.replace(/[^0-9]/g, "");
+    let commission = Number(numericValue);
+    if (commission < 0) {
+      commission = 0;
+    } else if (commission > 100) {
+      commission = 100;
+    }
+    setCarmaCommission(commission);
+    setFormChanged(true);
   };
 
   const handleTicketsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     const numericValue = Math.max(0, parseFloat(value));
     setTickets(numericValue);
+    setFormChanged(true);
   };
 
   const handleReminderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    const numericValue = value.replace(/[^0-9.]/g, "");
-    setReminder(Number(numericValue));
+    let value = event.target.value;
+    let numericValue = value.replace(/[^0-9]/g, "");
+    let reminder = Number(numericValue);
+    if (reminder < 0) {
+      reminder = 0;
+    } else if (reminder > 100) {
+      reminder = 100;
+    }
+
+    setReminder(reminder);
+    setFormChanged(true);
   };
 
   const handleBookingAtRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value.replace(/\D/g, "");
+
     if (value.length === 0) {
       setBookingAt("00:00");
       return;
     }
-    const numericValue = Math.max(0, Math.min(59, parseInt(value, 10)));
-    const minutes = Math.floor(numericValue / 60);
-    const seconds = numericValue % 60;
-    const formattedTime = `${String(minutes).padStart(2, "0")}:${String(
-      seconds
+    let hours = 0;
+    let minutes = 0;
+
+    if (value.length <= 2) {
+      hours = parseInt(value.slice(0, 2), 10);
+    } else {
+      hours = parseInt(value.slice(0, -2), 10);
+      minutes = parseInt(value.slice(-2), 10);
+    }
+    hours = Math.max(0, Math.min(23, hours));
+    minutes = Math.max(0, Math.min(59, minutes));
+
+    const formattedTime = `${String(hours).padStart(2, "0")}:${String(
+      minutes
     ).padStart(2, "0")}`;
 
     setBookingAt(formattedTime);
+    setFormChanged(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,7 +183,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     ];
 
     try {
-      await adminSetting(formData);
+      const response = await adminSetting(formData);
+      if (response === true) {
+        setFormChanged(false);
+        toast.success("Settings updated successfully");
+      }
     } catch (error) {
       setError(true);
     } finally {
@@ -223,8 +277,23 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     }
   };
 
+  const handleFetchOperators = async () => {
+    setLoading(true);
+    setFetchLoading(true);
+    try {
+      await SyncBusOperators();
+      toast.success("Operators fetched successfully");
+    } catch (error) {
+      console.error("Error fetching operators");
+    } finally {
+      setFetchLoading(false);
+      setLoading(false);
+    }
+  };
+
   const handleReset = () => {
     dataHandler();
+    setFormChanged(false);
   };
 
   useEffect(() => {
@@ -233,13 +302,20 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   }, [settings]);
 
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
+    <div className="w-full">
       <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md px-8 py-6">
         <div className="w-full flex flex-row items-center justify-between">
           <p className="text-lg text-black font-semibold">Admin Settings</p>
           <div className="flex flex-row gap-6">
-            <button type="button" className="bg-kupi-yellow rounded-lg px-6">
-              Fetch Operators
+            <button
+              onClick={handleFetchOperators}
+              type="button"
+              className={`${
+                loading || fetchLoading ? "opacity-50" : ""
+              } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
+              disabled={loading}
+            >
+              {fetchLoading === true ? "Loading..." : "Fetch Operators"}
             </button>
             <div className="flex flex-row gap-10 border-2 border-gray-400 px-4 py-3 rounded-lg box-bg">
               <p className="darkGray-text font-normal text-sm">Maintenance</p>
@@ -254,169 +330,180 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             </div>
           </div>
         </div>
-        <div className="relative mt-6 w-full flex flex-wrap items-start justify-between gap-3">
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal pb-1">
-              Global Exchange Rate
-              <span className="text-gray-500">
-                {" "}
-                [{amount} {currency} = {equivalent}
-                {unit}]
-              </span>
-            </p>
-            <Input
-              type="text"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="$20"
-              value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
-              onChange={handleExchangeRateChange}
-              required
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="relative mt-6 w-full flex flex-wrap items-start justify-between gap-3">
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal pb-1">
+                Global Exchange Rate
+                <span className="text-gray-500">
+                  {" "}
+                  [{amount} {currency} = {equivalent}
+                  {unit}]
+                </span>
+              </p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="$20"
+                value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
+                onChange={handleExchangeRateChange}
+                required
+              />
+            </div>
 
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal pb-1">
-              Kupi Commission
-            </p>
-            <Input
-              type="text"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="10%"
-              value={commission > 0 ? `${commission.toFixed(0)}%` : ""}
-              onChange={handleCommissionChange}
-              required
-            />
-          </div>
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal pb-1">Kupi Markup</p>
-            <Input
-              type="text"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="$10"
-              value={kupiMarkup > 0 ? `$${kupiMarkup.toFixed(0)}` : ""}
-              onChange={handleKupiCommissionChange}
-              required
-            />
-          </div>
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal pb-1">
-              Carma Comission
-            </p>
-            <Input
-              type="text"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="1.3%"
-              value={
-                carmaCommission > 0 ? `${carmaCommission.toFixed(0)}%` : ""
-              }
-              onChange={handleCarmaCommissionChange}
-              required
-            />
-          </div>
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal pb-1">
+                Kupi Commission
+              </p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="10%"
+                value={commission > 0 ? `${commission.toFixed(0)}%` : ""}
+                onChange={handleCommissionChange}
+                required
+              />
+            </div>
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal pb-1">Kupi Markup</p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="$10"
+                value={kupiMarkup > 0 ? `$${kupiMarkup.toFixed(0)}` : ""}
+                onChange={handleKupiCommissionChange}
+                required
+              />
+            </div>
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal pb-1">
+                Carma Comission
+              </p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="1.3%"
+                value={
+                  carmaCommission > 0 ? `${carmaCommission.toFixed(0)}%` : ""
+                }
+                onChange={handleCarmaCommissionChange}
+                required
+              />
+            </div>
 
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
-              Number of Ticket Per Route
-              <span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Image
-                        src="/img/settings/question-icon.svg"
-                        alt="toot tip"
-                        width={20}
-                        height={20}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white border-2 px-2 py-2">
-                      How many tickets per route you want to add
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </span>
-            </p>
-            <Input
-              type="number"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="01"
-              min={0}
-              max={100}
-              value={tickets}
-              onChange={handleTicketsChange}
-              required
-            />
-          </div>
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
+                Number of Ticket Per Route
+                <span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                      >
+                        <Image
+                          src="/img/settings/question-icon.svg"
+                          alt="toot tip"
+                          width={20}
+                          height={20}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-white border-2 px-2 py-2">
+                        How many tickets per route you want to add
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+              </p>
+              <Input
+                type="number"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="01"
+                min={0}
+                max={100}
+                value={tickets}
+                onChange={handleTicketsChange}
+                required
+              />
+            </div>
 
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
-              Close Booking at 30 minutes before Departure
-              <span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Image
-                        src="/img/settings/question-icon.svg"
-                        alt="toot tip"
-                        width={20}
-                        height={20}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white border-2 px-2 py-2">
-                      Ensure all bookings are closed 30 minutes prior to the
-                      departure time to avoid last-minute issues.
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </span>
-            </p>
-            <Input
-              type="text"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="00:00"
-              value={bookingAt}
-              onChange={handleBookingAtRateChange}
-              required
-            />
-          </div>
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
+                Close Booking at 30 minutes before Departure
+                <span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                      >
+                        <Image
+                          src="/img/settings/question-icon.svg"
+                          alt="toot tip"
+                          width={20}
+                          height={20}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-white border-2 px-2 py-2">
+                        Ensure all bookings are closed 30 minutes prior to the
+                        departure time to avoid last-minute issues.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+              </p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="00:00"
+                value={bookingAt}
+                onChange={handleBookingAtRateChange}
+                required
+              />
+            </div>
 
-          <div className="w-5/12 mb-2">
-            <p className="mb-1 darkGray-text font-normal pb-1">
-              Email Reminder<span className="text-gray-500"> [days]</span>
-            </p>
-            <Input
-              type="text"
-              className="h-12 border-gray-400 rounded-lg"
-              placeholder="Duration days"
-              value={reminder > 0 ? `${reminder.toFixed(0)}` : ""}
-              onChange={handleReminderChange}
-              required
-            />
+            <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal pb-1">
+                Email Reminder<span className="text-gray-500"> [days]</span>
+              </p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="Duration days"
+                value={reminder > 0 ? `${reminder.toFixed(0)}` : ""}
+                onChange={handleReminderChange}
+                required
+              />
+            </div>
           </div>
-        </div>
-        {error && (
-          <p className="text-red-500 mt-4">Un Expected Error Occured</p>
-        )}
+          {error && (
+            <p className="text-red-500 mt-4">Un Expected Error Occured</p>
+          )}
+          <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
+            <button
+              type="reset"
+              onClick={handleReset}
+              className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`${
+                loading || !formChanged ? "opacity-50" : ""
+              } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
+              disabled={loading || !formChanged}
+            >
+              {loading ? "Please Wait" : "Save"}
+            </button>
+          </div>
+        </form>
       </div>
-
-      <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
-        <button
-          type="reset"
-          onClick={handleReset}
-          className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className={`${
-            loading ? "opacity-50" : ""
-          } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
-          disabled={loading}
-        >
-          {loading ? "Please Wait" : "Save"}
-        </button>
-      </div>
-    </form>
+    </div>
   );
 };
 

@@ -9,7 +9,7 @@ import {
   FilterProps,
   TicketSources,
 } from "@/types/discount";
-import { Discounts } from "@prisma/client";
+import { Discounts, Prisma } from "@prisma/client";
 import { SortOrderProps } from "@/types/ticket";
 import { revalidatePath } from "next/cache";
 
@@ -131,18 +131,20 @@ export async function getAllDiscount(searchParams: {
     } = searchParams;
 
     const filter: FilterProps = {};
+    const Cities: Prisma.DiscountsWhereInput = {};
     if (name) {
       filter.name = { contains: name, mode: "insensitive" };
     }
-    if (destinationCity)
-      filter.departureCity = {
-        name: { contains: destinationCity, mode: "insensitive" },
+    if (destinationCity) {
+      Cities.departureCityIds = {
+        has: destinationCity,
       };
-    if (arrivalCity)
-      filter.arrivalCity = {
-        name: { contains: arrivalCity, mode: "insensitive" },
+    }
+    if (arrivalCity) {
+      Cities.arrivalCityIds = {
+        has: arrivalCity,
       };
-
+    }
     if (onlyExpiring) {
       const currentDate = new Date();
       filter.expiryDate = { lt: currentDate };
@@ -179,7 +181,10 @@ export async function getAllDiscount(searchParams: {
     const take = pageSizeNumber;
     const cities = await db.cities.findMany();
     const discounts = await db.discounts.findMany({
-      where: filter,
+      where: {
+        ...filter,
+        ...Cities,
+      },
       orderBy: sortOrder,
       skip,
       take,

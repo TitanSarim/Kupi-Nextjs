@@ -4,14 +4,21 @@ import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
 
-const SideBar: React.FC = () => {
+type SideBarProps = {
+  role?: string;
+};
+
+const SideBar: React.FC<SideBarProps> = ({ role }) => {
   const pathname = usePathname();
 
   const handleClientChnage = () => {
     localStorage.setItem("manualTransaction", "false");
   };
+  const handleAdminViewChange = () => {
+    localStorage.setItem("viewAdmin", "viewAdmin");
+  };
   return (
-    <div className="relative lightGray h-[100%] w-72 px-2 py-2 shadow-sm">
+    <div className="sticky top-0 h-screen lightGray  w-72 px-2 py-2 shadow-sm">
       <Image
         src="/img/icons/Kupi.png"
         alt="Kupi"
@@ -37,19 +44,21 @@ const SideBar: React.FC = () => {
           Dashboard
         </Link>
 
-        <Link
-          href={"/app/bus-operators"}
-          className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base 
+        {role === "SuperAdmin" && (
+          <Link
+            href={"/app/bus-operators"}
+            className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base 
             ${pathname === "/app/bus-operators" ? "bg-kupi-yellow" : ""}`}
-        >
-          <Image
-            src="/img/sidebar/bus-operator.svg"
-            alt="dashboard"
-            height={24}
-            width={24}
-          />
-          Bus Operators
-        </Link>
+          >
+            <Image
+              src="/img/sidebar/bus-operator.svg"
+              alt="dashboard"
+              height={24}
+              width={24}
+            />
+            Bus Operators
+          </Link>
+        )}
 
         <Link
           href={"/app/users-list"}
@@ -144,6 +153,7 @@ const SideBar: React.FC = () => {
           href={"/app/settings/admin"}
           className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base 
             ${pathname === "/app/settings/admin" ? "bg-kupi-yellow" : ""}`}
+          onClick={handleAdminViewChange}
         >
           <Image
             src="/img/sidebar/settings.svg"

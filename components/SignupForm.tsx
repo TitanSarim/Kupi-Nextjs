@@ -13,6 +13,7 @@ import {
 } from "../libs/ClientSideHelpers";
 import ErrorMessage from "@/components/ErrorMessage";
 import InputField from "@/components/InputField";
+import { CheckPrevRequest } from "@/actions/operators.action";
 
 // types for form data and errors
 interface FormData {
@@ -118,10 +119,29 @@ const SignupForm = () => {
     }
   };
 
+  const handleCheckPrevRequest = async (email: string) => {
+    try {
+      const sessionCheck = await CheckPrevRequest(email);
+      if (sessionCheck === true) {
+        router.push("/expired");
+      }
+      console.log(sessionCheck);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   useEffect(() => {
     const emailFromURL = searchParams.get("email");
     const nameFromURL = searchParams.get("name");
     const tokenFromUrl = searchParams.get("token");
+    if (emailFromURL) {
+      setFormData((prev) => ({
+        ...prev,
+        email: emailFromURL,
+      }));
+      handleCheckPrevRequest(emailFromURL);
+    }
     if (nameFromURL) {
       setFormData((prev) => ({
         ...prev,
@@ -130,12 +150,6 @@ const SignupForm = () => {
     }
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
-    }
-    if (emailFromURL) {
-      setFormData((prev) => ({
-        ...prev,
-        email: emailFromURL,
-      }));
     }
   }, [searchParams]);
 

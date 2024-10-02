@@ -12,7 +12,6 @@ export type UpdateFormData = {
   name: string;
   email: string;
   description?: string;
-  checked: boolean;
 };
 
 export type OperatorsQuery = {
@@ -57,3 +56,13 @@ export type IncryptedDataType = {
   name: string;
   expiresAt: string;
 };
+
+export interface LookupModel {
+  STDescription: string[];
+  STCarrier: string[];
+}
+
+export interface OperatorLookupModel {
+  STDescription: string;
+  STCarrier: string;
+}

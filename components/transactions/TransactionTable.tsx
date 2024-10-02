@@ -98,6 +98,8 @@ const TransactionTable: React.FC<TransactionReturn> = ({
   // table initalizes here
   const columns: ColumnDef<TransactionsType>[] = [
     {
+      maxSize: 100,
+      minSize: 100,
       accessorKey: "paidAt",
       header: ({ column }) => (
         <button
@@ -120,6 +122,8 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       ),
     },
     {
+      maxSize: 30,
+      minSize: 30,
       accessorKey: "ticketId",
       header: ({ column }) => (
         <button
@@ -143,6 +147,8 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       ),
     },
     {
+      maxSize: 70,
+      minSize: 70,
       accessorKey: "operator",
       header: ({ column }) => (
         <button
@@ -152,15 +158,19 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => {
-        if (!row.original.customer) {
-          return <span>NA</span>;
-        }
-        return (
-          <span>{row.original.carmaDetails?.selectedAvailability.carrier}</span>
-        );
+        const customerName =
+          row.original.carmaDetails?.selectedAvailability.carrier || "";
+        const limitedName =
+          customerName.length > 9
+            ? `${customerName.slice(0, 9)}...`
+            : customerName;
+
+        return <span className="uppercase">{limitedName}</span>;
       },
     },
     {
+      maxSize: 50,
+      minSize: 50,
       accessorKey: "paymentMethod",
       header: ({ column }) => (
         <button
@@ -174,6 +184,8 @@ const TransactionTable: React.FC<TransactionReturn> = ({
       },
     },
     {
+      maxSize: 20,
+      minSize: 20,
       accessorKey: "source",
       header: ({ column }) => (
         <button
@@ -197,6 +209,8 @@ const TransactionTable: React.FC<TransactionReturn> = ({
     },
 
     {
+      maxSize: 10,
+      minSize: 10,
       accessorKey: "action",
       header: "",
       cell: ({ row }) => (

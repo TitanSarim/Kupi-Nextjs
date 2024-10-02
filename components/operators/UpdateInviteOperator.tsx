@@ -26,7 +26,44 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [checked, setChecked] = useState<boolean>(false);
+  const [errorState, setErrorState] = useState<{
+    field: string;
+    message: string;
+  } | null>(null);
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value.toLowerCase();
+    setEmail(newEmail);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      setErrorState({
+        field: "validEmail",
+        message: `Please enter a valid email`,
+      });
+    } else {
+      setErrorState(null);
+    }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newName = e.target.value;
+
+    if (newName.length > 20) {
+      newName = newName.slice(0, 20);
+    }
+
+    setName(newName.toUpperCase());
+
+    if (newName.length < 3) {
+      setErrorState({
+        field: "nameLength",
+        message: "Name must be at least 3 to 20 characters.",
+      });
+    } else {
+      setErrorState(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +74,14 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
         name,
         email,
         description,
-        checked,
       };
+      for (const [key, value] of Object.entries(formData)) {
+        if (key !== "description" && !value) {
+          setErrorState({ field: key, message: `${key} is required` });
+          setLoading(false);
+          return;
+        }
+      }
       const result = await UpdateOperatorInvitation(formData, id, sessionId);
       if (typeof result === "string") {
         setError(result);
@@ -100,36 +143,28 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               required
             />
+            {errorState?.field === "nameLength" && (
+              <span className="text-red-500">{errorState.message}</span>
+            )}
           </div>
-          <div className="my-2 flex flex-row gap-3 items-center justify-start">
-            <input
-              type="checkbox"
-              id="checkBox"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
+
+          <div className="w-full mb-3">
+            <p className="mb-1 darkGray-text font-normal text-sm">
+              Operator Email
+            </p>
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter email address"
+              className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
+              required
             />
-            <label
-              htmlFor="checkBox"
-              className="darkGray-text font-normal text-sm"
-            >
-              Check to send invitation again
-            </label>
+            {errorState?.field === "validEmail" && (
+              <span className="text-red-500">{errorState.message}</span>
+            )}
           </div>
-          {checked === true && (
-            <div className="w-full mb-3">
-              <p className="mb-1 darkGray-text font-normal text-sm">
-                Operator Email
-              </p>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email address"
-                className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
-                required
-              />
-            </div>
-          )}
+
           <div className="w-full mb-3">
             <p className="mb-1 darkGray-text font-normal text-sm">
               Invitation Message (Optional)

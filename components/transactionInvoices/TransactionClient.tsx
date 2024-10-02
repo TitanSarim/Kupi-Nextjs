@@ -44,7 +44,7 @@ const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {
 
   return (
     <div className="w-full flex flex-row items-start justify-between">
-      <p className="text-lg text-black font-semibold">Transaction List</p>
+      <p className="text-lg text-black font-semibold">Transactions List</p>
       <div className="flex flex-row items-center justify-center gap-4">
         <div className="flex flex-row gap-10 border-2 border-gray-400 px-4 py-3 rounded-lg box-bg">
           <p className="darkGray-text font-normal text-sm">Transactions Type</p>

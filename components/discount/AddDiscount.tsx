@@ -58,10 +58,24 @@ const AddDiscount: React.FC<DialogProps> = ({
   ) => {
     const value = event.target.value;
     const numericValue = value.replace(/[^0-9.]/g, "");
-    setPercentage(Number(numericValue));
+    let percentageValue = Number(numericValue);
+
+    if (percentageValue > 100) percentageValue = 100;
+    if (percentageValue < 0) percentageValue = 0;
+
+    setPercentage(percentageValue);
   };
 
   const handleClose = () => {
+    setDiscountname("");
+    setPercentage(0);
+    setSource([]);
+    setCount(0);
+    setDate("");
+    setDestinationCityIds([]);
+    setArrivalCityIds([]);
+    setSelectedOperators([]);
+    setErrorState(null);
     onClose();
   };
 
@@ -197,7 +211,9 @@ const AddDiscount: React.FC<DialogProps> = ({
                 value={discountname}
                 onChange={(e) => {
                   const filteredValue = e.target.value.replace(/\s/g, "");
-                  setDiscountname(filteredValue);
+                  if (filteredValue.length <= 12) {
+                    setDiscountname(filteredValue);
+                  }
                 }}
                 required
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"

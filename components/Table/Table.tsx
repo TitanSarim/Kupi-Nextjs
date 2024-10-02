@@ -63,8 +63,8 @@ const TableComponent = <TData extends RowData>({
   return (
     <div>
       <div className="w-full tickettableclass">
-        <Table>
-          <TableHeader>
+        <Table className="w-full">
+          <TableHeader className="w-full">
             {tableData.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -78,9 +78,9 @@ const TableComponent = <TData extends RowData>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="w-full">
             {tableData.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className="h-12">
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}

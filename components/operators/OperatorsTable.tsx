@@ -85,7 +85,15 @@ const OperatorsTable: React.FC<OperatorsData> = ({
           Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <div>{row.original?.operators.name}</div>,
+      cell: ({ row }) => {
+        const operatorName = row.original.operators.name || "";
+        const limitedName =
+          operatorName.length > 6
+            ? `${operatorName.slice(0, 6)}...`
+            : operatorName;
+
+        return <span>{limitedName}</span>;
+      },
     },
     {
       accessorKey: "source",
@@ -161,17 +169,21 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div className="flex flex-row gap-2">
-          <Image
-            src="/img/sidebar/users.svg"
-            alt="User"
-            width={20}
-            height={20}
-          />
-          <Link href="/app/bus-operators" className="underline">
-            Users
-          </Link>
-        </div>
+        <>
+          {row.original.operators.source === TicketSources.KUPI && (
+            <div className="flex flex-row gap-2">
+              <Image
+                src="/img/sidebar/users.svg"
+                alt="User"
+                width={20}
+                height={20}
+              />
+              <Link href="/app/bus-operators" className="underline">
+                Users
+              </Link>
+            </div>
+          )}
+        </>
       ),
     },
     {
@@ -184,17 +196,21 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div className="flex flex-row gap-2">
-          <Image
-            src="/img/sidebar/fleet.svg"
-            alt="User"
-            width={20}
-            height={20}
-          />
-          <Link href="/app/bus-operators" className="underline">
-            Fleet
-          </Link>
-        </div>
+        <>
+          {row.original.operators.source === TicketSources.KUPI && (
+            <div className="flex flex-row gap-2">
+              <Image
+                src="/img/sidebar/fleet.svg"
+                alt="User"
+                width={20}
+                height={20}
+              />
+              <Link href="/app/bus-operators" className="underline">
+                Fleet
+              </Link>
+            </div>
+          )}
+        </>
       ),
     },
     {
@@ -207,17 +223,21 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div className="flex flex-row gap-2">
-          <Image
-            src="/img/sidebar/routes.svg"
-            alt="User"
-            width={20}
-            height={20}
-          />
-          <Link href="/app/bus-operators" className="underline">
-            Routes
-          </Link>
-        </div>
+        <>
+          {row.original.operators.source === TicketSources.KUPI && (
+            <div className="flex flex-row gap-2">
+              <Image
+                src="/img/sidebar/routes.svg"
+                alt="User"
+                width={20}
+                height={20}
+              />
+              <Link href="/app/bus-operators" className="underline">
+                Routes
+              </Link>
+            </div>
+          )}
+        </>
       ),
     },
 
@@ -254,17 +274,21 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div className="flex flex-row gap-2">
-          <Image
-            src="/img/sidebar/transactions.svg"
-            alt="User"
-            width={20}
-            height={20}
-          />
-          <Link href="/app/bus-operators" className="underline">
-            Transactions
-          </Link>
-        </div>
+        <>
+          {row.original.operators.source === TicketSources.KUPI && (
+            <div className="flex flex-row gap-2">
+              <Image
+                src="/img/sidebar/transactions.svg"
+                alt="User"
+                width={20}
+                height={20}
+              />
+              <Link href="/app/bus-operators" className="underline">
+                Transactions
+              </Link>
+            </div>
+          )}
+        </>
       ),
     },
     {
@@ -277,17 +301,21 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div className="flex flex-row gap-2">
-          <Image
-            src="/img/sidebar/settings.svg"
-            alt="User"
-            width={20}
-            height={20}
-          />
-          <Link href="/app/bus-operators" className="underline">
-            Settings
-          </Link>
-        </div>
+        <>
+          {row.original.operators.source === TicketSources.KUPI && (
+            <div className="flex flex-row gap-2">
+              <Image
+                src="/img/sidebar/settings.svg"
+                alt="User"
+                width={20}
+                height={20}
+              />
+              <Link href="/app/bus-operators" className="underline">
+                Settings
+              </Link>
+            </div>
+          )}
+        </>
       ),
     },
     {

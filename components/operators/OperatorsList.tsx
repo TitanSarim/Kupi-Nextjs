@@ -55,8 +55,8 @@ const OperatorsList: React.FC<OperatorsData> = ({
   }, [name, email, status]);
 
   return (
-    <div className="w-full mt-10 h-fit flex items-center justify-center">
-      <div className="h-fit w-full bg-white shadow-sm rounded-md px-8 py-8 mb-5">
+    <div className="w-full flex flex-col items-center justify-start">
+      <div className="h-fit w-full bg-white shadow-sm rounded-md px-8 py-8 mb-8 mt-10">
         <div className="w-full flex flex-row items-start justify-between">
           <p className="text-lg text-black font-semibold">Bus Operators List</p>
           <button
