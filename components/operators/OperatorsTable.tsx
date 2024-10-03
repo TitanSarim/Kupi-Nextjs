@@ -142,7 +142,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          JoiningDate <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Joining Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => (
@@ -274,21 +274,17 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <>
-          {row.original.operators.source === TicketSources.KUPI && (
-            <div className="flex flex-row gap-2">
-              <Image
-                src="/img/sidebar/transactions.svg"
-                alt="User"
-                width={20}
-                height={20}
-              />
-              <Link href="/app/bus-operators" className="underline">
-                Transactions
-              </Link>
-            </div>
-          )}
-        </>
+        <div className="flex flex-row gap-2">
+          <Image
+            src="/img/sidebar/transactions.svg"
+            alt="User"
+            width={20}
+            height={20}
+          />
+          <Link href="/app/bus-operators" className="underline">
+            Transactions
+          </Link>
+        </div>
       ),
     },
     {

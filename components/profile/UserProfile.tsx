@@ -10,10 +10,6 @@ type ProfileProps = {
   userData: Users;
 };
 
-const filterAlpha = (value: string, maxLength: number) => {
-  return value.replace(/[^a-zA-Z\s]/g, "").slice(0, maxLength);
-};
-
 const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
   const [formData, setFormData] = useState({
     name: userData.name || "",
@@ -75,8 +71,16 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newPassword = e.target.value;
     setPassword(newPassword);
+
     const validationError = passwordValidation(newPassword);
+
     setPassError(validationError);
+
+    if (newPassword.trim() === "") {
+      setPassMatchError(null);
+    } else if (!confirmPassword) {
+      setPassMatchError("Please confirm your password");
+    }
   };
 
   const handleConfirmPasswordChange = (
@@ -89,6 +93,14 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     } else {
       setPassMatchError(null);
     }
+  };
+
+  const handleCancel = (e: React.FormEvent) => {
+    setFormData(initialFormData);
+    setPassword("");
+    setConfirmPassword("");
+    setPassError(null);
+    setPassMatchError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -221,7 +233,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
       <div className="w-full mt-5 mb-8 flex flex-row items-center justify-end gap-4">
         <button
           type="reset"
-          onClick={() => setFormData(initialFormData)}
+          onClick={handleCancel}
           className={`${
             !isModified ? "opacity-50" : ""
           }border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
@@ -232,7 +244,13 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
         <button
           type="submit"
           className={`${
-            !isModified || loading || errorState !== null ? "opacity-50" : ""
+            !isModified ||
+            loading ||
+            passError ||
+            passMatchError ||
+            errorState !== null
+              ? "opacity-50"
+              : ""
           } py-3 px-10 bg-kupi-yellow rounded-lg font-semibold`}
           disabled={!isModified || loading || errorState !== null}
         >

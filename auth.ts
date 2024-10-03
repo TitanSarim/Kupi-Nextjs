@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { User } from "./types/user";
 import { JWT } from "next-auth/jwt";
+import { RolesEnum } from "./types/auth";
 
 export const {
   handlers: { GET, POST },
@@ -54,7 +55,7 @@ export const {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role?.name;
+        token.role = user.role?.name as RolesEnum;
       }
       return token as JWT;
     },
