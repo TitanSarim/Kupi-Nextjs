@@ -92,11 +92,16 @@ export async function getAllTransactions(searchParams: {
           customer: { name: order === "asc" ? "asc" : "desc" },
         });
       }
-      if (field === "source" || field === "ticketId") {
+      if (field === "ticketId") {
         sortOrder.push({
           tickets: {
             _count: order === "asc" ? "asc" : "desc",
           },
+        });
+      }
+      if (field === "operator") {
+        sortOrder.push({
+          paymentMethod: order === "asc" ? "asc" : "desc",
         });
       }
       if (
@@ -113,11 +118,6 @@ export async function getAllTransactions(searchParams: {
       [];
     if (sort) {
       const [field, order] = sort.split("_");
-      if (field === "operator") {
-        ticketsSortOrder.push({
-          busIdentifier: order === "asc" ? "asc" : "desc",
-        });
-      }
       if (field === "source") {
         ticketsSortOrder.push({
           source: order === "asc" ? "asc" : "desc",

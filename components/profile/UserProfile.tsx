@@ -29,6 +29,10 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
   const [passError, setPassError] = useState<string | null>(null);
   const [passMatchError, setPassMatchError] = useState<string | null>(null);
   const [isModified, setIsModified] = useState<boolean>(false);
+  const [errorState, setErrorState] = useState<{
+    field: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     setInitialFormData(formData);
@@ -39,11 +43,25 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     field: string,
     maxLength: number
   ) => {
-    const newValue = filterAlpha(e.target.value, maxLength); // Apply the filterAlpha function
+    const { value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [field]: newValue,
+      [field]: value,
     }));
+
+    if (value.trim() === "") {
+      setErrorState({
+        field,
+        message: `${field} cannot be empty`,
+      });
+    } else if (value.length > maxLength) {
+      setErrorState({
+        field,
+        message: `${field} exceeds maximum length of ${maxLength}`,
+      });
+    } else {
+      setErrorState(null);
+    }
   };
 
   useEffect(() => {
@@ -99,6 +117,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
     } finally {
+      setIsModified(false);
       setLoading(false);
     }
   };
@@ -120,6 +139,9 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               onChange={(e) => handleInputChange(e, "name", 15)}
               className="h-12 border-gray-400 rounded-lg"
             />
+            {errorState?.field === "name" && (
+              <p className="text-red-500">{errorState.message}</p>
+            )}
           </div>
 
           <div className="w-5/12 mb-2">
@@ -132,6 +154,9 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               onChange={(e) => handleInputChange(e, "surname", 15)}
               className="h-12 border-gray-400 rounded-lg"
             />
+            {errorState?.field === "surname" && (
+              <p className="text-red-500">{errorState.message}</p>
+            )}
           </div>
 
           <div className="w-5/12 mb-2">
@@ -197,16 +222,19 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
         <button
           type="reset"
           onClick={() => setFormData(initialFormData)}
-          className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600"
+          className={`${
+            !isModified ? "opacity-50" : ""
+          }border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
+          disabled={!isModified}
         >
           Cancel
         </button>
         <button
           type="submit"
           className={`${
-            !isModified || loading ? "opacity-50" : ""
+            !isModified || loading || errorState !== null ? "opacity-50" : ""
           } py-3 px-10 bg-kupi-yellow rounded-lg font-semibold`}
-          disabled={!isModified || loading}
+          disabled={!isModified || loading || errorState !== null}
         >
           {loading ? "Please Wait" : "Save"}
         </button>

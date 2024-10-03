@@ -67,7 +67,12 @@ export async function getAllOperators(searchParams: {
     const sortOrder: SortOrderProps[] = [];
     if (sort) {
       const [field, order] = sort.split("_");
-      if (field === "name" || field === "status" || field === "joiningDate") {
+      if (
+        field === "name" ||
+        field === "status" ||
+        field === "joiningDate" ||
+        field === "source"
+      ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
     } else {

@@ -45,7 +45,11 @@ const TicketList: React.FC<TicketsReturn> = ({
 
   const updateSearchParams = () => {
     if (busOperator) params.set("carrier", busOperator);
-    if (source) params.set("source", source);
+    if (source !== "Clear") {
+      params.set("source", source);
+    } else {
+      setSource("");
+    }
     if (destinationCity !== "clear") {
       params.set("destinationCity", destinationCity);
     } else {
@@ -109,6 +113,7 @@ const TicketList: React.FC<TicketsReturn> = ({
                 <SelectValue placeholder="Select source" />
               </SelectTrigger>
               <SelectContent className="select-dropdown z-50">
+                <SelectItem value="Clear">Clear</SelectItem>
                 <SelectItem value="Carma">Carma</SelectItem>
                 <SelectItem value="Kupi">Kupi</SelectItem>
               </SelectContent>

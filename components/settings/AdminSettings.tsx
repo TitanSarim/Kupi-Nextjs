@@ -185,12 +185,12 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     try {
       const response = await adminSetting(formData);
       if (response === true) {
-        setFormChanged(false);
         toast.success("Settings updated successfully");
       }
     } catch (error) {
       setError(true);
     } finally {
+      setFormChanged(false);
       setLoading(false);
     }
   };
@@ -487,7 +487,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             <button
               type="reset"
               onClick={handleReset}
-              className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600"
+              className={`${
+                !formChanged ? "opacity-50" : ""
+              } border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
+              disabled={!formChanged}
             >
               Cancel
             </button>
