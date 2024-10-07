@@ -243,10 +243,15 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 break;
             }
           });
+
+          const parsedBookingAt = parseInt(bookingAt);
+          const formattedBookingAt = isNaN(parsedBookingAt)
+            ? "00:00"
+            : formatTime(parsedBookingAt);
           setExchangeRate(parseInt(exchangeRate));
           setCommission(parseInt(commission));
           setTickets(parseInt(tickets));
-          setBookingAt(formatTime(parseInt(bookingAt)));
+          setBookingAt(formattedBookingAt);
           setReminder(parseInt(reminder));
           setKupiMarkup(parseInt(kupiMarkup));
           setCarmaCommission(parseInt(carmaCommission));
@@ -302,7 +307,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   }, [settings]);
 
   return (
-    <div className="w-full">
+    <div className="w-full h-screen">
       <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md px-8 py-6">
         <div className="w-full flex flex-row items-center justify-between">
           <p className="text-lg text-black font-semibold">Admin Settings</p>

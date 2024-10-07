@@ -1,6 +1,5 @@
 "use client";
 import { OperatorsData, OperatorsDataReturn } from "@/types/operator";
-import { OperatorsType } from "@/types/transactions";
 import {
   ColumnDef,
   getCoreRowModel,
@@ -9,13 +8,19 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import TableComponent from "../Table/Table";
 import Link from "next/link";
-import { OperatorsSessions, OperatorStatus } from "@prisma/client";
+import { OperatorStatus } from "@prisma/client";
 import UpdateInviteOperator from "./UpdateInviteOperator";
 import { TicketSources } from "@/types/discount";
 
@@ -92,7 +97,27 @@ const OperatorsTable: React.FC<OperatorsData> = ({
             ? `${operatorName.slice(0, 6)}...`
             : operatorName;
 
-        return <span>{limitedName}</span>;
+        return (
+          <span className="text-xs">
+            <span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                    }}
+                  >
+                    {limitedName}
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-white border-2 px-2 py-2">
+                    {row.original.operators.name}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
+          </span>
+        );
       },
     },
     {
@@ -104,7 +129,9 @@ const OperatorsTable: React.FC<OperatorsData> = ({
           Source <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <div>{row.original?.operators.source}</div>,
+      cell: ({ row }) => (
+        <div className="text-xs">{row.original?.operators.source}</div>
+      ),
     },
     {
       accessorKey: "status",
@@ -119,17 +146,19 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         <>
           {row.original.operators.source === TicketSources.CARMA ? (
             <div>
-              <p className="text-green-600 font-semibold">Registered</p>
+              <p className="text-green-600 text-xs font-semibold">Registered</p>
             </div>
           ) : (
             <div>
               {row.original.operators.status === OperatorStatus.INVITED ? (
-                <p className="text-yellow-500 font-semibold">Invited</p>
+                <p className="text-yellow-500 text-xs font-semibold">Invited</p>
               ) : row.original.operators.status ===
                 OperatorStatus.REGISTERED ? (
-                <p className="text-green-600 font-semibold">Registered</p>
+                <p className="text-green-600 text-xs font-semibold">
+                  Registered
+                </p>
               ) : (
-                <p className="text-red-500 font-semibold">Suspended</p>
+                <p className="text-red-500 text-xs font-semibold">Suspended</p>
               )}
             </div>
           )}
@@ -146,7 +175,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         </button>
       ),
       cell: ({ row }) => (
-        <div>
+        <div className="text-xs">
           {row.original?.operators.joiningDate &&
             new Date(row.original.operators.joiningDate).toLocaleDateString(
               "en-US",
@@ -175,10 +204,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
               <Image
                 src="/img/sidebar/users.svg"
                 alt="User"
-                width={20}
-                height={20}
+                width={18}
+                height={18}
               />
-              <Link href="/app/bus-operators" className="underline">
+              <Link href="/app/bus-operators" className="underline text-xs">
                 Users
               </Link>
             </div>
@@ -202,10 +231,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
               <Image
                 src="/img/sidebar/fleet.svg"
                 alt="User"
-                width={20}
-                height={20}
+                width={18}
+                height={18}
               />
-              <Link href="/app/bus-operators" className="underline">
+              <Link href="/app/bus-operators" className="underline text-xs">
                 Fleet
               </Link>
             </div>
@@ -229,10 +258,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
               <Image
                 src="/img/sidebar/routes.svg"
                 alt="User"
-                width={20}
-                height={20}
+                width={18}
+                height={18}
               />
-              <Link href="/app/bus-operators" className="underline">
+              <Link href="/app/bus-operators" className="underline text-xs">
                 Routes
               </Link>
             </div>
@@ -255,10 +284,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
           <Image
             src="/img/sidebar/tickets.svg"
             alt="User"
-            width={20}
-            height={20}
+            width={18}
+            height={18}
           />
-          <Link href="/app/bus-operators" className="underline">
+          <Link href="/app/bus-operators" className="underline text-xs">
             Tickets
           </Link>
         </div>
@@ -278,10 +307,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
           <Image
             src="/img/sidebar/transactions.svg"
             alt="User"
-            width={20}
-            height={20}
+            width={18}
+            height={18}
           />
-          <Link href="/app/bus-operators" className="underline">
+          <Link href="/app/bus-operators" className="underline text-xs">
             Transactions
           </Link>
         </div>
@@ -303,10 +332,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
               <Image
                 src="/img/sidebar/settings.svg"
                 alt="User"
-                width={20}
-                height={20}
+                width={18}
+                height={18}
               />
-              <Link href="/app/bus-operators" className="underline">
+              <Link href="/app/bus-operators" className="underline text-xs">
                 Settings
               </Link>
             </div>

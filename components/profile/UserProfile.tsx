@@ -40,6 +40,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     maxLength: number
   ) => {
     const { value } = e.target;
+    const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
     setFormData((prevData) => ({
       ...prevData,
       [field]: value,
@@ -48,12 +49,12 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
     if (value.trim() === "") {
       setErrorState({
         field,
-        message: `${field} cannot be empty`,
+        message: `${capitalizedField} cannot be empty`,
       });
     } else if (value.length > maxLength) {
       setErrorState({
         field,
-        message: `${field} exceeds maximum length of ${maxLength}`,
+        message: `${capitalizedField} exceeds maximum length of ${maxLength}`,
       });
     } else {
       setErrorState(null);
@@ -206,9 +207,7 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               onChange={handlePasswordChange}
               className="h-12 border-gray-400 rounded-lg"
             />
-            {passError && (
-              <p className="text-red-500 text-sm mt-1">{passError}</p>
-            )}
+            {passError && <p className="text-red-500 mt-1">{passError}</p>}
           </div>
 
           <div className="w-5/12 mb-2">
@@ -223,11 +222,11 @@ const UserProfile: React.FC<ProfileProps> = ({ userData }) => {
               className="h-12 border-gray-400 rounded-lg"
             />
             {passMatchError && (
-              <p className="text-red-500 text-sm mt-1">{passMatchError}</p>
+              <p className="text-red-500 mt-1">{passMatchError}</p>
             )}
           </div>
         </div>
-        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+        {error && <p className="text-red-500 mt-1">{error}</p>}
       </div>
 
       <div className="w-full mt-5 mb-8 flex flex-row items-center justify-end gap-4">

@@ -60,31 +60,6 @@ export async function registerUser(
 
     // Use the standardized "signup" type
     await initiateVerification(data.email, "signup", data);
-    await db.operators.update({
-      where: {
-        id: operator.id,
-      },
-      data: {
-        status: "REGISTERED",
-      },
-    });
-
-    const session = await db.operatorsSessions.findFirst({
-      where: {
-        operatorId: operator.id,
-      },
-    });
-    if (!session) {
-      return null;
-    }
-    await db.operatorsSessions.update({
-      where: {
-        id: session?.id,
-      },
-      data: {
-        isActive: false,
-      },
-    });
 
     return { success: true };
   } catch (error) {

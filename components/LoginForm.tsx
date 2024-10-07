@@ -43,7 +43,7 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
+    <form className="mt-5 space-y-5" onSubmit={handleSubmit} noValidate>
       {/* Email Input Field */}
       <InputField
         type="email"

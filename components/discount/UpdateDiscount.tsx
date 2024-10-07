@@ -69,10 +69,6 @@ const UpdateDiscount: React.FC<DialogProps> = ({
     setPercentage(percentageValue);
   };
 
-  const handleClose = () => {
-    onClose();
-  };
-
   const handleOperatorSelect = (operatorId: string) => {
     const selectedOperator = operators.find((op) => op.id === operatorId);
 
@@ -131,7 +127,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
     });
   };
 
-  useEffect(() => {
+  const handleData = () => {
     if (discount && Array.isArray(discount) === false) {
       setDiscountname(discount.name || "");
       setPercentage(discount.percentage || 0);
@@ -148,7 +144,17 @@ const UpdateDiscount: React.FC<DialogProps> = ({
       setSource(discount.source || []);
       setSelectedOperators(discount.operatorIds || []);
     }
-  }, [cities, discount]);
+  };
+
+  const handleClose = () => {
+    handleData();
+    setErrorState(null);
+    onClose();
+  };
+
+  useEffect(() => {
+    handleData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +194,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
         <div className="w-full flex flex-row justify-between">
           <p className="text-lg text-black font-semibold">Update Discount</p>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-600 hover:text-gray-800"
           >
             <Image
@@ -526,7 +532,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                 </PopoverContent>
               </Popover>
               {errorState?.field === "source" && (
-                <span className="text-red-500">{errorState.message}</span>
+                <p className="text-red-500">{errorState.message}</p>
               )}
             </div>
             {/*  */}

@@ -186,7 +186,7 @@ const AddDiscount: React.FC<DialogProps> = ({
         <div className="w-full flex flex-row justify-between">
           <p className="text-lg text-black font-semibold">Add Discount</p>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-600 hover:text-gray-800"
           >
             <Image
@@ -524,7 +524,7 @@ const AddDiscount: React.FC<DialogProps> = ({
                 </PopoverContent>
               </Popover>
               {errorState?.field === "source" && (
-                <span className="text-red-500">{errorState.message}</span>
+                <p className="text-red-500">Source is required</p>
               )}
             </div>
 

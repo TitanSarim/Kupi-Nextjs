@@ -144,7 +144,7 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
               required
             />
             {errorState?.field === "nameLength" && (
-              <span className="text-red-500">{errorState.message}</span>
+              <p className="text-red-500">{errorState.message}</p>
             )}
           </div>
 
@@ -161,7 +161,7 @@ const UpdateInviteOperator: React.FC<DialogProps> = ({
               required
             />
             {errorState?.field === "validEmail" && (
-              <span className="text-red-500">{errorState.message}</span>
+              <p className="text-red-500">{errorState.message}</p>
             )}
           </div>
 

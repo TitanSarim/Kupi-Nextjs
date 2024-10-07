@@ -29,7 +29,6 @@ const TransactionList: React.FC<TransactionReturn> = ({
 }) => {
   const NEXT_MONTH = new Date();
   NEXT_MONTH.setMonth(NEXT_MONTH.getMonth() + 1);
-
   const [open, setOpen] = React.useState(false);
   const [busOperator, setBusOperator] = useState("");
   const [destinationCity, setDestinationCity] = useState("");
@@ -76,7 +75,15 @@ const TransactionList: React.FC<TransactionReturn> = ({
   const handleValueChange = (
     newValue: { startDate: Date | null; endDate: Date | null } | null
   ) => {
-    if (newValue && newValue.startDate && newValue.endDate) {
+    if (
+      newValue === null ||
+      (newValue.startDate === null && newValue.endDate === null)
+    ) {
+      setValue({
+        startDate: null,
+        endDate: null,
+      });
+    } else if (newValue.startDate && newValue.endDate) {
       setValue({
         startDate: new Date(newValue.startDate),
         endDate: new Date(newValue.endDate),
@@ -270,7 +277,7 @@ const TransactionList: React.FC<TransactionReturn> = ({
             value={value}
             onChange={handleValueChange}
             showShortcuts={false}
-            inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg"
+            inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg datePlaceHolder"
             popoverDirection="down"
           />
         </div>

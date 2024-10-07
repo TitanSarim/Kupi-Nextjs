@@ -29,32 +29,37 @@ const SettingsClient = () => {
   }, [selectedView, router]);
 
   return (
-    <div className="flex flex-row gap-8">
-      <div className="radio-input bg-white border-2 rounded-lg py-2 px-3">
-        <input
-          type="radio"
-          id="viewAdmin"
-          name="value-radio"
-          checked={selectedView === "viewAdmin"}
-          onChange={() => handleChangeView("viewAdmin")}
-        />
-        <div className="circle"></div>
-        <label htmlFor="viewAdmin" className="text-sm	darkGray-text">
-          View Admin
-        </label>
-      </div>
-      <div className="radio-input bg-white border-2 rounded-lg py-2 px-3">
-        <input
-          type="radio"
-          id="viewOperator"
-          name="value-radio"
-          checked={selectedView === "viewOperator"}
-          onChange={() => handleChangeView("viewOperator")}
-        />
-        <div className="circle"></div>
-        <label htmlFor="viewOperator" className="text-sm	darkGray-text">
-          View Operator
-        </label>
+    <div className="relative w-11/12 py-4 mt-4 flex flex-row justify-between">
+      <p className="text-lg text-black font-semibold">
+        {selectedView === "viewAdmin" ? "Kupi Admin" : "Operator"}
+      </p>
+      <div className="flex flex-row gap-8">
+        <div className="radio-input bg-white border-2 rounded-lg py-2 px-3">
+          <input
+            type="radio"
+            id="viewAdmin"
+            name="value-radio"
+            checked={selectedView === "viewAdmin"}
+            onChange={() => handleChangeView("viewAdmin")}
+          />
+          <div className="circle"></div>
+          <label htmlFor="viewAdmin" className="text-sm	darkGray-text">
+            View Admin
+          </label>
+        </div>
+        <div className="radio-input bg-white border-2 rounded-lg py-2 px-3">
+          <input
+            type="radio"
+            id="viewOperator"
+            name="value-radio"
+            checked={selectedView === "viewOperator"}
+            onChange={() => handleChangeView("viewOperator")}
+          />
+          <div className="circle"></div>
+          <label htmlFor="viewOperator" className="text-sm	darkGray-text">
+            View Operator
+          </label>
+        </div>
       </div>
     </div>
   );

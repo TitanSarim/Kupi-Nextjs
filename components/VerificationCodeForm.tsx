@@ -1,4 +1,3 @@
-// app/components/VerificationCodeForm.tsx
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
@@ -6,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { handleVerification } from "../actions/handleVerification";
 import { sendVerificationCode } from "../actions/sendVerificationCode";
 import { VerificationType } from "../types/auth";
+import ErrorMessage from "@/components/ErrorMessage";
+import SuccessMessage from "@/components/SuccessMessage";
 
 const VerificationCodeForm = ({
   email,
@@ -21,6 +22,7 @@ const VerificationCodeForm = ({
   const [canResend, setCanResend] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [resendLoading, setResendLoading] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
 
@@ -68,14 +70,18 @@ const VerificationCodeForm = ({
 
     // If the response is successful, redirect to the appropriate page
     if (response?.status === 200) {
+      setIsSuccess(true);
+      setMessage("Verification successful! Redirecting...");
       if (response.type === "signup") {
         router.push("/login");
       } else if (response.type === "reset-password") {
         router.push(`/new-password?email=${email}`);
       }
     } else if (response) {
+      setIsSuccess(false); 
       setMessage(response.message);
     } else {
+      setIsSuccess(false); 
       setMessage("An unknown error occurred. Please try again.");
     }
   };
@@ -92,7 +98,14 @@ const VerificationCodeForm = ({
       email,
       type as VerificationType
     );
-    setMessage(response.message);
+    
+    if (response?.message) {
+      setIsSuccess(true); // Set success state for resend
+      setMessage("Verification code resent successfully.");
+    } else {
+      setIsSuccess(false); // Set error state for resend
+      setMessage("Failed to resend the code. Please try again.");
+    }
     setResendLoading(false);
   };
 
@@ -119,7 +132,13 @@ const VerificationCodeForm = ({
               </div>
             ))}
         </form>
-        {message && <p className="text-red-500 mt-4">{message}</p>}
+
+        {/* Render success or error message based on the isSuccess state */}
+        {isSuccess ? (
+          <SuccessMessage message={message} />
+        ) : (
+          <ErrorMessage message={message} />
+        )}
       </div>
       <button
         type="button"

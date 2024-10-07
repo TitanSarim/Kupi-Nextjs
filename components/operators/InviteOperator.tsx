@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { AddOperator } from "@/actions/operators.action";
+import toast from "react-hot-toast";
 
 interface DialogProps {
   open: boolean;
@@ -57,9 +58,22 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name) {
+      setErrorState({
+        field: "nameLength",
+        message: "Name is required",
+      });
+      return;
+    }
+    if (!email) {
+      setErrorState({
+        field: "validEmail",
+        message: "Email is required",
+      });
+      return;
+    }
+
     setLoading(true);
-    setError("");
-    setErrorState(null);
     const formData = {
       name,
       email,
@@ -77,6 +91,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
       if (typeof result === "string") {
         setError(result);
       }
+      toast.success("Invitation has been sent successfully");
     } catch (error) {
       setLoading(false);
       console.error(error);
@@ -86,7 +101,17 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
       setDescription("");
       setLoading(false);
       setErrorState(null);
+      onClose();
     }
+  };
+
+  const handleClose = () => {
+    setName("");
+    setEmail("");
+    setDescription("");
+    setLoading(false);
+    setErrorState(null);
+    onClose();
   };
 
   if (!open) return null;
@@ -97,7 +122,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
         <div className="w-full flex flex-row justify-between">
           <p className="text-lg text-black font-semibold">Invite Operator</p>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-600 hover:text-gray-800"
           >
             <Image
@@ -123,7 +148,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
             />
             {errorState?.field === "nameLength" && (
-              <span className="text-red-500">{errorState.message}</span>
+              <p className="text-red-500">{errorState.message}</p>
             )}
           </div>
           <div className="w-full mb-3">
@@ -138,7 +163,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
             />
             {errorState?.field === "validEmail" && (
-              <span className="text-red-500">{errorState.message}</span>
+              <p className="text-red-500">Please enter a valid email</p>
             )}
           </div>
           <div className="w-full mb-3">
@@ -155,7 +180,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
           {error && <p className="text-red-500">{error}</p>}
           <div className="w-full mt-5 flex flex-row items-center justify-end gap-4">
             <button
-              onClick={onClose}
+              onClick={handleClose}
               type="reset"
               className="border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600"
             >
@@ -163,9 +188,11 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !email || !name || errorState !== null}
               className={`${
-                loading ? "opacity-50" : ""
+                loading || !email || !name || errorState !== null
+                  ? "opacity-50"
+                  : ""
               } py-3 px-10 bg-kupi-yellow rounded-lg font-semibold`}
             >
               {loading ? "Loading" : "Send Invitation"}

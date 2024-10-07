@@ -68,7 +68,6 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
   const selectedOperator = operators.find(
     (operator) => operator.id === busOperator
   );
-  console.log("busOperator", busOperator);
   const {
     getRootProps: getReceiptRootProps,
     getInputProps: getReceiptInputProps,

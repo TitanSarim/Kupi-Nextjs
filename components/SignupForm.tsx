@@ -4,13 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { registerUser } from "../actions/registerUser";
 import Link from "next/link";
-import {
-  maxLength,
-  validateEmail,
-  isAlphabetic,
-  validateWhatsAppNumber,
-  validatePassword,
-} from "../libs/ClientSideHelpers";
+import { validateFields } from "../libs/ClientSideHelpers";
 import ErrorMessage from "@/components/ErrorMessage";
 import InputField from "@/components/InputField";
 import { CheckPrevRequest } from "@/actions/operators.action";
@@ -56,31 +50,18 @@ const SignupForm = () => {
   const searchParams = useSearchParams();
 
   // Centralized validation function
-  const validateField = (name: keyof FormData, value: string): string => {
-    const capitalize = (str: string) =>
-      str.charAt(0).toUpperCase() + str.slice(1);
-
-    if (name === "name" || name === "surname") {
-      if (!maxLength(value, 20)) {
-        return `${capitalize(name)} should not exceed 20 characters.`;
-      } else if (!isAlphabetic(value)) {
-        return `${capitalize(name)} should only contain alphabetic characters.`;
-      }
-    } else if (name === "email" && !validateEmail(value)) {
-      return "Please enter a valid email address.";
-    } else if (name === "number" && !validateWhatsAppNumber(value)) {
-      return "Please enter a valid WhatsApp number.";
-    } else if (name === "password" && !validatePassword(value)) {
-      return "Password must include a capital letter, a number, a symbol, and be at least 8 characters long.";
-    }
-    return "";
+  const validateFieldWrapper = (
+    name: keyof FormData,
+    value: string
+  ): string => {
+    return validateFields(name, value);
   };
 
   const validateAllFieldsSequentially = (): boolean => {
     const newErrors: FormErrors = {};
 
     for (const key in formData) {
-      const error = validateField(
+      const error = validateFieldWrapper(
         key as keyof FormData,
         formData[key as keyof FormData]
       );
@@ -125,7 +106,6 @@ const SignupForm = () => {
       if (sessionCheck === true) {
         router.push("/expired");
       }
-      console.log(sessionCheck);
     } catch (error) {
       console.error(error);
     }
@@ -186,7 +166,7 @@ const SignupForm = () => {
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <InputField
           type="text"
           name="name"
@@ -258,7 +238,7 @@ const SignupForm = () => {
           label="Company"
           iconSrc="/img/auth-screens/company.svg"
           error={submitted ? errors.company : ""}
-          disabled
+          disabled={loading}
         />
 
         <div className="mt-5">

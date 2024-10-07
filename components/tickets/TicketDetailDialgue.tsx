@@ -139,7 +139,9 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                 </div>
                 <div className="w-5/12">
                   <p className="text-gray-600 font-light">Bus Company Amount</p>
-                  <span>${busCompanyAmount}</span>
+                  <span>
+                    ${busCompanyAmount && busCompanyAmount.toFixed(1)}
+                  </span>
                 </div>
                 <div className="w-5/12">
                   <p className="text-gray-600 font-light">Carma Commission</p>

@@ -108,6 +108,7 @@ model Operators {
   busses            Busses[]
   source            TicketSources
   OperatorsSessions OperatorsSessions[]
+  OperatorSettings  OperatorSettings[]
 }
 
 model OperatorsSessions {
@@ -133,21 +134,27 @@ model Busses {
   homeBase     String
   driverName   String
   comments     String
+  Routes       Routes[]
 }
 
 model Routes {
   id                String       @id @default(auto()) @map("_id") @db.ObjectId
-  tickets           Tickets[]
   type              RouteType
-  days              DAYS
+  days              DAYS[]
   departureLocation Location
   arrivalLocation   Location
-  departureTime     DateTime
-  arrivalTime       DateTime
-  stops             RouteStops
+  departureTime     String
+  arrivalTime       String
+  stops             RouteStops[]
   pricing           RoutePricing
   operatorIds       String[]     @db.ObjectId
-  operators         Operators    @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  operators         Operators?   @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  busId             String       @db.ObjectId
+  bus               Busses?      @relation(fields: [busId], references: [id], onDelete: Cascade)
+  tickets           Tickets[]
+  status            String
+  departureCity     String
+  arrivalCity       String
 }
 
 model Transactions {
@@ -229,6 +236,21 @@ model Settings {
   pause       Boolean   @default(false)
   operatorsId String    @db.ObjectId
   operator    Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
+}
+
+model OperatorSettings {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  emails       String[]
+  numbers      String[]
+  exchangeRate Int
+  tickets      Int
+  closeBooking String
+  bankName     String
+  accountTitle String
+  IBAN         String
+  swiftCode    String
+  operatorsId  String    @db.ObjectId
+  operator     Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
 }
 
 model Conversations {
@@ -320,16 +342,19 @@ type CarmaRouteDetails {
 }
 
 type RoutePricing {
-  amoutUSD          Float
-  amountLocal       Float
+  amountUSD         Float
+  amountLocal       Float?
   departureLocation Location
   arrivalLocation   Location
+  pricingData       Json?
 }
 
 type RouteStops {
   location      Location
-  arrivalTime   DateTime
-  departureTime DateTime
+  arrivalTime   String
+  departureTime String
+  priceUSD      Float
+  priceLocal    Float?
 }
 
 type Location {
@@ -344,6 +369,11 @@ type Location {
 enum RouteType {
   WEEKLY
   DAILY
+}
+
+enum RouteStatus {
+  PENDING
+  ACTIVE
 }
 
 enum Platform {
@@ -372,7 +402,7 @@ enum DAYS {
   MON
   TUE
   WED
-  THR
+  THU
   FRI
   SAT
 }

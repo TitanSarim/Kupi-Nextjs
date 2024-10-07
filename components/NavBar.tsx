@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import Image from "next/image";
 import { signOut } from "@/auth";
 import NavDropDown from "./NavDropDown";
+import { cookies } from "next/headers";
 
 type NavProps = {
   profileImage: string;
@@ -49,6 +50,12 @@ const NavBar: React.FC<NavProps> = ({ profileImage, name }) => {
             <form
               action={async () => {
                 "use server";
+                cookies().set({
+                  name: "authjs.csrf-token",
+                  value: "",
+                  expires: new Date("2016-10-05"),
+                  path: "/",
+                });
                 await signOut({ redirectTo: "/" });
               }}
             >

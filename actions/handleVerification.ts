@@ -77,6 +77,23 @@ export async function handleVerification(
       },
     });
 
+    await db.operators.update({
+      where: {
+        id: operator.id,
+      },
+      data: {
+        status: "REGISTERED",
+      },
+    });
+
+    await db.operatorsSessions.update({
+      where: {
+        id: operatorsSession?.id,
+      },
+      data: {
+        isActive: false,
+      },
+    });
     // Clean up the verification data
     await db.verification.delete({ where: { email } });
 

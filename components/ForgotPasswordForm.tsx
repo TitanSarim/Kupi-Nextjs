@@ -2,7 +2,7 @@
 
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { isValidEmail, validateEmail } from "@/libs/ClientSideHelpers";
+import { validateFields } from "@/libs/ClientSideHelpers";
 import { sendVerificationCode } from "../actions/sendVerificationCode";
 import Link from "next/link";
 import ErrorMessage from "@/components/ErrorMessage";
@@ -21,12 +21,12 @@ const ForgotPasswordForm = () => {
     e.preventDefault();
     setError(null);
 
-    // Check if the email is valid
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address");
+    // Validate email using validateFields function
+    const emailError = validateFields("email", email);
+    if (emailError) {
+      setError(emailError);
       return;
     }
-  
 
     setLoading(true); // Set loading to true
 
@@ -36,16 +36,19 @@ const ForgotPasswordForm = () => {
     // If the response is successful, redirect to the verification code page
     if (response?.message) {
       setMessage(response.message);
+      setError(null); 
       router.push(`/verification-code?email=${email}&type=reset-password`);
+      
+    } else {
+      setError("An unexpected error occurred. Please try again.");
     }
 
     setLoading(false);
   };
 
-
   return (
     <>
-      <form className="mt-5" onSubmit={handleSubmit}>
+      <form className="mt-5" onSubmit={handleSubmit} noValidate>
         {/* Email Input Field */}
         <InputField
           type="email"
@@ -57,8 +60,6 @@ const ForgotPasswordForm = () => {
           error={error || undefined}
           disabled={loading}
         />
-
-        <ErrorMessage message={error || undefined} />
 
         {/* Submit Button */}
         <button

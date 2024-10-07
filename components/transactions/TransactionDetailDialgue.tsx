@@ -18,11 +18,14 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
   if (!open) return null;
 
   const busCompanyAmount =
-    TransactionData?.tickets &&
-    TransactionData?.tickets?.[0]?.priceDetails.kupiMarkup -
-      TransactionData?.tickets?.[0]?.priceDetails.kupiProfit -
-      (TransactionData?.tickets?.[0]?.priceDetails.carmaProfit -
-        TransactionData?.tickets?.[0].priceDetails.totalPrice);
+    TransactionData?.tickets && TransactionData.tickets.length > 0
+      ? (TransactionData.tickets[0].priceDetails.kupiMarkup -
+          TransactionData.tickets[0].priceDetails.kupiProfit -
+          (TransactionData.tickets[0].priceDetails.carmaProfit -
+            TransactionData.tickets[0].priceDetails.totalPrice)) *
+        TransactionData.tickets.length
+      : 0;
+
   const kupiCommissionPercent =
     TransactionData?.tickets &&
     TransactionData?.tickets?.[0]?.priceDetails.kupiCommissionPercentage +

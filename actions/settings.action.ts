@@ -2,8 +2,12 @@
 
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { SettingsFormData } from "../types/settings";
-import { Settings } from "@prisma/client";
+import {
+  operatorSettingsFormData,
+  operatorSettingsReturn,
+  SettingsFormData,
+} from "../types/settings";
+import { OperatorSettings, Settings } from "@prisma/client";
 
 export async function getAdminSetting(): Promise<Settings[] | null> {
   try {
@@ -72,6 +76,142 @@ export async function adminSetting(
     return true;
   } catch (error) {
     console.error("Error updating setting:", error);
+    return null;
+  }
+}
+
+export async function createOperatorSettings(
+  formData: operatorSettingsFormData
+): Promise<boolean | null | undefined> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const user = await db.users.findUnique({
+      where: {
+        id: session.userId,
+      },
+    });
+
+    if (!user || !user.operatorsId) {
+      return null;
+    }
+
+    const operatorSettings = await db.operatorSettings.findFirst({
+      where: {
+        operatorsId: user.operatorsId,
+      },
+    });
+
+    if (!operatorSettings) {
+      await db.operatorSettings.create({
+        data: {
+          operatorsId: user.operatorsId,
+          emails: formData.emails,
+          numbers: formData.numbers,
+          exchangeRate: formData.exchangeRate,
+          tickets: formData.tickets,
+          closeBooking: String(formData.bookingAt),
+          bankName: formData.bankName,
+          accountTitle: formData.accountTitle,
+          IBAN: formData.ibanNumber,
+          swiftCode: formData.swiftNumber,
+        },
+      });
+      await db.operators.update({
+        where: {
+          id: user.operatorsId,
+        },
+        data: {
+          name: formData.company,
+          description: formData.description,
+        },
+      });
+    } else {
+      const operatorSettingsData = await db.operatorSettings.findFirst({
+        where: {
+          operatorsId: user.operatorsId,
+        },
+      });
+      if (operatorSettingsData) {
+        await db.operators.update({
+          where: {
+            id: user.operatorsId,
+          },
+          data: {
+            name: formData.company,
+            description: formData.description,
+          },
+        });
+        await db.operatorSettings.update({
+          where: {
+            id: operatorSettingsData.id,
+          },
+          data: {
+            operatorsId: session.userId,
+            emails: formData.emails,
+            numbers: formData.numbers,
+            exchangeRate: formData.exchangeRate,
+            tickets: formData.tickets,
+            closeBooking: String(formData.bookingAt),
+            bankName: formData.bankName,
+            accountTitle: formData.accountTitle,
+            IBAN: formData.ibanNumber,
+            swiftCode: formData.swiftNumber,
+          },
+        });
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+export async function getOperatorSettings(): Promise<
+  operatorSettingsReturn | null | undefined
+> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const user = await db.users.findUnique({
+      where: {
+        id: session.userId,
+      },
+    });
+
+    if (!user || !user.operatorsId) {
+      return null;
+    }
+
+    const operator = await db.operators.findFirst({
+      where: {
+        id: user.operatorsId,
+      },
+    });
+
+    const operatorSettings = await db.operatorSettings.findFirst({
+      where: {
+        operatorsId: user.operatorsId,
+      },
+    });
+
+    const operatorsData: operatorSettingsReturn = {
+      operator: operator || null,
+      operatorSettings: operatorSettings || null,
+    };
+
+    return operatorsData || null;
+  } catch (error) {
+    console.error(error);
     return null;
   }
 }

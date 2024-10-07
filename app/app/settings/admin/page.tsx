@@ -1,23 +1,22 @@
-import { getAdminSetting } from '@/actions/settings.action';
-import Loading from '@/components/Loading';
-import AdminSettings from '@/components/settings/AdminSettings';
-import React, {Suspense} from 'react'
+import { getAdminSetting } from "@/actions/settings.action";
+import Loading from "@/components/Loading";
+import AdminSettings from "@/components/settings/AdminSettings";
+import React, { Suspense } from "react";
 
 const Settings = async () => {
-
   const settings = await getAdminSetting();
 
-  if(!settings){
+  if (!settings) {
     return null;
   }
 
   return (
-    <div className='w-full'>
+    <div className="w-full h-full">
       <Suspense fallback={<Loading />}>
-            <AdminSettings settings={settings}/>
+        <AdminSettings settings={settings} />
       </Suspense>
     </div>
-  )
-}
+  );
+};
 
-export default Settings
+export default Settings;

@@ -45,6 +45,7 @@ export const {
         const transformedUser = {
           ...user,
           role: user.role ? { name: user.role.roleName } : undefined,
+          operatorId: user.operatorsId ? user.operatorsId : undefined,
         };
 
         return transformedUser as User;
@@ -56,12 +57,14 @@ export const {
       if (user) {
         token.id = user.id;
         token.role = user.role?.name as RolesEnum;
+        token.operatorId = user.operatorId;
       }
       return token as JWT;
     },
     async session({ session, token }) {
       session.userId = token.id as string;
       session.role = token.role;
+      session.operatorId = token.operatorId as string;
       return session;
     },
   },
