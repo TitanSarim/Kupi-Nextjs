@@ -202,4 +202,5 @@ export type OperatorsType = {
   status: OperatorStatus;
   joiningDate?: Date;
   source?: TicketSources;
+  isLive?: boolean;
 };

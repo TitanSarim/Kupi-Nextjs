@@ -152,12 +152,86 @@ input:checked+.slider:before {
   border-radius: 50%;
 }
 
+/* toggle switch */
+.switch-live {
+  position: relative;
+  display: inline-block;
+  width: 45px;
+  height: 20px;
+}
+
+.switch-live input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider-live {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid #57707A;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider-live:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 1.5px;
+  background-color: #57707A;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked+.slider-live {
+  background-color: #ffffff;
+  border: 1px solid #02c034;
+}
+
+input:focus+.slider-live {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked+.slider-live:before {
+  background-color: #02c034;
+  -webkit-transform: translateX(22px);
+  -ms-transform: translateX(22px);
+  transform: translateX(22px);
+}
+
+.slider-live.round-live {
+  border-radius: 34px;
+}
+
+.slider-live.round-live:before {
+  border-radius: 50%;
+}
+/*  */
+
 .select-dropdown {
   width: 360px !important;
   z-index: 50;
   max-height: 16.7rem;
   overflow-y: hidden;
 }
+
+.select-dropdown_bus_operator {
+  width: 1100px !important;
+  z-index: 50;
+  max-height: 16.7rem;
+  overflow-y: hidden;
+  width: 100%;
+}
+
+
 .select-discount-dropdown{
   width: 470px !important;
   z-index: 50;
@@ -339,12 +413,26 @@ input:checked+.slider:before {
   height: 500px;
 }
 
+
+
 @media screen and (max-width: 1300px){
+
+  .select-dropdown_bus_operator {
+      width: 900px !important;
+  }
+  
   .passenger_info_dialgue {
       min-height: 102.6vh !important;
       max-height: 102.6vh !important;
     }
 }
+
+@media screen and (max-width: 1200px) {
+.select-dropdown_bus_operator {
+    width: 600px !important;
+  }
+}
+
 @media screen and (max-height: 900px) {
 
   .dialguebox-container{

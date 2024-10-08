@@ -99,6 +99,7 @@ model Operators {
   name              String
   description       String
   status            OperatorStatus      @default(INVITED)
+  isLive            Boolean             @default(false)
   joiningDate       DateTime            @default(now())
   setting           Settings[]
   users             Users[]
@@ -230,12 +231,11 @@ model Discounts {
 }
 
 model Settings {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   key         String
   value       Json
-  pause       Boolean   @default(false)
-  operatorsId String    @db.ObjectId
-  operator    Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
+  Operators   Operators? @relation(fields: [operatorsId], references: [id])
+  operatorsId String?    @db.ObjectId
 }
 
 model OperatorSettings {

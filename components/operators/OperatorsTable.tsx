@@ -23,6 +23,12 @@ import Link from "next/link";
 import { OperatorStatus } from "@prisma/client";
 import UpdateInviteOperator from "./UpdateInviteOperator";
 import { TicketSources } from "@/types/discount";
+import { updateStatus } from "@/actions/operators.action";
+import toast from "react-hot-toast";
+
+interface LiveStatuses {
+  [key: string]: boolean;
+}
 
 const OperatorsTable: React.FC<OperatorsData> = ({
   operators,
@@ -40,6 +46,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     useState<OperatorsDataReturn | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [liveStatuses, setLiveStatuses] = useState<LiveStatuses>({});
 
   const handleShowDetail = (id: string) => {
     const operator = operators.find((O) => O.operators.id === id) || null;
@@ -72,6 +79,23 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     );
     params.set("sort", sortingParam);
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleChange = async (id: string) => {
+    const newLiveStatus = !liveStatuses[id];
+
+    setLiveStatuses((prev) => ({
+      ...prev,
+      [id]: newLiveStatus,
+    }));
+    try {
+      const liveStatus = await updateStatus(id, newLiveStatus);
+      if (liveStatus === true) {
+        toast.success("Status updated successfully");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -340,6 +364,35 @@ const OperatorsTable: React.FC<OperatorsData> = ({
               </Link>
             </div>
           )}
+        </>
+      ),
+    },
+    {
+      accessorKey: "Live",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Live <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => (
+        <>
+          <div className="">
+            <label className="switch-live">
+              <input
+                type="checkbox"
+                checked={
+                  liveStatuses[row.original.operators.id] ||
+                  row.original.operators.isLive
+                }
+                onChange={(e) => {
+                  handleChange(row.original.operators.id);
+                }}
+              />
+              <span className="slider-live round-live"></span>
+            </label>
+          </div>
         </>
       ),
     },

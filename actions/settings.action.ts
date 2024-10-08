@@ -7,7 +7,7 @@ import {
   operatorSettingsReturn,
   SettingsFormData,
 } from "../types/settings";
-import { OperatorSettings, Settings } from "@prisma/client";
+import { Settings } from "@prisma/client";
 
 export async function getAdminSetting(): Promise<Settings[] | null> {
   try {
@@ -17,11 +17,7 @@ export async function getAdminSetting(): Promise<Settings[] | null> {
       return null;
     }
 
-    const settings = await db.settings.findMany({
-      where: {
-        operatorsId: session.userId,
-      },
-    });
+    const settings = await db.settings.findMany();
 
     if (!settings) {
       return null;
@@ -48,7 +44,6 @@ export async function adminSetting(
       const existingSetting = await db.settings.findFirst({
         where: {
           key: setting.key,
-          operatorsId: session.userId,
         },
       });
 
@@ -56,7 +51,6 @@ export async function adminSetting(
         await db.settings.update({
           where: {
             id: existingSetting.id,
-            operatorsId: session.userId,
           },
           data: {
             value: JSON.stringify(setting.value),
@@ -67,7 +61,6 @@ export async function adminSetting(
           data: {
             key: setting.key,
             value: JSON.stringify(setting.value),
-            operatorsId: session.userId,
           },
         });
       }
@@ -151,7 +144,7 @@ export async function createOperatorSettings(
             id: operatorSettingsData.id,
           },
           data: {
-            operatorsId: session.userId,
+            operatorsId: user.operatorsId,
             emails: formData.emails,
             numbers: formData.numbers,
             exchangeRate: formData.exchangeRate,
@@ -172,6 +165,7 @@ export async function createOperatorSettings(
     return null;
   }
 }
+
 export async function getOperatorSettings(): Promise<
   operatorSettingsReturn | null | undefined
 > {
@@ -210,6 +204,191 @@ export async function getOperatorSettings(): Promise<
     };
 
     return operatorsData || null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function getSelectedOperatorSettings(
+  name: string
+): Promise<operatorSettingsReturn | null | undefined> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const operator = await db.operators.findFirst({
+      where: {
+        name: name,
+      },
+    });
+
+    const operatorSettings = await db.operatorSettings.findFirst({
+      where: {
+        operatorsId: operator?.id,
+      },
+    });
+
+    const operatorsData: operatorSettingsReturn = {
+      operator: operator || null,
+      operatorSettings: operatorSettings || null,
+    };
+
+    return operatorsData || null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function updateOperatorSettings(
+  formData: operatorSettingsFormData,
+  name: string
+): Promise<boolean | null | undefined> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const operator = await db.operators.findFirst({
+      where: {
+        name: name,
+      },
+    });
+
+    if (!operator) {
+      return null;
+    }
+    const operatorSettings = await db.operatorSettings.findFirst({
+      where: {
+        operatorsId: operator?.id,
+      },
+    });
+
+    if (!operatorSettings) {
+      await db.operatorSettings.create({
+        data: {
+          operatorsId: operator?.id,
+          emails: formData.emails,
+          numbers: formData.numbers,
+          exchangeRate: formData.exchangeRate,
+          tickets: formData.tickets,
+          closeBooking: String(formData.bookingAt),
+          bankName: formData.bankName,
+          accountTitle: formData.accountTitle,
+          IBAN: formData.ibanNumber,
+          swiftCode: formData.swiftNumber,
+        },
+      });
+      await db.operators.update({
+        where: {
+          id: operator.id,
+        },
+        data: {
+          name: formData.company,
+          description: formData.description,
+        },
+      });
+    } else {
+      if (operatorSettings) {
+        await db.operators.update({
+          where: {
+            id: operator.id,
+          },
+          data: {
+            name: formData.company,
+            description: formData.description,
+          },
+        });
+        await db.operatorSettings.update({
+          where: {
+            id: operatorSettings.id,
+          },
+          data: {
+            operatorsId: operator.id,
+            emails: formData.emails,
+            numbers: formData.numbers,
+            exchangeRate: formData.exchangeRate,
+            tickets: formData.tickets,
+            closeBooking: String(formData.bookingAt),
+            bankName: formData.bankName,
+            accountTitle: formData.accountTitle,
+            IBAN: formData.ibanNumber,
+            swiftCode: formData.swiftNumber,
+          },
+        });
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function underMaintainance(
+  maintainance: boolean
+): Promise<true | null> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const settings = await db.settings.findFirst({
+      where: {
+        key: "underMaintainance",
+      },
+    });
+
+    if (!settings) {
+      await db.settings.create({
+        data: {
+          key: "underMaintainance",
+          value: maintainance,
+        },
+      });
+    } else {
+      await db.settings.update({
+        where: {
+          id: settings.id,
+          key: "underMaintainance",
+        },
+        data: {
+          value: maintainance,
+        },
+      });
+    }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function getMaintainanceStatus(): Promise<Settings | null> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const settings = await db.settings.findFirst({
+      where: {
+        key: "underMaintainance",
+      },
+    });
+
+    return settings;
   } catch (error) {
     console.error(error);
     return null;

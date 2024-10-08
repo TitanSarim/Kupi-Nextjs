@@ -17,23 +17,37 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
 }) => {
   if (!open) return null;
 
+  const carmaProfit =
+    TransactionData?.tickets && TransactionData.tickets.length > 0
+      ? TransactionData.tickets?.[0]?.priceDetails.carmaProfit *
+        TransactionData.tickets.length
+      : 0;
+  const kupiProfit =
+    TransactionData?.tickets && TransactionData.tickets.length > 0
+      ? TransactionData.tickets?.[0]?.priceDetails.kupiProfit *
+        TransactionData.tickets.length
+      : 0;
+  const kupiMarkup =
+    TransactionData?.tickets && TransactionData.tickets.length > 0
+      ? TransactionData.tickets?.[0]?.priceDetails.kupiMarkup *
+        TransactionData.tickets.length
+      : 0;
+
+  const totalPrice =
+    TransactionData?.tickets && TransactionData.tickets.length > 0
+      ? TransactionData.tickets?.[0]?.priceDetails.totalPrice *
+        TransactionData.tickets.length
+      : 0;
+
   const busCompanyAmount =
     TransactionData?.tickets && TransactionData.tickets.length > 0
-      ? (TransactionData.tickets[0].priceDetails.kupiMarkup -
-          TransactionData.tickets[0].priceDetails.kupiProfit -
-          (TransactionData.tickets[0].priceDetails.carmaProfit -
-            TransactionData.tickets[0].priceDetails.totalPrice)) *
-        TransactionData.tickets.length
+      ? totalPrice - kupiProfit - carmaProfit - kupiMarkup
       : 0;
 
   const kupiCommissionPercent =
     TransactionData?.tickets &&
     TransactionData?.tickets?.[0]?.priceDetails.kupiCommissionPercentage +
       TransactionData?.tickets?.[0]?.priceDetails.kupiMarkupPercentage;
-  const KupiAmount =
-    TransactionData?.tickets &&
-    TransactionData?.tickets?.[0]?.priceDetails.kupiMarkup +
-      TransactionData?.tickets?.[0]?.priceDetails.kupiProfit;
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 transaction_dialguebox-container flex items-center justify-center z-50 duration-700 ease-out">
@@ -159,7 +173,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
               </div>
               <div className="w-5/12">
                 <p className="text-gray-600 font-light">Bus Company Amount</p>
-                <span>${busCompanyAmount}</span>
+                <span>${busCompanyAmount.toFixed(1)}</span>
               </div>
               <div className="w-5/12">
                 <p className="text-gray-600 font-light">Carma Commission</p>
@@ -172,11 +186,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
               </div>
               <div className="w-5/12">
                 <p className="text-gray-600 font-light">Carma Amount</p>
-                <span>
-                  $
-                  {TransactionData?.tickets &&
-                    TransactionData?.tickets?.[0].priceDetails.carmaProfit}
-                </span>
+                <span>${carmaProfit.toFixed(1)}</span>
               </div>
               <div className="w-5/12">
                 <p className="text-gray-600 font-light">Kupi Commission</p>
@@ -209,17 +219,8 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                 {TransactionData?.tickets &&
                 TransactionData?.tickets?.[0]?.priceDetails.kupiMarkup > 0 ? (
                   <span>
-                    ($
-                    {TransactionData?.tickets &&
-                      TransactionData?.tickets?.[0]?.priceDetails.kupiMarkup.toFixed(
-                        1
-                      )}{" "}
-                    + $
-                    {TransactionData?.tickets &&
-                      TransactionData?.tickets?.[0]?.priceDetails.kupiProfit.toFixed(
-                        1
-                      )}
-                    ) = ${KupiAmount && KupiAmount.toFixed(1)}
+                    (${kupiProfit.toFixed(1)} + ${kupiMarkup.toFixed(1)}) = $
+                    {(kupiProfit + kupiMarkup).toFixed(1)}
                   </span>
                 ) : (
                   <span>
@@ -236,7 +237,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
             <div className="flex w-full flex-row justify-between">
               <p className="text-gray-600 font-light">Total Price</p>
               <p className="text-black font-semibold text-md">
-                ${TransactionData?.paymentReference?.amount}
+                ${totalPrice.toFixed(1)}
               </p>
             </div>
           </div>

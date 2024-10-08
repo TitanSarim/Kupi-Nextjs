@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 type SideBarProps = {
   role?: string;
@@ -10,12 +12,20 @@ type SideBarProps = {
 
 const SideBar: React.FC<SideBarProps> = ({ role }) => {
   const pathname = usePathname();
+  const session = useSession();
 
   const handleClientChnage = () => {
     localStorage.setItem("manualTransaction", "false");
   };
   const handleAdminViewChange = () => {
-    localStorage.setItem("viewAdmin", "viewAdmin");
+    if (
+      (session.data && session?.data.role === RolesEnum.SuperAdmin) ||
+      (session.data && session?.data.role === RolesEnum.KupiUser)
+    ) {
+      localStorage.setItem("viewAdmin", "viewAdmin");
+    } else {
+      localStorage.setItem("viewAdmin", "viewOperator");
+    }
   };
   return (
     <div className="sticky top-0 h-screen lightGray  w-72 px-2 py-2 shadow-sm">
@@ -150,9 +160,19 @@ const SideBar: React.FC<SideBarProps> = ({ role }) => {
         </Link>
 
         <Link
-          href={"/app/settings/admin"}
+          href={
+            session.data?.role === RolesEnum.SuperAdmin ||
+            session.data?.role === RolesEnum.KupiUser
+              ? "/app/settings/admin"
+              : "/app/settings/operator"
+          }
           className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base 
-            ${pathname === "/app/settings/admin" ? "bg-kupi-yellow" : ""}`}
+            ${
+              pathname === "/app/settings/admin" ||
+              pathname === "/app/settings/operator"
+                ? "bg-kupi-yellow"
+                : ""
+            }`}
           onClick={handleAdminViewChange}
         >
           <Image

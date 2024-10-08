@@ -20,5 +20,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (path.startsWith("/app/settings/admin") && role !== "SuperAdmin") {
+    url.pathname = "/app/settings/operator";
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }

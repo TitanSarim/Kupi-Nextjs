@@ -1,13 +1,8 @@
 import { getAllDiscount } from "@/actions/discount.actions";
 import { getAllMatchedCity, getAllOperators } from "@/actions/search.action";
-import { auth } from "@/auth";
 import DiscountList from "@/components/discount/DiscountList";
-import Loading from "@/components/Loading";
-import NavBar from "@/components/NavBar";
-import SideBar from "@/components/SideBar";
 import { DiscountQuery } from "@/types/discount";
-import { redirect } from "next/navigation";
-import React, { Suspense } from "react";
+import React from "react";
 
 const Discounts = async ({
   searchParams,

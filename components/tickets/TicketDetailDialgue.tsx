@@ -18,10 +18,10 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
 
   const busCompanyAmount =
     TicketData?.tickets &&
-    TicketData?.tickets.priceDetails.kupiMarkup -
+    TicketData?.tickets.priceDetails.totalPrice -
+      TicketData?.tickets.priceDetails.carmaProfit -
       TicketData?.tickets.priceDetails.kupiProfit -
-      (TicketData?.tickets.priceDetails.carmaProfit -
-        TicketData?.tickets.priceDetails.totalPrice);
+      TicketData?.tickets.priceDetails.kupiMarkup;
   const kupiCommissionPercent =
     TicketData?.tickets &&
     TicketData?.tickets.priceDetails.kupiCommissionPercentage +
@@ -185,9 +185,9 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                   {TicketData &&
                   TicketData?.tickets.priceDetails.kupiMarkup > 0 ? (
                     <span>
-                      (${TicketData?.tickets.priceDetails.kupiMarkup.toFixed(1)}{" "}
+                      (${TicketData?.tickets.priceDetails.kupiProfit.toFixed(1)}{" "}
                       + $
-                      {TicketData?.tickets.priceDetails.kupiProfit.toFixed(1)})
+                      {TicketData?.tickets.priceDetails.kupiMarkup.toFixed(1)})
                       = ${KupiAmount && KupiAmount.toFixed(1)}
                     </span>
                   ) : (

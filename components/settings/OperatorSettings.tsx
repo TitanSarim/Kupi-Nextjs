@@ -21,18 +21,44 @@ import {
   validateEmail,
   validateWhatsAppNumber,
 } from "@/libs/ClientSideHelpers";
-import { createOperatorSettings } from "@/actions/settings.action";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  createOperatorSettings,
+  getSelectedOperatorSettings,
+  updateOperatorSettings,
+} from "@/actions/settings.action";
 import { operatorSettingsReturn } from "@/types/settings";
 import toast from "react-hot-toast";
+import { OperatorsType } from "@/types/transactions";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { RolesEnum } from "@/types/auth";
 
 interface OperatorSettingsProps {
   operatorSettings?: operatorSettingsReturn | null | undefined;
+  operators?: OperatorsType[] | null;
+  role?: string;
 }
 
 const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   operatorSettings,
+  operators,
+  role,
 }) => {
   const { currency, amount, equivalent, unit } = Rates.globalExchangeRate;
+  const [open, setOpen] = React.useState(false);
   const [busOperator, setBusOperator] = useState("");
   const [numbers, setNumbers] = useState<string[]>([]);
   const [numberInput, setNumberInput] = useState("");
@@ -300,7 +326,12 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
           return;
         }
       }
-      const response = await createOperatorSettings(formData);
+      let response;
+      if (role === RolesEnum.BusCompanyAdmin) {
+        response = await createOperatorSettings(formData);
+      } else if (role === RolesEnum.SuperAdmin) {
+        response = await updateOperatorSettings(formData, busOperator);
+      }
       if (response === true) {
         toast.success("Settings updated successfully");
       }
@@ -313,18 +344,106 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
+  const handleOperatorChange = async (value: string) => {
+    if (value === "") {
+      setBusOperator("");
+    } else {
+      setBusOperator(value);
+      try {
+        const operator = await getSelectedOperatorSettings(value);
+        if (operator) {
+          if (operator.operatorSettings) {
+            setNumbers(operator?.operatorSettings?.numbers || []);
+            setEmails(operator?.operatorSettings?.emails || []);
+            setTickets(operator?.operatorSettings.tickets);
+            setBookingAt(
+              formatTime(parseInt(operator?.operatorSettings?.closeBooking))
+            );
+            setExchangeRate(operator?.operatorSettings?.exchangeRate);
+            setBankName(operator?.operatorSettings?.bankName || "");
+            setAccountTitle(operator?.operatorSettings?.accountTitle || "");
+            setIbanNumber(operator?.operatorSettings?.IBAN || "");
+            setSwiftNumber(operator?.operatorSettings?.swiftCode || "");
+          }
+          if (operator?.operator) {
+            setCompany(operator?.operator.name || "");
+            setDescription(operator?.operator.description || "");
+          }
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    setOpen(false);
+  };
+
   return (
     <div className="w-full h-fit">
-      <div className="w-full">
-        <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
-        <Input
-          type="text"
-          value={busOperator}
-          onChange={(e) => setBusOperator(e.target.value)}
-          placeholder="Search bus operator"
-          className="h-12 rounded-lg text-gray-500 border-gray-700"
-        />
-      </div>
+      {role === RolesEnum.SuperAdmin || role === RolesEnum.KupiUser ? (
+        <div className="w-full">
+          <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger
+              asChild
+              className="w-full  h-12 rounded-lg  text-gray-500 border-gray-700"
+            >
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between outline-none"
+              >
+                {busOperator || "Select operator..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0 select-dropdown_bus_operator text-left left-0">
+              <Command>
+                <CommandInput placeholder="Search operator..." />
+                <CommandList className="w-full text-left">
+                  <CommandEmpty>No operator found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      key="clear"
+                      value=""
+                      onSelect={() => handleOperatorChange("")}
+                      className="cursor-pointer w-full text-left"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${
+                          busOperator === "" ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      Clear
+                    </CommandItem>
+                    {operators?.map((operator) => (
+                      <CommandItem
+                        key={operator.id}
+                        value={operator.name}
+                        onSelect={(currentValue) =>
+                          handleOperatorChange(currentValue)
+                        }
+                        className="cursor-pointer w-full  text-left"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            operator.name === busOperator
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {operator.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      ) : (
+        ""
+      )}
       {/* notification settings */}
 
       <form className="w-full" onSubmit={handleSubmit}>
@@ -667,28 +786,31 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
             </div>
           </div>
         </div>
-
-        <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
-          <button
-            onClick={handleReset}
-            className={`${
-              !formChanged ? "opacity-50" : ""
-            } border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
-            disabled={!formChanged}
-          >
-            Cancel
-          </button>
-          <button
-            className={`${
-              loading || errorState !== null || formChanged === false
-                ? "opacity-50"
-                : ""
-            } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
-            disabled={loading || errorState !== null || formChanged === false}
-          >
-            {loading ? "Please Wait" : "Save"}
-          </button>
-        </div>
+        {role === RolesEnum.SuperAdmin || role === RolesEnum.BusCompanyAdmin ? (
+          <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
+            <button
+              onClick={handleReset}
+              className={`${
+                !formChanged ? "opacity-50" : ""
+              } border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
+              disabled={!formChanged}
+            >
+              Cancel
+            </button>
+            <button
+              className={`${
+                loading || errorState !== null || formChanged === false
+                  ? "opacity-50"
+                  : ""
+              } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
+              disabled={loading || errorState !== null || formChanged === false}
+            >
+              {loading ? "Please Wait" : "Save"}
+            </button>
+          </div>
+        ) : (
+          ""
+        )}
       </form>
     </div>
   );

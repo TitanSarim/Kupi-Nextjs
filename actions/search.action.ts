@@ -49,3 +49,33 @@ export async function getAllOperators(): Promise<OperatorsType[] | null> {
     return null;
   }
 }
+
+export async function getAlKupiOperators(): Promise<OperatorsType[] | null> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const operatorsData = await db.operators.findMany({
+      where: {
+        source: "KUPI",
+      },
+    });
+
+    if (!operatorsData) {
+      return null;
+    }
+
+    const operators = operatorsData.map((operator) => ({
+      ...operator,
+      status: operator.status ?? OperatorStatus.INVITED,
+    }));
+
+    return operators || null;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}

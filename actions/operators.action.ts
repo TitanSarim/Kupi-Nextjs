@@ -397,3 +397,34 @@ export async function SyncBusOperators() {
     return null;
   }
 }
+
+export async function updateStatus(
+  id: string,
+  status: boolean
+): Promise<true | null> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const operator = await db.operators.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isLive: status,
+      },
+    });
+
+    if (!operator) {
+      return null;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}

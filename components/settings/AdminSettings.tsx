@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Image from "next/image";
-import { adminSetting } from "@/actions/settings.action";
+import { adminSetting, underMaintainance } from "@/actions/settings.action";
 import { SettingsFormData } from "@/types/settings";
 import Rates from "@/libs/Rates";
 import { Settings } from "@prisma/client";
@@ -157,7 +157,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
         value: exchangeRate,
       },
       {
-        key: "COMMISSION_PERCENTAGE",
+        key: "SALES_COMMISSION_PERCENTAGE",
         value: commission,
       },
       {
@@ -215,13 +215,14 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           let reminder = "";
           let carmaCommission = "";
           let kupiMarkup = "";
+          let maintenance = false;
 
           settings.settings.forEach((setting: any) => {
             switch (setting.key) {
               case "EXCHANGE_RATE":
                 exchangeRate = setting.value;
                 break;
-              case "COMMISSION_PERCENTAGE":
+              case "SALES_COMMISSION_PERCENTAGE":
                 commission = setting.value;
                 break;
               case "CARMA_COMMISSION_PERCENTAGE":
@@ -239,6 +240,9 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               case "EMAIL_REMINDER":
                 reminder = setting.value;
                 break;
+              case "underMaintainance":
+                maintenance = setting.value;
+
               default:
                 break;
             }
@@ -255,6 +259,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           setReminder(parseInt(reminder));
           setKupiMarkup(parseInt(kupiMarkup));
           setCarmaCommission(parseInt(carmaCommission));
+          setMaintainanace(maintenance);
         } catch (error) {
           setError(true);
         }
@@ -263,11 +268,17 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     fetchData();
   };
 
-  const handleMaintainace = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMaintainace = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const toggle = event.target.checked;
     setMaintainanace(toggle);
     localStorage.setItem("maintainance", toggle ? "true" : "false");
     try {
+      const response = await underMaintainance(toggle);
+      if (response === true) {
+        toast.success("Maintainance status updated successfully");
+      }
     } catch (error) {
       console.error("Error");
     }
@@ -436,7 +447,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
 
             <div className="w-5/12 mb-2">
               <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
-                Close Booking at 30 minutes before Departure
+                Close Booking at x minutes Before Departure?
                 <span>
                   <TooltipProvider>
                     <Tooltip>
