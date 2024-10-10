@@ -18,7 +18,7 @@ const VerificationCodeForm = ({
   // States for verification code, message, timer, canResend, loading, and resendLoading
   const [code, setCode] = useState<string[]>(["", "", "", ""]);
   const [message, setMessage] = useState<string>("");
-  const [timer, setTimer] = useState<number>(40);
+  const [timer, setTimer] = useState<number>(120);
   const [canResend, setCanResend] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [resendLoading, setResendLoading] = useState<boolean>(false);
@@ -78,10 +78,10 @@ const VerificationCodeForm = ({
         router.push(`/new-password?email=${email}`);
       }
     } else if (response) {
-      setIsSuccess(false); 
+      setIsSuccess(false);
       setMessage(response.message);
     } else {
-      setIsSuccess(false); 
+      setIsSuccess(false);
       setMessage("An unknown error occurred. Please try again.");
     }
   };
@@ -98,7 +98,7 @@ const VerificationCodeForm = ({
       email,
       type as VerificationType
     );
-    
+
     if (response?.message) {
       setIsSuccess(true); // Set success state for resend
       setMessage("Verification code resent successfully.");

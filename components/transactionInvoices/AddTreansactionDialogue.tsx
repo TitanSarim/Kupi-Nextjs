@@ -273,7 +273,6 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             </p>
             <Input
               min={0}
-              max={3}
               type="number"
               placeholder="Enter period"
               value={paymentPeriod}
@@ -288,7 +287,6 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
             </p>
             <Input
               min={0}
-              max={6}
               type="number"
               placeholder="$"
               value={totalAmount}
@@ -422,7 +420,7 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
               </div>
             </div>
             {errorState[1] && errorState[0] && (
-              <p className="text-red-500">Invoice and Recipt Required</p>
+              <p className="text-red-500">Invoice and Receipt required</p>
             )}
           </div>
 

@@ -118,7 +118,7 @@ export async function getAllOperators(searchParams: {
 
 export async function AddOperator(
   formData: FormData
-): Promise<Operators | null | string> {
+): Promise<boolean | null | string> {
   try {
     const session = await auth();
 
@@ -215,7 +215,7 @@ export async function AddOperator(
       return null;
     }
     revalidatePath("/app/bus-operators");
-    return operator || null;
+    return true || null;
   } catch (error) {
     console.error(error);
     return null;
@@ -377,13 +377,15 @@ export async function SyncBusOperators() {
 
     const newOperators: OperatorLookupModel[] = jsonResponse.filter(
       (operator: OperatorLookupModel) =>
-        !existingOperatorNames.includes(operator.STDescription.toLowerCase())
+        !existingOperatorNames.includes(operator.STDescription.toUpperCase())
     );
 
+    let results;
     if (newOperators.length > 0) {
-      await db.operators.createMany({
+      results = await db.operators.createMany({
         data: newOperators.map((operator) => ({
           name: operator.STDescription.toUpperCase(),
+          carmaCode: operator.STCarrier.toUpperCase(),
           status: "REGISTERED",
           description: "",
           source: "CARMA",

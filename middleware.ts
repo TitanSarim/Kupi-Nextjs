@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { secureRoutes } from "@/secureRoutes";
+import { RolesEnum } from "./types/auth";
 
 export async function middleware(req: NextRequest) {
   const session = (await auth().catch(() => null)) ?? null;
@@ -15,12 +16,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (path.startsWith("/app/bus-operators") && role !== "SuperAdmin") {
+  if (path.startsWith("/app/bus-operators") && role !== RolesEnum.SuperAdmin) {
     url.pathname = "/app/profile";
     return NextResponse.redirect(url);
   }
 
-  if (path.startsWith("/app/settings/admin") && role !== "SuperAdmin") {
+  if (path.startsWith("/app/settings/admin") && role !== RolesEnum.SuperAdmin) {
     url.pathname = "/app/settings/operator";
     return NextResponse.redirect(url);
   }

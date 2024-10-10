@@ -11,13 +11,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import {
   validateEmail,
   validateWhatsAppNumber,
 } from "@/libs/ClientSideHelpers";
@@ -59,7 +52,9 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
 }) => {
   const { currency, amount, equivalent, unit } = Rates.globalExchangeRate;
   const [open, setOpen] = React.useState(false);
-  const [busOperator, setBusOperator] = useState("");
+  const [busOperator, setBusOperator] = useState<string | null>(null);
+  const [operatorsData, setoperatorsData] =
+    useState<operatorSettingsReturn | null>(null);
   const [numbers, setNumbers] = useState<string[]>([]);
   const [numberInput, setNumberInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
@@ -69,10 +64,13 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [company, setCompany] = useState("");
   const [description, setDescription] = useState("");
-  const [bankName, setBankName] = useState("");
+  const [bankName, setBankName] = useState(
+    operatorSettings?.operatorSettings?.bankName || ""
+  );
   const [accountTitle, setAccountTitle] = useState("");
   const [ibanNumber, setIbanNumber] = useState("");
   const [swiftNumber, setSwiftNumber] = useState("");
+  const [bankNameError, setBankNameError] = useState<string | null>(null);
   const [accountTitleError, setAccountTitleError] = useState<string | null>(
     null
   );
@@ -91,9 +89,12 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
         setNumbers(operatorSettings?.operatorSettings?.numbers || []);
         setEmails(operatorSettings?.operatorSettings?.emails || []);
         setTickets(operatorSettings?.operatorSettings.tickets);
-        setBookingAt(
-          formatTime(parseInt(operatorSettings?.operatorSettings?.closeBooking))
-        );
+        const parsedBookingAt =
+          operatorSettings?.operatorSettings?.closeBooking.replace(":", "");
+        const formattedBookingAt = isNaN(parseInt(parsedBookingAt))
+          ? "00:00"
+          : formatTime(parseInt(parsedBookingAt));
+        setBookingAt(formattedBookingAt);
         setExchangeRate(operatorSettings?.operatorSettings?.exchangeRate);
         setBankName(operatorSettings?.operatorSettings?.bankName || "");
         setAccountTitle(operatorSettings?.operatorSettings?.accountTitle || "");
@@ -104,6 +105,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
         setCompany(operatorSettings?.operator.name || "");
         setDescription(operatorSettings?.operator.description || "");
       }
+      setFormChanged(false);
     }
   };
 
@@ -113,6 +115,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
 
   const handleReset = () => {
     handleData();
+    setFormChanged(false);
   };
 
   const handleExchangeRateChange = (
@@ -177,14 +180,38 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     )}`;
   };
 
+  const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const email = event.target.value;
+    setEmailInput(email);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email) && email.length > 0) {
+      setErrorState({
+        field: "emails",
+        message: "Please enter a valid email address",
+      });
+    } else {
+      setErrorState(null);
+    }
+  };
+
   const handleAddEmail = () => {
+    if (emails.length >= 6) {
+      setErrorState({
+        field: "emails",
+        message: "You cannot add more than 6 email addresses",
+      });
+      return;
+    }
+
     if (
       emailInput.trim() &&
       validateEmail(emailInput) &&
       !emails.includes(emailInput)
     ) {
       setEmails([...emails, emailInput]);
-      setErrorState(null);
+      setErrorState(null); // Clear any existing error
       setEmailInput("");
       setFormChanged(true);
     }
@@ -201,7 +228,42 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
+  const handleNumberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = event.target.value;
+
+    const validNumberRegex = /^[+]?[0-9]*$/;
+
+    if (!validNumberRegex.test(inputValue) && inputValue.length > 0) {
+      setErrorState({
+        field: "numbers",
+        message: "Only digits and '+' are allowed.",
+      });
+      return;
+    }
+
+    if (inputValue.length < 9 || inputValue.length > 14) {
+      setErrorState({
+        field: "numbers",
+        message: "Number length must be between 9 and 14 characters.",
+      });
+    } else {
+      setErrorState(null);
+    }
+
+    setNumberInput(inputValue);
+  };
+
   const handleAddNumber = () => {
+    if (numbers.length >= 6) {
+      setErrorState({
+        field: "numbers",
+        message: "You cannot add more than 6 numbers",
+      });
+      return;
+    }
+    if (numberInput.length < 9 || numberInput.length > 14) {
+      return;
+    }
     if (
       numberInput.trim() &&
       validateWhatsAppNumber(numberInput) &&
@@ -235,18 +297,40 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     return null;
   };
 
+  const handleBankChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    value = value.replace(/[^a-zA-Z0-9 ]/g, "");
+    value = value.replace(/^\s+|\s+(?=\s)/g, "");
+
+    if (value.length <= 40) {
+      setBankName(value);
+      setBankNameError(validateFieldLength(value, 2, 40));
+      setErrorState(null);
+    } else {
+      setBankNameError("Name cannot exceed 50 characters.");
+    }
+    setFormChanged(true);
+  };
+
   const handleAccountTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    value = value.replace(/[^a-zA-Z0-9 ]/g, "");
+    value = value.replace(/^\s+|\s+(?=\s)/g, "");
+
     if (value.length <= 50) {
       setAccountTitle(value);
-      setErrorState(null);
       setAccountTitleError(validateFieldLength(value, 3, 50));
-      setFormChanged(true);
+      setErrorState(null);
+    } else {
+      setAccountTitleError("Title cannot exceed 50 characters.");
     }
+
+    setFormChanged(true);
   };
 
   const handleIbanNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\s/g, "");
+    let value = e.target.value;
+    value = value.replace(/[^a-zA-Z0-9]/g, "");
     if (value.length <= 34) {
       setIbanNumber(value);
       setErrorState(null);
@@ -256,7 +340,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   };
 
   const handleSwiftCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+    value = value.replace(/[^a-zA-Z0-9]/g, "");
     if (value.length <= 11) {
       setSwiftNumber(value);
       setErrorState(null);
@@ -269,20 +354,6 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     const value = e.target.value.toUpperCase();
     if (value.length <= 20) {
       setCompany(value);
-      setErrorState(null);
-      setFormChanged(true);
-    }
-  };
-
-  const handleBankChange = (value: string) => {
-    if (value === "Clear") {
-      setBankName("");
-      setErrorState({
-        field: "bankName",
-        message: "Bank name cannot be empty",
-      });
-    } else {
-      setBankName(value);
       setErrorState(null);
       setFormChanged(true);
     }
@@ -329,7 +400,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       let response;
       if (role === RolesEnum.BusCompanyAdmin) {
         response = await createOperatorSettings(formData);
-      } else if (role === RolesEnum.SuperAdmin) {
+      } else if (role === RolesEnum.SuperAdmin && busOperator !== null) {
         response = await updateOperatorSettings(formData, busOperator);
       }
       if (response === true) {
@@ -352,13 +423,19 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       try {
         const operator = await getSelectedOperatorSettings(value);
         if (operator) {
+          setoperatorsData(operator);
           if (operator.operatorSettings) {
             setNumbers(operator?.operatorSettings?.numbers || []);
             setEmails(operator?.operatorSettings?.emails || []);
             setTickets(operator?.operatorSettings.tickets);
-            setBookingAt(
-              formatTime(parseInt(operator?.operatorSettings?.closeBooking))
-            );
+            const parsedBookingAt =
+              operator?.operatorSettings?.closeBooking.replace(":", "");
+            if (parsedBookingAt) {
+              const formattedBookingAt = isNaN(parseInt(parsedBookingAt))
+                ? "00:00"
+                : formatTime(parseInt(parsedBookingAt));
+              setBookingAt(formattedBookingAt);
+            }
             setExchangeRate(operator?.operatorSettings?.exchangeRate);
             setBankName(operator?.operatorSettings?.bankName || "");
             setAccountTitle(operator?.operatorSettings?.accountTitle || "");
@@ -378,7 +455,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   };
 
   return (
-    <div className="w-full h-fit">
+    <div className="w-full h-fit min-h-screen">
       {role === RolesEnum.SuperAdmin || role === RolesEnum.KupiUser ? (
         <div className="w-full">
           <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
@@ -406,7 +483,10 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                     <CommandItem
                       key="clear"
                       value=""
-                      onSelect={() => handleOperatorChange("")}
+                      onSelect={() => {
+                        handleOperatorChange("");
+                        setoperatorsData(null);
+                      }}
                       className="cursor-pointer w-full text-left"
                     >
                       <Check
@@ -445,350 +525,380 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
         ""
       )}
       {/* notification settings */}
-
-      <form className="w-full" onSubmit={handleSubmit}>
-        <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
-          <p className="text-lg text-black font-semibold">
-            Notification Settings
-          </p>
-          <div className="w-full mt-3">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Select Email
+      {operatorsData !== null && role === RolesEnum.SuperAdmin ? (
+        // admin operator form
+        <form className="w-full" onSubmit={handleSubmit}>
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">
+              Notification Settings
             </p>
-            <div className="h-12 flex flex-row rounded-lg text-gray-500 emailselecter border-gray-700">
-              <div className="relative flex w-auto flex-row items-center gap-2">
-                {emails.map((email, index) => (
-                  <span
-                    key={index}
-                    className="ml-2 buttonmap-selectemail bg-kupi-yellow text-black rounded-lg px-3 py-2 text-sm"
-                  >
-                    {email}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveEmail(email);
+            <div className="w-full mt-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Select Email
+              </p>
+              <div className="w-full rounded-lg text-gray-500 emailselecter border-gray-700">
+                <div className="relative w-full flex flex-wrap items-center gap-2 mt-1">
+                  {emails.map((email, index) => (
+                    <span
+                      key={index}
+                      className="buttonmap-selectemail bg-kupi-yellow text-black rounded-lg px-3 py-2 text-sm flex items-center"
+                      style={{
+                        maxWidth: "150px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
-                      className="relative outline-none border-none"
                     >
-                      <Image
-                        src="/img/icons/Close-Icon.svg"
-                        alt="cross"
-                        width={15}
-                        height={15}
-                      />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              <Input
-                type="email"
-                placeholder="Add emails"
-                className="outline-none border-none w-full"
-                value={emailInput}
-                onChange={(e) =>
-                  setEmailInput(e.target.value.replace(/\s/g, ""))
-                }
-                onKeyDown={handleKeyPress}
-              />
-              {emailInput.length > 0 && (
-                <button
-                  className="showrittenemail"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleAddEmail();
-                  }}
-                >
-                  {emailInput}
-                </button>
-              )}
-            </div>
-            {errorState?.field === "emails" && (
-              <p className="text-red-500 ">{errorState.message}</p>
-            )}
-          </div>
-
-          <div className="mt-5">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Whatsapp Number
-            </p>
-            <div className="h-12 flex flex-row rounded-lg text-gray-500 emailselecter border-gray-700">
-              <div className="relative flex w-auto flex-row items-center gap-2">
-                {numbers.map((number, index) => (
-                  <span
-                    key={index}
-                    className="ml-2 buttonmap-selectemail bg-kupi-yellow text-black rounded-lg px-3 py-2 text-sm"
-                  >
-                    {number}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveNumber(number);
-                      }}
-                      className="relative outline-none border-none"
-                    >
-                      <Image
-                        src="/img/icons/Close-Icon.svg"
-                        alt="cross"
-                        width={15}
-                        height={15}
-                      />
-                    </button>
-                  </span>
-                ))}
-              </div>
-
-              <Input
-                type="text"
-                placeholder="Add Whatsapp Numbers"
-                className="outline-none border-none w-full"
-                value={numberInput}
-                onChange={(e) => setNumberInput(e.target.value)}
-                onKeyDown={handleNumberKeyPress}
-              />
-              {numberInput.length > 0 && (
-                <button
-                  className="showrittenemail"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleAddNumber();
-                  }}
-                >
-                  {numberInput}
-                </button>
-              )}
-            </div>
-            {errorState?.field === "numbers" && (
-              <p className="text-red-500 ">{errorState.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Company Details */}
-        <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
-          <p className="text-lg text-black font-semibold">Company Details</p>
-          <div className="mt-4">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Company Name
-            </p>
-            <Input
-              type="text"
-              value={company}
-              onChange={handleCompanyNameChange}
-              placeholder="Travel Agency"
-              className="h-12 rounded-lg text-gray-500 border-gray-700"
-            />
-            {errorState?.field === "company" && (
-              <p className="text-red-500 ">{errorState.message}</p>
-            )}
-          </div>
-          <div className="mt-5">
-            <p className="mb-1 darkGray-text font-normal text-sm">
-              Company Description
-            </p>
-            <Textarea
-              value={description}
-              onChange={handleCompanyDescriptionChange}
-              placeholder="Cape Town is a port city on South Africa’s southwest coast, on a peninsula beneath the imposing Table Mountain. Slowly rotating cable cars climb to the mountain’s flat top, from which there are sweeping views of the city,"
-              className="textarea-setting rounded-lg py-1 text-gray-500 border-gray-700"
-            />
-            <div className="flex w-full items-end justify-end">
-              <p className="text-sm text-gray-400">{description.length}/299</p>{" "}
-            </div>
-            {errorState?.field === "description" && (
-              <p className="text-red-500 ">{errorState.message}</p>
-            )}
-          </div>
-        </div>
-
-        {/* Booking Settings */}
-        <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
-          <p className="text-lg text-black font-semibold">Booking Settings</p>
-          <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
-            <div className="w-5/12 mb-2">
-              <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
-                Number of Ticket Per Route
-                <span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger
+                      {/* Truncate the email if it's too long */}
+                      {email.length > 15
+                        ? `${email.substring(0, 12)}...`
+                        : email}
+                      <button
                         onClick={(e) => {
-                          e.stopPropagation();
                           e.preventDefault();
+                          handleRemoveEmail(email);
                         }}
+                        className="relative outline-none border-none ml-2"
                       >
                         <Image
-                          src="/img/settings/question-icon.svg"
-                          alt="toot tip"
-                          width={20}
-                          height={20}
+                          src="/img/icons/Close-Icon.svg"
+                          alt="cross"
+                          width={15}
+                          height={15}
                         />
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-white border-2 px-2 py-2">
-                        How many tickets per route you want to add
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </span>
-              </p>
-              <Input
-                type="number"
-                className="h-12 border-gray-700 rounded-lg"
-                placeholder="01"
-                min={1}
-                max={10}
-                value={tickets}
-                onChange={handleTicketsChange}
-                required
-              />
-              {errorState?.field === "tickets" && (
-                <p className="text-red-500 ">Tickets are required</p>
-              )}
-            </div>
-            <div className="w-5/12 mb-2">
-              <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
-                Close Booking at 30 minutes before Departure
-                <span>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger
+                      </button>
+                    </span>
+                  ))}
+
+                  {/* Input Field */}
+                  <div className="relative w-[200px]">
+                    <Input
+                      type="email"
+                      placeholder="Add emails"
+                      className="outline-none border-none w-full"
+                      value={emailInput}
+                      onChange={handleEmailChange}
+                      onKeyDown={handleKeyPress}
+                    />
+                    {emailInput.length > 0 && (
+                      <button
+                        className="showrittenemail mt-2"
                         onClick={(e) => {
-                          e.stopPropagation();
                           e.preventDefault();
+                          handleAddEmail();
                         }}
                       >
-                        <Image
-                          src="/img/settings/question-icon.svg"
-                          alt="toot tip"
-                          width={20}
-                          height={20}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-white border-2 px-2 py-2">
-                        Ensure all bookings are closed 30 minutes prior to the
-                        departure time to avoid last-minute issues.
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </span>
-              </p>
-              <Input
-                type="text"
-                className="h-12 border-gray-700 rounded-lg"
-                placeholder="00:00"
-                value={bookingAt}
-                onChange={handleBookingAtRateChange}
-                required
-              />
-              {errorState?.field === "bookingAt" && (
-                <p className="text-red-500 ">Booking time required</p>
-              )}
+                        {emailInput}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex  flex-row items-end justify-end gap-5">
+                {errorState?.field === "emails" && (
+                  <p className="text-red-500 ">{errorState.message}</p>
+                )}
+                <p>Max 6</p>
+              </div>
             </div>
-            <div className="w-5/12 mb-2">
-              <p className="mb-1 darkGray-text font-normal pb-1">
-                Global Exchange Rate
-                <span className="text-gray-500">
-                  {" "}
-                  [{amount} {currency} = {equivalent}
-                  {unit}]
-                </span>
-              </p>
-              <Input
-                type="text"
-                className="h-12 border-gray-700 rounded-lg"
-                placeholder="$20"
-                value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
-                onChange={handleExchangeRateChange}
-                required
-              />
-              {errorState?.field === "exchangeRate" && (
-                <p className="text-red-500 ">Exchange rate required</p>
-              )}
-            </div>
-          </div>
-        </div>
 
-        {/* Bank account detail */}
-        <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
-          <p className="text-lg text-black font-semibold">
-            Bank Account Detail
-          </p>
-          <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
-            <div className="w-5/12 mb-2">
+            <div className="mt-2">
               <p className="mb-1 darkGray-text font-normal text-sm">
-                Bank Name
+                Whatsapp Number
               </p>
-              <Select value={bankName} onValueChange={handleBankChange}>
-                <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-700 ">
-                  <SelectValue placeholder="Select Bank" />
-                </SelectTrigger>
-                <SelectContent className="select-dropdown z-50">
-                  <SelectItem value="Clear">Clear</SelectItem>
-                  <SelectItem value="Carma">Carma</SelectItem>
-                  <SelectItem value="Kupi">Kupi</SelectItem>
-                </SelectContent>
-              </Select>
-              {errorState?.field === "bankName" && (
-                <p className="text-red-500 ">Bank name is required</p>
-              )}
+              <div className="w-full rounded-lg text-gray-500 emailselecter border-gray-700">
+                <div className="relative w-full flex flex-wrap items-center gap-2 mt-1">
+                  {numbers.map((number, index) => (
+                    <span
+                      key={index}
+                      className="buttonmap-selectemail bg-kupi-yellow text-black rounded-lg px-3 py-2 text-sm flex items-center"
+                      style={{
+                        maxWidth: "150px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {number}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveNumber(number);
+                        }}
+                        className="relative outline-none border-none ml-2"
+                      >
+                        <Image
+                          src="/img/icons/Close-Icon.svg"
+                          alt="cross"
+                          width={15}
+                          height={15}
+                        />
+                      </button>
+                    </span>
+                  ))}
+
+                  <div className="relative w-[200px]">
+                    <Input
+                      type="text"
+                      placeholder="Add Whatsapp Numbers"
+                      className="outline-none border-none w-full"
+                      value={numberInput}
+                      onChange={handleNumberChange}
+                      onKeyDown={handleNumberKeyPress}
+                    />
+                    {numberInput.length > 0 && (
+                      <button
+                        className="showrittenemail mt-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleAddNumber();
+                        }}
+                      >
+                        {numberInput}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex  flex-row items-end justify-end gap-5">
+                {errorState?.field === "numbers" && (
+                  <p className="text-red-500 ">{errorState.message}</p>
+                )}
+                <p>Max 6</p>
+              </div>
             </div>
-            <div className="w-5/12 mb-2">
+          </div>
+
+          {/* Company Details */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">Company Details</p>
+            <div className="mt-4">
               <p className="mb-1 darkGray-text font-normal text-sm">
-                Account Title
+                Company Name
               </p>
               <Input
                 type="text"
-                value={accountTitle}
-                onChange={handleAccountTitleChange}
-                placeholder="Enter account title"
+                value={company}
+                onChange={handleCompanyNameChange}
+                placeholder="Travel Agency"
                 className="h-12 rounded-lg text-gray-500 border-gray-700"
               />
-              {accountTitleError && (
-                <p className="text-red-500 text-sm">{accountTitleError}</p>
-              )}
-              {errorState?.field === "accountTitle" && (
-                <p className="text-red-500 ">Account title is required</p>
+              {errorState?.field === "company" && (
+                <p className="text-red-500 ">{errorState.message}</p>
               )}
             </div>
-            <div className="w-5/12 mb-2">
-              <p className="mb-1 darkGray-text font-normal">IBAN Number</p>
-              <Input
-                type="text"
-                value={ibanNumber}
-                onChange={handleIbanNumberChange}
-                placeholder="Enter IBAN Number"
-                className="h-12 rounded-lg text-gray-500 border-gray-700"
-              />
-              {ibanNumberError && (
-                <p className="text-red-500">{ibanNumberError}</p>
-              )}
-              {errorState?.field === "ibanNumber" && (
-                <p className="text-red-500 ">IBAN is required</p>
-              )}
-            </div>
-            <div className="w-5/12 mb-2">
+            <div className="mt-5">
               <p className="mb-1 darkGray-text font-normal text-sm">
-                Swift Code
+                Company Description
               </p>
-              <Input
-                type="text"
-                value={swiftNumber}
-                onChange={handleSwiftCodeChange}
-                placeholder="Enter code"
-                className="h-12 rounded-lg text-gray-500 border-gray-700"
+              <Textarea
+                value={description}
+                onChange={handleCompanyDescriptionChange}
+                placeholder="Cape Town is a port city on South Africa’s southwest coast, on a peninsula beneath the imposing Table Mountain. Slowly rotating cable cars climb to the mountain’s flat top, from which there are sweeping views of the city,"
+                className="textarea-setting rounded-lg py-1 text-gray-500 border-gray-700"
               />
-              {swiftCodeError && (
-                <p className="text-red-500">{swiftCodeError}</p>
-              )}
-              {errorState?.field === "swiftNumber" && (
-                <p className="text-red-500 ">Swift is required</p>
+              <div className="flex w-full items-end justify-end">
+                <p className="text-sm text-gray-400">
+                  {description.length}/299
+                </p>{" "}
+              </div>
+              {errorState?.field === "description" && (
+                <p className="text-red-500 ">{errorState.message}</p>
               )}
             </div>
           </div>
-        </div>
-        {role === RolesEnum.SuperAdmin || role === RolesEnum.BusCompanyAdmin ? (
+
+          {/* Booking Settings */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">Booking Settings</p>
+            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
+                  Number of Ticket Per Route
+                  <span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                        >
+                          <Image
+                            src="/img/settings/question-icon.svg"
+                            alt="toot tip"
+                            width={20}
+                            height={20}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white border-2 px-2 py-2">
+                          How many tickets per route you want to add
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                </p>
+                <Input
+                  type="number"
+                  className="h-12 border-gray-700 rounded-lg"
+                  placeholder="01"
+                  min={1}
+                  max={10}
+                  value={tickets}
+                  onChange={handleTicketsChange}
+                  required
+                />
+                {errorState?.field === "tickets" && (
+                  <p className="text-red-500 ">Tickets are required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
+                  Stop Accepting Bookings
+                  <span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                        >
+                          <Image
+                            src="/img/settings/question-icon.svg"
+                            alt="toot tip"
+                            width={20}
+                            height={20}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white border-2 px-2 py-2 w-72">
+                          Select how long before departure you want booking to
+                          close. You will receive the confirmed tickets list 30
+                          mins following booking close. Booking must close at
+                          least 90 minutes before departure.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                </p>
+                <Input
+                  type="text"
+                  className="h-12 border-gray-700 rounded-lg"
+                  placeholder="00:00"
+                  value={bookingAt}
+                  onChange={handleBookingAtRateChange}
+                  required
+                />
+                {errorState?.field === "bookingAt" && (
+                  <p className="text-red-500 ">Booking time required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal pb-1">
+                  Global Exchange Rate
+                  <span className="text-gray-500">
+                    {" "}
+                    [{amount} {currency} = {equivalent}
+                    {unit}]
+                  </span>
+                </p>
+                <Input
+                  type="text"
+                  className="h-12 border-gray-700 rounded-lg"
+                  placeholder="$20"
+                  value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
+                  onChange={handleExchangeRateChange}
+                  required
+                />
+                {errorState?.field === "exchangeRate" && (
+                  <p className="text-red-500 ">Exchange rate required</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bank account detail */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">
+              Bank Account Detail
+            </p>
+            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Bank Name
+                </p>
+                <Input
+                  type="text"
+                  value={bankName}
+                  onChange={handleBankChange}
+                  placeholder="Enter bank name"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {bankNameError && (
+                  <p className="text-red-500 text-sm">{bankNameError}</p>
+                )}
+                {errorState?.field === "bankName" && (
+                  <p className="text-red-500 ">Bank name is required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Account Title
+                </p>
+                <Input
+                  type="text"
+                  value={accountTitle}
+                  onChange={handleAccountTitleChange}
+                  placeholder="Enter account title"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {accountTitleError && (
+                  <p className="text-red-500 text-sm">{accountTitleError}</p>
+                )}
+                {errorState?.field === "accountTitle" && (
+                  <p className="text-red-500 ">Account title is required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal">IBAN Number</p>
+                <Input
+                  type="text"
+                  value={ibanNumber}
+                  onChange={handleIbanNumberChange}
+                  placeholder="Enter IBAN Number"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {ibanNumberError && (
+                  <p className="text-red-500">{ibanNumberError}</p>
+                )}
+                {errorState?.field === "ibanNumber" && (
+                  <p className="text-red-500 ">IBAN is required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Swift Code
+                </p>
+                <Input
+                  type="text"
+                  value={swiftNumber}
+                  onChange={handleSwiftCodeChange}
+                  placeholder="Enter code"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {swiftCodeError && (
+                  <p className="text-red-500">{swiftCodeError}</p>
+                )}
+                {errorState?.field === "swiftNumber" && (
+                  <p className="text-red-500 ">Swift is required</p>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
             <button
+              type="reset"
               onClick={handleReset}
               className={`${
                 !formChanged ? "opacity-50" : ""
@@ -799,19 +909,437 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
             </button>
             <button
               className={`${
-                loading || errorState !== null || formChanged === false
+                loading ||
+                accountTitleError !== null ||
+                swiftCodeError !== null ||
+                ibanNumberError !== null ||
+                errorState !== null ||
+                formChanged === false
                   ? "opacity-50"
                   : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
-              disabled={loading || errorState !== null || formChanged === false}
+              disabled={
+                loading ||
+                accountTitleError !== null ||
+                ibanNumberError !== null ||
+                swiftCodeError !== null ||
+                errorState !== null ||
+                formChanged === false
+              }
             >
               {loading ? "Please Wait" : "Save"}
             </button>
           </div>
-        ) : (
-          ""
-        )}
-      </form>
+        </form>
+      ) : operatorsData === null && role === RolesEnum.BusCompanyAdmin ? (
+        // operators form
+        <form className="w-full" onSubmit={handleSubmit}>
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">
+              Notification Settings
+            </p>
+            <div className="w-full mt-3">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Select Email
+              </p>
+              <div className="w-full rounded-lg text-gray-500 emailselecter border-gray-700">
+                <div className="relative w-full flex flex-wrap items-center gap-2 mt-1">
+                  {emails.map((email, index) => (
+                    <span
+                      key={index}
+                      className="buttonmap-selectemail bg-kupi-yellow text-black rounded-lg px-3 py-2 text-sm flex items-center"
+                      style={{
+                        maxWidth: "150px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {/* Truncate the email if it's too long */}
+                      {email.length > 15
+                        ? `${email.substring(0, 12)}...`
+                        : email}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveEmail(email);
+                        }}
+                        className="relative outline-none border-none ml-2"
+                      >
+                        <Image
+                          src="/img/icons/Close-Icon.svg"
+                          alt="cross"
+                          width={15}
+                          height={15}
+                        />
+                      </button>
+                    </span>
+                  ))}
+
+                  {/* Input Field */}
+                  <div className="relative w-[200px]">
+                    <Input
+                      type="email"
+                      placeholder="Add emails"
+                      className="outline-none border-none w-full"
+                      value={emailInput}
+                      onChange={handleEmailChange}
+                      onKeyDown={handleKeyPress}
+                    />
+                    {emailInput.length > 0 && (
+                      <button
+                        className="showrittenemail mt-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleAddEmail();
+                        }}
+                      >
+                        {emailInput}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex  flex-row items-end justify-end gap-5">
+                {errorState?.field === "emails" && (
+                  <p className="text-red-500 ">{errorState.message}</p>
+                )}
+                <p>Max 6</p>
+              </div>
+            </div>
+
+            <div className="mt-2">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Whatsapp Number
+              </p>
+              <div className="w-full rounded-lg text-gray-500 emailselecter border-gray-700">
+                <div className="relative w-full flex flex-wrap items-center gap-2 mt-1">
+                  {numbers.map((number, index) => (
+                    <span
+                      key={index}
+                      className="buttonmap-selectemail bg-kupi-yellow text-black rounded-lg px-3 py-2 text-sm flex items-center"
+                      style={{
+                        maxWidth: "150px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {number}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveNumber(number);
+                        }}
+                        className="relative outline-none border-none ml-2"
+                      >
+                        <Image
+                          src="/img/icons/Close-Icon.svg"
+                          alt="cross"
+                          width={15}
+                          height={15}
+                        />
+                      </button>
+                    </span>
+                  ))}
+
+                  <div className="relative w-[200px]">
+                    <Input
+                      type="text"
+                      placeholder="Add Whatsapp Numbers"
+                      className="outline-none border-none w-full"
+                      value={numberInput}
+                      onChange={handleNumberChange}
+                      onKeyDown={handleNumberKeyPress}
+                    />
+                    {numberInput.length > 0 && (
+                      <button
+                        className="showrittenemail mt-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleAddNumber();
+                        }}
+                      >
+                        {numberInput}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex  flex-row items-end justify-end gap-5">
+                {errorState?.field === "numbers" && (
+                  <p className="text-red-500 ">{errorState.message}</p>
+                )}
+                <p>Max 6</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Company Details */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">Company Details</p>
+            <div className="mt-4">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Company Name
+              </p>
+              <Input
+                type="text"
+                value={company}
+                onChange={handleCompanyNameChange}
+                placeholder="Travel Agency"
+                className="h-12 rounded-lg text-gray-500 border-gray-700"
+              />
+              {errorState?.field === "company" && (
+                <p className="text-red-500 ">{errorState.message}</p>
+              )}
+            </div>
+            <div className="mt-5">
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Company Description
+              </p>
+              <Textarea
+                value={description}
+                onChange={handleCompanyDescriptionChange}
+                placeholder="Cape Town is a port city on South Africa’s southwest coast, on a peninsula beneath the imposing Table Mountain. Slowly rotating cable cars climb to the mountain’s flat top, from which there are sweeping views of the city,"
+                className="textarea-setting rounded-lg py-1 text-gray-500 border-gray-700"
+              />
+              <div className="flex w-full items-end justify-end">
+                <p className="text-sm text-gray-400">
+                  {description.length}/299
+                </p>{" "}
+              </div>
+              {errorState?.field === "description" && (
+                <p className="text-red-500 ">{errorState.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Booking Settings */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">Booking Settings</p>
+            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
+                  Number of Ticket Per Route
+                  <span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                        >
+                          <Image
+                            src="/img/settings/question-icon.svg"
+                            alt="toot tip"
+                            width={20}
+                            height={20}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white border-2 px-2 py-2">
+                          How many tickets per route you want to add
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                </p>
+                <Input
+                  type="number"
+                  className="h-12 border-gray-700 rounded-lg"
+                  placeholder="01"
+                  min={1}
+                  max={10}
+                  value={tickets}
+                  onChange={handleTicketsChange}
+                  required
+                />
+                {errorState?.field === "tickets" && (
+                  <p className="text-red-500 ">Tickets are required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal flex flex-row gap-3">
+                  Stop Accepting Bookings
+                  <span>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                          }}
+                        >
+                          <Image
+                            src="/img/settings/question-icon.svg"
+                            alt="toot tip"
+                            width={20}
+                            height={20}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white border-2 px-2 py-2 w-72">
+                          Select how long before departure you want booking to
+                          close. You will receive the confirmed tickets list 30
+                          mins following booking close. Booking must close at
+                          least 90 minutes before departure.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </span>
+                </p>
+                <Input
+                  type="text"
+                  className="h-12 border-gray-700 rounded-lg"
+                  placeholder="00:00"
+                  value={bookingAt}
+                  onChange={handleBookingAtRateChange}
+                  required
+                />
+                {errorState?.field === "bookingAt" && (
+                  <p className="text-red-500 ">Booking time required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal pb-1">
+                  Global Exchange Rate
+                  <span className="text-gray-500">
+                    {" "}
+                    [{amount} {currency} = {equivalent}
+                    {unit}]
+                  </span>
+                </p>
+                <Input
+                  type="text"
+                  className="h-12 border-gray-700 rounded-lg"
+                  placeholder="$20"
+                  value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
+                  onChange={handleExchangeRateChange}
+                  required
+                />
+                {errorState?.field === "exchangeRate" && (
+                  <p className="text-red-500 ">Exchange rate required</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bank account detail */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">
+              Bank Account Detail
+            </p>
+            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Bank Name
+                </p>
+                <Input
+                  type="text"
+                  value={bankName}
+                  onChange={handleBankChange}
+                  placeholder="Enter bank name"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {bankNameError && (
+                  <p className="text-red-500 text-sm">{bankNameError}</p>
+                )}
+                {errorState?.field === "bankName" && (
+                  <p className="text-red-500 ">Bank name is required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Account Title
+                </p>
+                <Input
+                  type="text"
+                  value={accountTitle}
+                  onChange={handleAccountTitleChange}
+                  placeholder="Enter account title"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {accountTitleError && (
+                  <p className="text-red-500 text-sm">{accountTitleError}</p>
+                )}
+                {errorState?.field === "accountTitle" && (
+                  <p className="text-red-500 ">Account title is required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal">IBAN Number</p>
+                <Input
+                  type="text"
+                  value={ibanNumber}
+                  onChange={handleIbanNumberChange}
+                  placeholder="Enter IBAN Number"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {ibanNumberError && (
+                  <p className="text-red-500">{ibanNumberError}</p>
+                )}
+                {errorState?.field === "ibanNumber" && (
+                  <p className="text-red-500 ">IBAN is required</p>
+                )}
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Swift Code
+                </p>
+                <Input
+                  type="text"
+                  value={swiftNumber}
+                  onChange={handleSwiftCodeChange}
+                  placeholder="Enter code"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+                {swiftCodeError && (
+                  <p className="text-red-500">{swiftCodeError}</p>
+                )}
+                {errorState?.field === "swiftNumber" && (
+                  <p className="text-red-500 ">Swift is required</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
+            <button
+              type="reset"
+              onClick={handleReset}
+              className={`${
+                !formChanged ? "opacity-50" : ""
+              } border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
+              disabled={!formChanged}
+            >
+              Cancel
+            </button>
+            <button
+              className={`${
+                loading ||
+                accountTitleError !== null ||
+                swiftCodeError !== null ||
+                ibanNumberError !== null ||
+                errorState !== null ||
+                formChanged === false
+                  ? "opacity-50"
+                  : ""
+              } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
+              disabled={
+                loading ||
+                accountTitleError !== null ||
+                ibanNumberError !== null ||
+                swiftCodeError !== null ||
+                errorState !== null ||
+                formChanged === false
+              }
+            >
+              {loading ? "Please Wait" : "Save"}
+            </button>
+          </div>
+        </form>
+      ) : (
+        ""
+      )}
     </div>
   );
 };

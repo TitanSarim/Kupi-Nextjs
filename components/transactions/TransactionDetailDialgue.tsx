@@ -19,24 +19,34 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
 
   const carmaProfit =
     TransactionData?.tickets && TransactionData.tickets.length > 0
-      ? TransactionData.tickets?.[0]?.priceDetails.carmaProfit *
-        TransactionData.tickets.length
+      ? TransactionData.tickets.reduce((total, ticket) => {
+          const profit = ticket?.priceDetails?.carmaProfit || 0;
+          return total + profit;
+        }, 0)
       : 0;
+
   const kupiProfit =
     TransactionData?.tickets && TransactionData.tickets.length > 0
-      ? TransactionData.tickets?.[0]?.priceDetails.kupiProfit *
-        TransactionData.tickets.length
+      ? TransactionData.tickets.reduce((total, ticket) => {
+          const profit = ticket?.priceDetails?.kupiProfit || 0;
+          return total + profit;
+        }, 0)
       : 0;
+
   const kupiMarkup =
     TransactionData?.tickets && TransactionData.tickets.length > 0
-      ? TransactionData.tickets?.[0]?.priceDetails.kupiMarkup *
-        TransactionData.tickets.length
+      ? TransactionData.tickets.reduce((total, ticket) => {
+          const profit = ticket?.priceDetails?.kupiMarkup || 0;
+          return total + profit;
+        }, 0)
       : 0;
 
   const totalPrice =
     TransactionData?.tickets && TransactionData.tickets.length > 0
-      ? TransactionData.tickets?.[0]?.priceDetails.totalPrice *
-        TransactionData.tickets.length
+      ? TransactionData.tickets.reduce((total, ticket) => {
+          const profit = ticket?.priceDetails?.totalPrice || 0;
+          return total + profit;
+        }, 0)
       : 0;
 
   const busCompanyAmount =

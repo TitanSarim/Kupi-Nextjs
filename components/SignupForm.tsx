@@ -238,7 +238,7 @@ const SignupForm = () => {
           label="Company"
           iconSrc="/img/auth-screens/company.svg"
           error={submitted ? errors.company : ""}
-          disabled={loading}
+          disabled
         />
 
         <div className="mt-5">

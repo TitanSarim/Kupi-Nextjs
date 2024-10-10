@@ -97,6 +97,7 @@ model CustomerLocationHistory {
 model Operators {
   id                String              @id @default(auto()) @map("_id") @db.ObjectId
   name              String
+  carmaCode         String?
   description       String
   status            OperatorStatus      @default(INVITED)
   isLive            Boolean             @default(false)

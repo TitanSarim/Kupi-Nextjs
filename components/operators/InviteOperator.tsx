@@ -91,17 +91,20 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
       if (typeof result === "string") {
         setError(result);
       }
-      toast.success("Invitation has been sent successfully");
+      if (result === true) {
+        toast.success("Invitation has been sent successfully");
+        setName("");
+        setEmail("");
+        setDescription("");
+        setErrorState(null);
+        setError("");
+        onClose();
+      }
     } catch (error) {
       setLoading(false);
       console.error(error);
     } finally {
-      setName("");
-      setEmail("");
-      setDescription("");
       setLoading(false);
-      setErrorState(null);
-      onClose();
     }
   };
 
@@ -111,6 +114,7 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
     setDescription("");
     setLoading(false);
     setErrorState(null);
+    setError("");
     onClose();
   };
 

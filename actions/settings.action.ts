@@ -373,24 +373,3 @@ export async function underMaintainance(
     return null;
   }
 }
-
-export async function getMaintainanceStatus(): Promise<Settings | null> {
-  try {
-    const session = await auth();
-
-    if (!session || !session.userId) {
-      return null;
-    }
-
-    const settings = await db.settings.findFirst({
-      where: {
-        key: "underMaintainance",
-      },
-    });
-
-    return settings;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-}

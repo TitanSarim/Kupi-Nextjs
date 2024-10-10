@@ -2,13 +2,23 @@
 
 import { initiateVerification } from "@/libs/ServerSideHelpers";
 import { VerificationType } from "../types/auth";
+import { db } from "@/db";
 
 // Send a verification code to the user's email
 export async function sendVerificationCode(
   email: string,
   type: VerificationType
-) {
-  // Use the helper function to send the verification code
+): Promise<boolean> {
+  const emailExists = await db.users.findFirst({
+    where: {
+      email: email,
+    },
+  });
+
+  if (!emailExists) {
+    return false;
+  }
+
   await initiateVerification(email, type);
-  return { message: "Verification code sent" };
+  return true;
 }
