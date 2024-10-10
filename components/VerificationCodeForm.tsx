@@ -99,7 +99,7 @@ const VerificationCodeForm = ({
       type as VerificationType
     );
 
-    if (response?.message) {
+    if (response === true) {
       setIsSuccess(true); // Set success state for resend
       setMessage("Verification code resent successfully.");
     } else {
