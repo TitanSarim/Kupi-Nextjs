@@ -23,6 +23,9 @@ const LoginForm: React.FC = () => {
 
     // Call the server action to authenticate the user
     try {
+      localStorage.removeItem("manualTransaction");
+      localStorage.removeItem("viewAdmin");
+      localStorage.removeItem("maintainance");
       const response = await authenticateUser(email, password);
 
       setLoading(false);
@@ -100,7 +103,9 @@ const LoginForm: React.FC = () => {
         {loading ? "Please Wait..." : "Login"}
       </button>
 
-      {error && <ErrorMessage message="Incorrect email or password, please try again." />}
+      {error && (
+        <ErrorMessage message="Incorrect email or password, please try again." />
+      )}
     </form>
   );
 };
