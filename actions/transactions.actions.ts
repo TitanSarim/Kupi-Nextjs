@@ -420,7 +420,15 @@ export async function getAllManualTransactions(searchParams: {
 
     if (sort) {
       const [field, order] = sort.split("_");
-      if (field === "totalAmount" || field === "paidAt" || field === "id") {
+      if (field === "BusOperator") {
+        sortOrder.push({ ["id"]: order === "asc" ? "asc" : "desc" });
+      }
+      if (
+        field === "totalAmount" ||
+        field === "paidAt" ||
+        field === "id" ||
+        field === "paymentPeriod"
+      ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
     } else {

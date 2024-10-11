@@ -146,22 +146,33 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+
     const numericValue = value.replace(/\D/g, "");
     if (numericValue.length > 6) {
       return;
     }
     const amountValue = numericValue === "" ? undefined : Number(numericValue);
     setTotalAmount(amountValue);
+
+    if (!amountValue) {
+      setError("Amount");
+      return;
+    }
   };
 
   const handlePeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+
     const numericValue = value.replace(/\D/g, "");
     if (numericValue.length > 3) {
       return;
     }
     const periodValue = numericValue === "" ? undefined : Number(numericValue);
     setPaymentPeriod(periodValue);
+    if (!periodValue) {
+      setError("Payment");
+      return;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -321,9 +332,11 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
               placeholder="Enter period"
               value={paymentPeriod}
               onChange={handlePeriodChange}
-              required
               className="h-12 rounded-lg bg-white text-gray-500 border-gray-300"
             />
+            {error === "Payment" && (
+              <p className="text-red-500">Payment Period is required</p>
+            )}
           </div>
           <div>
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -335,9 +348,11 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
               placeholder="$"
               value={totalAmount}
               onChange={handleAmountChange}
-              required
               className="h-12 rounded-lg bg-white text-gray-500 border-gray-300"
             />
+            {error === "Amount" && (
+              <p className="text-red-500">Total amount is required</p>
+            )}
           </div>
 
           {/* Drag and Drop */}
@@ -514,7 +529,7 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
               </div>
             </div>
             {errorState[1] && errorState[0] && (
-              <p className="text-red-500">Invoice and Recipt Required</p>
+              <p className="text-red-500">Invoice and Receipt required</p>
             )}
           </div>
 
@@ -526,10 +541,10 @@ const UpdateTreansactionDialogue: React.FC<DialogProps> = ({
               Cancel
             </button>
             <button
-              disabled={loading}
+              disabled={loading || error !== null}
               type="submit"
               className={`${
-                loading ? "opacity-50" : ""
+                loading || error !== null ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
             >
               {loading ? "Please Wait" : "Save"}

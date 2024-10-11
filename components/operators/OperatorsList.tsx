@@ -12,12 +12,19 @@ import {
 import InviteOperator from "./InviteOperator";
 import { OperatorsData } from "@/types/operator";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 const OperatorsList: React.FC<OperatorsData> = ({
   operators,
   paginationData,
 }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [source, setSource] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setSatus] = useState("");
@@ -33,7 +40,14 @@ const OperatorsList: React.FC<OperatorsData> = ({
   const router = useRouter();
   const params = new URLSearchParams();
 
+  console.log(source.length);
+
   const updateSearchParams = () => {
+    if (source !== "All" && source.length > 1) {
+      params.set("source", source);
+    } else {
+      setSource("");
+    }
     if (name) params.set("name", name);
     if (email) params.set("email", email);
     if (status !== "clear") {
@@ -52,21 +66,52 @@ const OperatorsList: React.FC<OperatorsData> = ({
     return () => {
       clearTimeout(timer);
     };
-  }, [name, email, status]);
+  }, [name, email, status, source]);
 
   return (
     <div className="w-full flex flex-col items-center justify-start">
       <div className="h-fit w-full bg-white shadow-sm rounded-md px-8 py-8 mb-8 mt-10">
         <div className="w-full flex flex-row items-start justify-between">
           <p className="text-lg text-black font-semibold">Bus Operators List</p>
-          <button
-            className="bg-kupi-yellow px-4 py-2 rounded-lg"
-            onClick={() => {
-              handleShowDetail();
-            }}
-          >
-            Invite Bus Operator
-          </button>
+          <div className="flex flex-row gap-5">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="bg-kupi-yellow px-4 py-2 rounded-lg">
+                  View Source
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-40  px-2 py-2">
+                <button
+                  className="w-full text-left py-1 px-2 outline-none border-none"
+                  onClick={() => setSource("All")}
+                >
+                  All
+                </button>
+                <DropdownMenuSeparator />
+                <button
+                  className="w-full text-left py-1 px-2"
+                  onClick={() => setSource("KUPI")}
+                >
+                  KUPI
+                </button>
+                <DropdownMenuSeparator />
+                <button
+                  className="w-full text-left py-1 px-2"
+                  onClick={() => setSource("CARMA")}
+                >
+                  CARMA
+                </button>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <button
+              className="bg-kupi-yellow px-4 py-2 rounded-lg"
+              onClick={() => {
+                handleShowDetail();
+              }}
+            >
+              Invite Bus Operator
+            </button>
+          </div>
         </div>
 
         {/* Filters */}

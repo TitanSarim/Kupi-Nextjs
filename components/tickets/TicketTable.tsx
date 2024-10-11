@@ -14,6 +14,13 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { TicketsDataType, TicketsReturn } from "@/types/ticket";
 import TicketDetailDialgue from "./TicketDetailDialgue";
 import TableComponent from "../Table/Table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "../ui/button";
 
 const TicketTable: React.FC<TicketsReturn> = ({
   ticketData,
@@ -37,6 +44,17 @@ const TicketTable: React.FC<TicketsReturn> = ({
     const ticket = ticketData.find((t) => t.tickets.id === id) || null;
     setSelectedTicket(ticket);
     setDialogOpen(true);
+  };
+
+  const handleDownloadPdf = async (id: string) => {
+    try {
+      const response = `https://1921mideab.execute-api.us-east-1.amazonaws.com/getTicket?id=${id}`;
+      if (response) {
+        window.open(response, "_blank");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleCloseDialog = () => {
@@ -89,6 +107,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
+            hourCycle: "h23",
           })}
         </div>
       ),
@@ -154,6 +173,8 @@ const TicketTable: React.FC<TicketsReturn> = ({
         <div>
           {row.original.tickets.status === "CONFIRMED" ? (
             <p className="text-green-600">Confirmed</p>
+          ) : row.original.tickets.status === "CANCELED" ? (
+            <p className="text-orange-500">Canceled</p>
           ) : (
             <p className="text-kupi-yellow">{row.original.tickets.status}</p>
           )}
@@ -179,19 +200,39 @@ const TicketTable: React.FC<TicketsReturn> = ({
       header: "",
       cell: ({ row }) => (
         <div className="flex justify-end">
-          <button
-            onClick={() => {
-              handleShowDetail(row.original.tickets.id);
-            }}
-            className="p-2 rounded-md hover:bg-gray-100"
-          >
-            <Image
-              src="/img/icons/actions.svg"
-              alt="icon"
-              height={4.5}
-              width={4.5}
-            />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="p-2 rounded-md hover:bg-gray-100 border-none outline-none"
+              >
+                <Image
+                  src="/img/icons/actions.svg"
+                  alt="icon"
+                  height={4.5}
+                  width={4.5}
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-40  px-5 py-2">
+              <button
+                onClick={() => {
+                  handleShowDetail(row.original.tickets.id);
+                }}
+                className="w-full text-left py-1"
+              >
+                View
+              </button>
+              <DropdownMenuSeparator />
+              <button
+                className="w-full text-left py-1"
+                onClick={() => handleDownloadPdf(row.original.tickets.id)}
+              >
+                {" "}
+                PDF Download
+              </button>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       ),
       enableSorting: false,

@@ -1,11 +1,6 @@
 import { getAllOperators } from "@/actions/operators.action";
-import { auth } from "@/auth";
-import Loading from "@/components/Loading";
-import NavBar from "@/components/NavBar";
 import OperatorsList from "@/components/operators/OperatorsList";
-import SideBar from "@/components/SideBar";
 import { OperatorsQuery } from "@/types/operator";
-import { redirect } from "next/navigation";
 import React, { Suspense } from "react";
 
 const BusOperators = async ({

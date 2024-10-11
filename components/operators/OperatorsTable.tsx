@@ -14,6 +14,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -21,10 +27,16 @@ import React, { useEffect, useState } from "react";
 import TableComponent from "../Table/Table";
 import Link from "next/link";
 import { OperatorStatus } from "@prisma/client";
-import UpdateInviteOperator from "./UpdateInviteOperator";
 import { TicketSources } from "@/types/discount";
-import { updateStatus } from "@/actions/operators.action";
+import {
+  updateStatus,
+  resendInvite,
+  accountStatus,
+  deleteAccount,
+} from "@/actions/operators.action";
 import toast from "react-hot-toast";
+import { Button } from "../ui/button";
+import DeleteOperator from "./DeleteOperator";
 
 interface LiveStatuses {
   [key: string]: boolean;
@@ -48,17 +60,32 @@ const OperatorsTable: React.FC<OperatorsData> = ({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [liveStatuses, setLiveStatuses] = useState<LiveStatuses>({});
 
-  const handleShowDetail = (id: string) => {
-    const operator = operators.find((O) => O.operators.id === id) || null;
-    if (!operator) {
-      return null;
+  const handleResendInvite = async (id: string) => {
+    try {
+      const response = await resendInvite(id);
+      if (response === true) {
+        toast.success("Invite resent successfully");
+      } else if (
+        response === false ||
+        response === null ||
+        response === undefined
+      ) {
+        toast.error("Failed to resend invite");
+      }
+    } catch (error) {
+      console.error(error);
     }
-    setSelectedOperator(operator);
-    setDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
+  const handleSuspendAccount = async (id: string, status: string) => {
+    try {
+      const response = await accountStatus(id, status);
+      if (response === true) {
+        toast.success("Account status updated successfully");
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
@@ -96,6 +123,20 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
+  const handleDeleteAccount = (id: string) => {
+    const operator = operators.find((o) => o.operators.id === id) || null;
+    if (!operator) {
+      setDialogOpen(false);
+      return null;
+    }
+    setSelectedOperator(operator);
+    setDialogOpen(true);
   };
 
   useEffect(() => {
@@ -200,10 +241,11 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       ),
       cell: ({ row }) => (
         <div className="text-xs">
-          {row.original?.operators.joiningDate &&
+          {row.original?.operators?.joiningDate &&
             new Date(row.original.operators.joiningDate).toLocaleDateString(
-              "en-US",
+              "en-UK",
               {
+                timeZone: "UTC",
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
@@ -368,7 +410,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       ),
     },
     {
-      accessorKey: "Live",
+      accessorKey: "isLive",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -402,19 +444,65 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       cell: ({ row }) => (
         <div className="flex justify-end">
           {row.original.operators.source === TicketSources.KUPI && (
-            <button
-              onClick={() => {
-                handleShowDetail(row.original.operators.id);
-              }}
-              className="p-2 rounded-md hover:bg-gray-100"
-            >
-              <Image
-                src="/img/icons/actions.svg"
-                alt="icon"
-                height={4.5}
-                width={4.5}
-              />
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="p-2 rounded-md hover:bg-gray-100 border-none outline-none"
+                >
+                  <Image
+                    src="/img/icons/actions.svg"
+                    alt="icon"
+                    height={4.5}
+                    width={4.5}
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-52  px-5 py-2">
+                {row.original.operators.status === "REGISTERED" ? (
+                  ""
+                ) : row.original.operators.status === "SUSPENDED" ? (
+                  ""
+                ) : (
+                  <>
+                    <button
+                      className="w-full text-left py-1 text-sm"
+                      onClick={() =>
+                        handleResendInvite(row.original.operators.id)
+                      }
+                    >
+                      Resent Email
+                    </button>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                {row.original.operators.status === "INVITED" ? (
+                  ""
+                ) : (
+                  <button
+                    className="w-full text-left py-1 text-sm"
+                    onClick={() =>
+                      handleSuspendAccount(
+                        row.original.operators.id,
+                        row.original.operators.status
+                      )
+                    }
+                  >
+                    {row.original.operators.status === "SUSPENDED"
+                      ? "Reactivate Account"
+                      : "Suspend Account"}
+                  </button>
+                )}
+                <DropdownMenuSeparator />
+
+                <button
+                  className="w-full text-left py-1 text-sm"
+                  onClick={() => handleDeleteAccount(row.original.operators.id)}
+                >
+                  Delete Account
+                </button>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       ),
@@ -436,17 +524,25 @@ const OperatorsTable: React.FC<OperatorsData> = ({
 
   return (
     <div className="w-full mt-8">
-      <TableComponent
-        paginationData={paginationData}
-        setPagination={setPagination}
-        pagination={pagination}
-        tableData={table}
-      />
+      {operators.length === 0 ? (
+        <div>
+          <p className="text-center text-gray-500 text-lg">
+            No operators found. Please check the search criteria.
+          </p>
+        </div>
+      ) : (
+        <TableComponent
+          paginationData={paginationData}
+          setPagination={setPagination}
+          pagination={pagination}
+          tableData={table}
+        />
+      )}
 
-      <UpdateInviteOperator
-        operator={selectedOperator}
+      <DeleteOperator
         open={dialogOpen}
         onClose={handleCloseDialog}
+        id={selectedOperator?.operators.id}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import Image from "next/image";
 import { Textarea } from "../ui/textarea";
@@ -59,7 +59,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   const [numberInput, setNumberInput] = useState("");
   const [emailInput, setEmailInput] = useState("");
   const [emails, setEmails] = useState<string[]>([]);
-  const [tickets, setTickets] = useState<number>(0);
+  const [tickets, setTickets] = useState<number | null>();
   const [bookingAt, setBookingAt] = useState("00:00");
   const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [company, setCompany] = useState("");
@@ -109,6 +109,23 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
+  const handleOperatorChange = async (value: string) => {
+    if (value === "") {
+      setBusOperator("");
+    } else {
+      setBusOperator(value);
+      try {
+        const operator = await getSelectedOperatorSettings(value);
+        if (operator) {
+          setoperatorsData(operator);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    setOpen(false);
+  };
+
   useEffect(() => {
     handleData();
   }, [operatorSettings]);
@@ -116,6 +133,43 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   const handleReset = () => {
     handleData();
     setFormChanged(false);
+  };
+
+  const handleAdminData = () => {
+    if (operatorsData) {
+      setNumbers(operatorsData?.operatorSettings?.numbers || []);
+      setEmails(operatorsData?.operatorSettings?.emails || []);
+      setTickets(
+        operatorsData?.operatorSettings &&
+          operatorsData?.operatorSettings.tickets
+      );
+      const parsedBookingAt =
+        operatorsData?.operatorSettings?.closeBooking.replace(":", "");
+      if (parsedBookingAt) {
+        const formattedBookingAt = isNaN(parseInt(parsedBookingAt))
+          ? "00:00"
+          : formatTime(parseInt(parsedBookingAt));
+        setBookingAt(formattedBookingAt);
+      }
+      setExchangeRate(operatorsData?.operatorSettings?.exchangeRate || 0);
+      setBankName(operatorsData?.operatorSettings?.bankName || "");
+      setAccountTitle(operatorsData?.operatorSettings?.accountTitle || "");
+      setIbanNumber(operatorsData?.operatorSettings?.IBAN || "");
+      setSwiftNumber(operatorsData?.operatorSettings?.swiftCode || "");
+    }
+    if (operatorsData?.operator) {
+      setCompany(operatorsData?.operator.name || "");
+      setDescription(operatorsData?.operator.description || "");
+    }
+  };
+
+  useEffect(() => {
+    if (operatorsData) {
+      handleAdminData();
+    }
+  }, [operatorsData]);
+  const handleAdminReset = async () => {
+    handleAdminData();
   };
 
   const handleExchangeRateChange = (
@@ -159,8 +213,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       hours = parseInt(value.slice(0, -2), 10);
       minutes = parseInt(value.slice(-2), 10);
     }
-    hours = Math.max(0, Math.min(23, hours));
-    minutes = Math.max(0, Math.min(59, minutes));
+    hours = Math.max(0, Math.min(48, hours));
+    minutes = Math.max(0, Math.min(90, minutes));
 
     const formattedTime = `${String(hours).padStart(2, "0")}:${String(
       minutes
@@ -205,13 +259,17 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       return;
     }
 
-    if (
-      emailInput.trim() &&
-      validateEmail(emailInput) &&
-      !emails.includes(emailInput)
-    ) {
+    if (emails.includes(emailInput)) {
+      setErrorState({
+        field: "emails",
+        message: "This email address is already added",
+      });
+      return;
+    }
+
+    if (emailInput.trim() && validateEmail(emailInput)) {
       setEmails([...emails, emailInput]);
-      setErrorState(null); // Clear any existing error
+      setErrorState(null);
       setEmailInput("");
       setFormChanged(true);
     }
@@ -264,6 +322,15 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     if (numberInput.length < 9 || numberInput.length > 14) {
       return;
     }
+
+    if (numbers.includes(numberInput)) {
+      setErrorState({
+        field: "numbers",
+        message: "This number is already added",
+      });
+      return;
+    }
+
     if (
       numberInput.trim() &&
       validateWhatsAppNumber(numberInput) &&
@@ -415,45 +482,6 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
-  const handleOperatorChange = async (value: string) => {
-    if (value === "") {
-      setBusOperator("");
-    } else {
-      setBusOperator(value);
-      try {
-        const operator = await getSelectedOperatorSettings(value);
-        if (operator) {
-          setoperatorsData(operator);
-          if (operator.operatorSettings) {
-            setNumbers(operator?.operatorSettings?.numbers || []);
-            setEmails(operator?.operatorSettings?.emails || []);
-            setTickets(operator?.operatorSettings.tickets);
-            const parsedBookingAt =
-              operator?.operatorSettings?.closeBooking.replace(":", "");
-            if (parsedBookingAt) {
-              const formattedBookingAt = isNaN(parseInt(parsedBookingAt))
-                ? "00:00"
-                : formatTime(parseInt(parsedBookingAt));
-              setBookingAt(formattedBookingAt);
-            }
-            setExchangeRate(operator?.operatorSettings?.exchangeRate);
-            setBankName(operator?.operatorSettings?.bankName || "");
-            setAccountTitle(operator?.operatorSettings?.accountTitle || "");
-            setIbanNumber(operator?.operatorSettings?.IBAN || "");
-            setSwiftNumber(operator?.operatorSettings?.swiftCode || "");
-          }
-          if (operator?.operator) {
-            setCompany(operator?.operator.name || "");
-            setDescription(operator?.operator.description || "");
-          }
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    setOpen(false);
-  };
-
   return (
     <div className="w-full h-fit min-h-screen">
       {role === RolesEnum.SuperAdmin || role === RolesEnum.KupiUser ? (
@@ -571,27 +599,29 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                   ))}
 
                   {/* Input Field */}
-                  <div className="relative w-[200px]">
-                    <Input
-                      type="email"
-                      placeholder="Add emails"
-                      className="outline-none border-none w-full"
-                      value={emailInput}
-                      onChange={handleEmailChange}
-                      onKeyDown={handleKeyPress}
-                    />
-                    {emailInput.length > 0 && (
-                      <button
-                        className="showrittenemail mt-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddEmail();
-                        }}
-                      >
-                        {emailInput}
-                      </button>
-                    )}
-                  </div>
+                  {emails.length < 6 && (
+                    <div className="relative w-[200px]">
+                      <Input
+                        type="email"
+                        placeholder="Add emails"
+                        className="outline-none border-none w-full"
+                        value={emailInput}
+                        onChange={handleEmailChange}
+                        onKeyDown={handleKeyPress}
+                      />
+                      {emailInput.length > 0 && (
+                        <button
+                          className="showrittenemail mt-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddEmail();
+                          }}
+                        >
+                          {emailInput}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-full flex  flex-row items-end justify-end gap-5">
@@ -637,27 +667,29 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                     </span>
                   ))}
 
-                  <div className="relative w-[200px]">
-                    <Input
-                      type="text"
-                      placeholder="Add Whatsapp Numbers"
-                      className="outline-none border-none w-full"
-                      value={numberInput}
-                      onChange={handleNumberChange}
-                      onKeyDown={handleNumberKeyPress}
-                    />
-                    {numberInput.length > 0 && (
-                      <button
-                        className="showrittenemail mt-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddNumber();
-                        }}
-                      >
-                        {numberInput}
-                      </button>
-                    )}
-                  </div>
+                  {numbers.length < 7 && (
+                    <div className="relative w-[200px]">
+                      <Input
+                        type="text"
+                        placeholder="Add Whatsapp Numbers"
+                        className="outline-none border-none w-full"
+                        value={numberInput}
+                        onChange={handleNumberChange}
+                        onKeyDown={handleNumberKeyPress}
+                      />
+                      {numberInput.length > 0 && (
+                        <button
+                          className="showrittenemail mt-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddNumber();
+                          }}
+                        >
+                          {numberInput}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-full flex  flex-row items-end justify-end gap-5">
@@ -682,6 +714,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                 onChange={handleCompanyNameChange}
                 placeholder="Travel Agency"
                 className="h-12 rounded-lg text-gray-500 border-gray-700"
+                disabled
               />
               {errorState?.field === "company" && (
                 <p className="text-red-500 ">{errorState.message}</p>
@@ -694,7 +727,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
               <Textarea
                 value={description}
                 onChange={handleCompanyDescriptionChange}
-                placeholder="Cape Town is a port city on South Africa’s southwest coast, on a peninsula beneath the imposing Table Mountain. Slowly rotating cable cars climb to the mountain’s flat top, from which there are sweeping views of the city,"
+                placeholder="At my bus company, we strive to provide reliable and comfortable transportation for all your travel needs. Our fleet of modern buses ensures safety and convenience for every passenger. Join us in exploring the scenic routes and discovering new destinations together. Experience exceptional service and affordability on every journey with us."
                 className="textarea-setting rounded-lg py-1 text-gray-500 border-gray-700"
               />
               <div className="flex w-full items-end justify-end">
@@ -742,9 +775,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                   type="number"
                   className="h-12 border-gray-700 rounded-lg"
                   placeholder="01"
-                  min={1}
                   max={10}
-                  value={tickets}
+                  value={tickets !== null ? tickets : ""}
                   onChange={handleTicketsChange}
                   required
                 />
@@ -899,7 +931,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
           <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
             <button
               type="reset"
-              onClick={handleReset}
+              onClick={handleAdminReset}
               className={`${
                 !formChanged ? "opacity-50" : ""
               } border-gray-600 py-2 px-8 bg-transparent border-2 rounded-lg text-gray-600`}
@@ -977,27 +1009,29 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                   ))}
 
                   {/* Input Field */}
-                  <div className="relative w-[200px]">
-                    <Input
-                      type="email"
-                      placeholder="Add emails"
-                      className="outline-none border-none w-full"
-                      value={emailInput}
-                      onChange={handleEmailChange}
-                      onKeyDown={handleKeyPress}
-                    />
-                    {emailInput.length > 0 && (
-                      <button
-                        className="showrittenemail mt-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddEmail();
-                        }}
-                      >
-                        {emailInput}
-                      </button>
-                    )}
-                  </div>
+                  {emails.length <= 6 && (
+                    <div className="relative w-[200px]">
+                      <Input
+                        type="email"
+                        placeholder="Add emails"
+                        className="outline-none border-none w-full"
+                        value={emailInput}
+                        onChange={handleEmailChange}
+                        onKeyDown={handleKeyPress}
+                      />
+                      {emailInput.length > 0 && (
+                        <button
+                          className="showrittenemail mt-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddEmail();
+                          }}
+                        >
+                          {emailInput}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-full flex  flex-row items-end justify-end gap-5">
@@ -1088,6 +1122,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                 onChange={handleCompanyNameChange}
                 placeholder="Travel Agency"
                 className="h-12 rounded-lg text-gray-500 border-gray-700"
+                disabled
               />
               {errorState?.field === "company" && (
                 <p className="text-red-500 ">{errorState.message}</p>
@@ -1100,7 +1135,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
               <Textarea
                 value={description}
                 onChange={handleCompanyDescriptionChange}
-                placeholder="Cape Town is a port city on South Africa’s southwest coast, on a peninsula beneath the imposing Table Mountain. Slowly rotating cable cars climb to the mountain’s flat top, from which there are sweeping views of the city,"
+                placeholder="At my bus company, we strive to provide reliable and comfortable transportation for all your travel needs. Our fleet of modern buses ensures safety and convenience for every passenger. Join us in exploring the scenic routes and discovering new destinations together. Experience exceptional service and affordability on every journey with us."
                 className="textarea-setting rounded-lg py-1 text-gray-500 border-gray-700"
               />
               <div className="flex w-full items-end justify-end">
@@ -1150,7 +1185,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                   placeholder="01"
                   min={1}
                   max={10}
-                  value={tickets}
+                  value={tickets !== null ? tickets : ""}
                   onChange={handleTicketsChange}
                   required
                 />
@@ -1304,7 +1339,6 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
 
           <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
             <button
-              type="reset"
               onClick={handleReset}
               className={`${
                 !formChanged ? "opacity-50" : ""

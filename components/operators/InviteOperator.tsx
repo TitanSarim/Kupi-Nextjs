@@ -56,6 +56,16 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
     }
   };
 
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    const value = e.target.value;
+    if (value.length <= 299) {
+      setDescription(value);
+      setErrorState(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) {
@@ -176,10 +186,13 @@ const InviteOperator: React.FC<DialogProps> = ({ open, onClose }) => {
             </p>
             <Textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleDescriptionChange}
               placeholder="Type..."
               className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white invite-textarea"
             />
+            <div className="flex w-full items-end justify-end">
+              <p className="text-sm text-gray-400">{description.length}/299</p>{" "}
+            </div>
           </div>
           {error && <p className="text-red-500">{error}</p>}
           <div className="w-full mt-5 flex flex-row items-center justify-end gap-4">

@@ -108,6 +108,12 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
     }
     const amountValue = numericValue === "" ? undefined : Number(numericValue);
     setTotalAmount(amountValue);
+    if (!amountValue) {
+      setError("Amount");
+      return;
+    } else if (amountValue) {
+      setError(null);
+    }
   };
 
   const handlePeriodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,6 +124,12 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
     }
     const periodValue = numericValue === "" ? undefined : Number(numericValue);
     setPaymentPeriod(periodValue);
+    if (!periodValue) {
+      setError("Payment");
+      return;
+    } else if (periodValue) {
+      setError(null);
+    }
   };
 
   const handleClose = () => {
@@ -280,6 +292,9 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
               required
               className="h-12 rounded-lg bg-white text-gray-500 border-gray-300"
             />
+            {error === "Payment" && (
+              <p className="text-red-500">Payment Period is required</p>
+            )}
           </div>
           <div>
             <p className="mb-1 darkGray-text font-normal text-sm">
@@ -294,6 +309,9 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
               required
               className="h-12 rounded-lg bg-white text-gray-500 border-gray-300"
             />
+            {error === "Amount" && (
+              <p className="text-red-500">Total amount is required</p>
+            )}
           </div>
 
           {/* Drag and Drop */}
@@ -432,10 +450,10 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
               Cancel
             </button>
             <button
-              disabled={loading}
+              disabled={loading || error !== null}
               type="submit"
               className={`${
-                loading ? "opacity-50" : ""
+                loading || error !== null ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
             >
               {loading ? "Please Wait" : "Add Transaction"}

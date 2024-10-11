@@ -2,7 +2,7 @@
 import axios from "axios";
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { Operators } from "@prisma/client";
+import { Operators, Prisma, TicketSources } from "@prisma/client";
 import {
   FilterProps,
   FormData,
@@ -20,6 +20,7 @@ import { revalidatePath } from "next/cache";
 import { parseStringPromise } from "xml2js";
 
 export async function getAllOperators(searchParams: {
+  source?: string;
   name?: string;
   email?: string;
   status?: string;
@@ -35,6 +36,7 @@ export async function getAllOperators(searchParams: {
     }
 
     const {
+      source,
       name,
       email,
       status,
@@ -49,8 +51,11 @@ export async function getAllOperators(searchParams: {
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
 
-    const filter: FilterProps = {};
+    const filter: Prisma.OperatorsWhereInput = {};
 
+    if (source) {
+      filter.source = source as TicketSources;
+    }
     if (name) {
       filter.name = { contains: name, mode: "insensitive" };
     }
@@ -71,7 +76,8 @@ export async function getAllOperators(searchParams: {
         field === "name" ||
         field === "status" ||
         field === "joiningDate" ||
-        field === "source"
+        field === "source" ||
+        field === "isLive"
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
@@ -164,6 +170,7 @@ export async function AddOperator(
     const invitationEmail = await sendInvitationEmail(
       formData.email,
       formData.name,
+      formData.description,
       encryptedData
     );
 
@@ -175,7 +182,7 @@ export async function AddOperator(
     const operator = await db.operators.create({
       data: {
         name: formData.name,
-        description: formData.description || "",
+        description: "",
         status: OperatorStatus.INVITED,
         source: "KUPI",
       },
@@ -192,6 +199,7 @@ export async function AddOperator(
         data: {
           operatorId: operator.id,
           email: formData.email,
+          message: formData.description || "",
           expires: expirationTime,
           sessionToken: encryptedData,
           isActive: true,
@@ -205,6 +213,7 @@ export async function AddOperator(
         data: {
           email: formData.email,
           expires: expirationTime,
+          message: formData.description || "",
           sessionToken: encryptedData,
           isActive: true,
         },
@@ -222,11 +231,9 @@ export async function AddOperator(
   }
 }
 
-export async function UpdateOperatorInvitation(
-  formData: UpdateFormData,
-  id: string,
-  sessionId: string
-): Promise<Operators | null | string> {
+export async function resendInvite(
+  operatorId: string
+): Promise<boolean | null | string | undefined> {
   try {
     const session = await auth();
 
@@ -234,87 +241,134 @@ export async function UpdateOperatorInvitation(
       return null;
     }
 
+    const operator = await db.operators.findUnique({
+      where: {
+        id: operatorId,
+      },
+    });
+
+    if (!operator) {
+      return null;
+    }
+
+    const operatorSession = await db.operatorsSessions.findFirst({
+      where: {
+        operatorId: operatorId,
+      },
+    });
+
+    if (!operatorSession) {
+      return null;
+    }
     const expirationTime = new Date();
     expirationTime.setHours(expirationTime.getHours() + 48);
     const secret = process.env.SECURE_AUTH_KEY;
+
+    const dataToEncrypt = {
+      email: operatorSession.email,
+      name: operator.name,
+      expiresAt: expirationTime.toISOString(),
+    };
     if (!secret) {
       console.error("SECURE_AUTH_KEY environment variable not set");
       return "SECURE_AUTH_KEY environment variable not set";
     }
-    const dataToEncrypt = {
-      email: formData.email,
-      name: formData.name,
-      expiresAt: expirationTime.toISOString(),
-    };
     const encryptedData = await encryptData(dataToEncrypt, secret);
 
     const invitationEmail = await sendInvitationEmail(
-      formData.email,
-      formData.name,
+      operatorSession.email,
+      operator.name,
+      operatorSession.message || "",
       encryptedData
     );
+
     if (!invitationEmail) {
       console.error("Error sending invitation email");
       return "Error sending invitation email";
     }
 
-    const status = await db.operators.findUnique({
+    return true;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function accountStatus(
+  operatorId: string,
+  status: string
+): Promise<boolean | null | string | undefined> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const operator = await db.operators.findUnique({
       where: {
-        id: id,
+        id: operatorId,
       },
     });
 
-    let operator;
-    if (status?.status === "INVITED" || status?.status === "SUSPENDED") {
-      operator = await db.operators.update({
+    if (!operator) {
+      return null;
+    }
+
+    let results;
+    if (status === "SUSPENDED") {
+      results = await db.operators.update({
         where: {
-          id: id,
+          id: operatorId,
         },
         data: {
-          name: formData.name,
-          description: formData.description || "",
-          status: OperatorStatus.INVITED,
+          status: OperatorStatus.REGISTERED,
+          isLive: true,
         },
       });
-      await db.operatorsSessions.update({
+    } else if (status === "INVITED" || status === "REGISTERED") {
+      results = await db.operators.update({
         where: {
-          id: sessionId,
+          id: operatorId,
         },
         data: {
-          email: formData.email,
-          expires: expirationTime,
-          sessionToken: encryptedData,
-          isActive: true,
-        },
-      });
-    } else if (status?.status === "REGISTERED") {
-      operator = await db.operators.update({
-        where: {
-          id: id,
-        },
-        data: {
-          name: formData.name,
-          description: formData.description || "",
-        },
-      });
-      await db.operatorsSessions.update({
-        where: {
-          id: sessionId,
-        },
-        data: {
-          email: formData.email,
-          isActive: false,
+          status: OperatorStatus.SUSPENDED,
+          isLive: false,
         },
       });
     }
+
+    if (!results) {
+      return null;
+    }
+    revalidatePath("/app/bus-operators");
+    return true;
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function deleteAccount(
+  operatorId: string
+): Promise<boolean | null | string | undefined> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const operator = await db.operators.delete({
+      where: {
+        id: operatorId,
+      },
+    });
 
     if (!operator) {
       return null;
     }
     revalidatePath("/app/bus-operators");
-    return operator || null;
+    return true;
   } catch (error) {
-    console.error(error);
     return null;
   }
 }

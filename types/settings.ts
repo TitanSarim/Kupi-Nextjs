@@ -23,7 +23,7 @@ export interface Setting {
 export interface operatorSettingsFormData {
   numbers: string[];
   emails: string[];
-  tickets: number;
+  tickets?: number | null;
   bookingAt: string;
   exchangeRate: number;
   company: string;

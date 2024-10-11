@@ -49,7 +49,6 @@ const ForgotPasswordForm = () => {
     // Call the server action to send the verification code
     const response = await sendVerificationCode(email, "reset-password");
 
-    console.log("response", response);
     // If the response is successful, redirect to the verification code page
     if (response === false) {
       toast.error("Failed to send verification code");

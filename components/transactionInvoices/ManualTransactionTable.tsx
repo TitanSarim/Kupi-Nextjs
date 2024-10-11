@@ -18,7 +18,6 @@ import {
 import { openPdf } from "@/actions/transactions.actions";
 import UpdateTreansactionDialogue from "./UpdateTreansactionDialogue";
 import TableComponent from "../Table/Table";
-import toast from "react-hot-toast";
 
 const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
   transactionData,
@@ -138,7 +137,7 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
       },
     },
     {
-      accessorKey: "PaymentPeriod",
+      accessorKey: "paymentPeriod",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -200,6 +199,7 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
+            hourCycle: "h23",
           })}
         </span>
       ),

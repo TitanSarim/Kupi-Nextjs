@@ -100,7 +100,7 @@ model Operators {
   carmaCode         String?
   description       String
   status            OperatorStatus      @default(INVITED)
-  isLive            Boolean             @default(false)
+  isLive            Boolean             @default(true)
   joiningDate       DateTime            @default(now())
   setting           Settings[]
   users             Users[]
@@ -116,6 +116,7 @@ model Operators {
 model OperatorsSessions {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   email        String
+  message      String?
   operatorId   String    @db.ObjectId
   operator     Operators @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   expires      DateTime

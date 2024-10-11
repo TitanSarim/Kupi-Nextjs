@@ -56,8 +56,7 @@ export async function getAllTickets(searchParams: {
       filter.arrivalCity = {
         name: { contains: arrivalCity, mode: "insensitive" },
       };
-    if (onlyPending !== undefined || sort === "status_desc")
-      filter.status = "RESERVED";
+    if (onlyPending !== undefined) filter.status = "RESERVED";
 
     const sortOrder: SortOrderProps[] = [];
     if (sort) {

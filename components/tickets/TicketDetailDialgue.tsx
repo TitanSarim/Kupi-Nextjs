@@ -105,6 +105,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
+                        hourCycle: "h23",
                       }
                     )}
                   </span>
@@ -121,6 +122,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                         year: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
+                        hourCycle: "h23",
                       }
                     )}
                   </span>

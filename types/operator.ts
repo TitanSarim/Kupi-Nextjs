@@ -19,6 +19,7 @@ export type OperatorsQuery = {
     name?: string;
     status?: string;
     sort?: string;
+    source?: string;
   };
 };
 
@@ -44,6 +45,7 @@ export type OperatorsData = {
 
 export interface FilterProps {
   status?: OperatorStatus;
+  source?: string;
   name?: {
     contains?: string;
     mode?: "insensitive";

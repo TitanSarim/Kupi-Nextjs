@@ -99,6 +99,10 @@ export async function createOperatorSettings(
       },
     });
 
+    if (!formData.tickets) {
+      return;
+    }
+
     if (!operatorSettings) {
       await db.operatorSettings.create({
         data: {
@@ -269,7 +273,9 @@ export async function updateOperatorSettings(
         operatorsId: operator?.id,
       },
     });
-
+    if (!formData.tickets) {
+      return;
+    }
     if (!operatorSettings) {
       await db.operatorSettings.create({
         data: {

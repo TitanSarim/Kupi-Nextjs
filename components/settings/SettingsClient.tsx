@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { RolesEnum } from "@/types/auth";
 
 const SettingsClient = () => {
   const session = useSession();
 
+  const pathname = usePathname();
   const [selectedView, setSelectedView] = useState("viewAdmin");
 
   const router = useRouter();
@@ -15,6 +16,14 @@ const SettingsClient = () => {
     setSelectedView(view);
     localStorage.setItem("viewAdmin", view);
   };
+
+  useEffect(() => {
+    if (pathname === "/app/settings/admin") {
+      setSelectedView("viewAdmin");
+    } else {
+      setSelectedView("viewOperator");
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const storedValue = localStorage.getItem("viewAdmin");
