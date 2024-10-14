@@ -230,7 +230,7 @@ const UpdateBus: React.FC<DialogProps> = ({ open, onClose, busData }) => {
 
         {/* form */}
         <form className="mt-5 w-full flex flex-col" onSubmit={handleSubmit}>
-          <div className="discount-dialoguebox-inner">
+          <div className="bus-dialoguebox-inner">
             <div className="w-full mb-3">
               <p className="mb-1 darkGray-text font-normal text-sm">
                 Bus Name [Optional]

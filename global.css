@@ -404,6 +404,12 @@ input:checked+.slider-live:before {
   min-height: 95%;
 }
 
+.bus-dialoguebox-inner{
+  max-height: 83% !important;
+    min-height: 83% !important;
+  overflow-y: auto;
+}
+
 
 .invite-textarea{
   min-height: 100px;
@@ -477,7 +483,11 @@ input:checked+.slider-live:before {
     min-height: 72vh;
     overflow-y: auto;
   }
-
+  .bus-dialoguebox-inner{
+      max-height: 72vh;
+      min-height: 72vh;
+      overflow-y: auto;
+  }
   .tickettableclass{
     min-height: max-content;
     max-height: 80vh;

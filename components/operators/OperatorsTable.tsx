@@ -471,7 +471,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                         handleResendInvite(row.original.operators.id)
                       }
                     >
-                      Resent Email
+                      Resend Email
                     </button>
                     <DropdownMenuSeparator />
                   </>
