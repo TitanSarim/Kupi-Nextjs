@@ -67,7 +67,7 @@ export type carmaDetails = {
 export type TransactionsType = {
   transactions: Transactions;
   customer?: Customers | null;
-  paymentReference?: PaymentReference | PaymentReference[] | null;
+  paymentReference?: PaymentReference | null;
   tickets?: Tickets[] | null;
   bus?: Busses | null;
   sourceCity?: Cities | null;

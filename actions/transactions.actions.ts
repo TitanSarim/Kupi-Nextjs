@@ -183,11 +183,11 @@ export async function getAllTransactions(searchParams: {
         return {
           transactions: transaction,
           customer: transaction?.customer,
-          paymentReference: Array.isArray(transaction.paymentReference)
-            ? (transaction.paymentReference as PaymentReference[])
-            : transaction.paymentReference
-            ? [transaction.paymentReference as PaymentReference]
-            : null,
+          paymentReference:
+            transaction.paymentReference &&
+            typeof transaction.paymentReference === "object"
+              ? (transaction.paymentReference as PaymentReference)
+              : null,
           tickets: transaction.tickets || [],
           bus: firstTicket?.bus || null,
           sourceCity: firstTicket?.sourceCity || null,
