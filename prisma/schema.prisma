@@ -133,7 +133,7 @@ model Busses {
   busID        String
   registration String
   capacity     Int
-  class        BusClass
+  busClass     BusClass
   homeBase     String
   driverName   String
   comments     String

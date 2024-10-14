@@ -154,7 +154,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
 
   useEffect(() => {
     handleData();
-  }, []);
+  }, [discount]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

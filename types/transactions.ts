@@ -67,12 +67,12 @@ export type carmaDetails = {
 export type TransactionsType = {
   transactions: Transactions;
   customer?: Customers | null;
-  paymentReference?: PaymentReference | null;
+  paymentReference?: PaymentReference | PaymentReference[] | null;
   tickets?: Tickets[] | null;
   bus?: Busses | null;
   sourceCity?: Cities | null;
   arrivalCity?: Cities | null;
-  carmaDetails?: carmaDetails | null;
+  carmaDetails?: carmaDetails[] | null;
 };
 
 export type TransactionReturn = {

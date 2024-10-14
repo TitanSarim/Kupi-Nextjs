@@ -92,13 +92,13 @@ const VerificationCodeForm = ({
 
     setResendLoading(true);
     setCanResend(false);
-    setTimer(40);
+    setTimer(120);
 
     const response = await sendVerificationCode(
       email,
       type as VerificationType
     );
-
+    console.log("response", response);
     if (response === true) {
       setIsSuccess(true); // Set success state for resend
       setMessage("Verification code resent successfully.");

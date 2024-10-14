@@ -667,7 +667,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                     </span>
                   ))}
 
-                  {numbers.length < 7 && (
+                  {numbers.length < 6 && (
                     <div className="relative w-[200px]">
                       <Input
                         type="text"
@@ -1076,28 +1076,29 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                       </button>
                     </span>
                   ))}
-
-                  <div className="relative w-[200px]">
-                    <Input
-                      type="text"
-                      placeholder="Add Whatsapp Numbers"
-                      className="outline-none border-none w-full"
-                      value={numberInput}
-                      onChange={handleNumberChange}
-                      onKeyDown={handleNumberKeyPress}
-                    />
-                    {numberInput.length > 0 && (
-                      <button
-                        className="showrittenemail mt-2"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddNumber();
-                        }}
-                      >
-                        {numberInput}
-                      </button>
-                    )}
-                  </div>
+                  {numbers.length <= 6 && (
+                    <div className="relative w-[200px]">
+                      <Input
+                        type="text"
+                        placeholder="Add Whatsapp Numbers"
+                        className="outline-none border-none w-full"
+                        value={numberInput}
+                        onChange={handleNumberChange}
+                        onKeyDown={handleNumberKeyPress}
+                      />
+                      {numberInput.length > 0 && (
+                        <button
+                          className="showrittenemail mt-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAddNumber();
+                          }}
+                        >
+                          {numberInput}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="w-full flex  flex-row items-end justify-end gap-5">

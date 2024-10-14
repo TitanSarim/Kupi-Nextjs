@@ -146,7 +146,14 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => {
-        return <span>{row.original.transactions.paymentPeriod}</span>;
+        return (
+          <span>
+            {row.original.transactions.paymentPeriod &&
+            row.original.transactions.paymentPeriod > 1
+              ? `${row.original.transactions.paymentPeriod} Days`
+              : `${row.original.transactions.paymentPeriod} Day`}
+          </span>
+        );
       },
     },
     {

@@ -12,6 +12,7 @@ const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {
   const [selectedView, setSelectedView] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleMaintainace = (event: React.ChangeEvent<HTMLInputElement>) => {
     const toggle = event.target.checked;
@@ -26,6 +27,14 @@ const TransactionClient: React.FC<ClientInterface> = ({ operators }) => {
   const handleAddTransaction = () => {
     setShowAddDialog(false);
   };
+
+  useEffect(() => {
+    if (pathname === "/app/transactions/transactions") {
+      setSelectedView(false);
+    } else {
+      setSelectedView(true);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const storedValue = localStorage.getItem("manualTransaction");

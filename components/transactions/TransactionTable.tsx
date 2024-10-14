@@ -23,7 +23,6 @@ import TableComponent from "../Table/Table";
 const TransactionTable: React.FC<TransactionReturn> = ({
   transactionData,
   paginationData,
-  cities,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,6 +39,8 @@ const TransactionTable: React.FC<TransactionReturn> = ({
   const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(
     null
   );
+
+  console.log("transactionData", transactionData);
 
   const handleShowDetail = (id: string) => {
     const transaction =
@@ -155,16 +156,36 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Operator One
+          <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => {
-        const customerName =
-          row.original.carmaDetails?.selectedAvailability.carrier || "";
+        const operator1 =
+          row.original.carmaDetails?.[0]?.selectedAvailability?.carrier || "";
         const limitedName =
-          customerName.length > 9
-            ? `${customerName.slice(0, 9)}...`
-            : customerName;
+          operator1.length > 9 ? `${operator1.slice(0, 9)}...` : operator1;
+
+        return <span className="uppercase">{limitedName}</span>;
+      },
+    },
+    {
+      maxSize: 70,
+      minSize: 70,
+      accessorKey: "operator2",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Operator Two
+          <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => {
+        const operator2 =
+          row.original.carmaDetails?.[1]?.selectedAvailability?.carrier || "";
+        const limitedName =
+          operator2.length > 9 ? `${operator2.slice(0, 9)}...` : operator2;
 
         return <span className="uppercase">{limitedName}</span>;
       },
@@ -177,7 +198,7 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Payment Method <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          PM <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
       cell: ({ row }) => {
@@ -253,9 +274,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         transaction.tickets?.map((ticket) => ticket.ticketId).join(", ") ||
         "N/A",
       Customer: transaction.customer?.name || "N/A",
-      PaymentMethod: transaction.paymentReference?.providerName || "N/A",
-      Amount: transaction.transactions?.totalAmount || "N/A",
-      Status: transaction.paymentReference?.status || "N/A",
       Date: transaction.transactions?.paidAt
         ? new Date(transaction.transactions.paidAt).toLocaleString("en-US", {
             day: "2-digit",

@@ -254,7 +254,6 @@ const SignupForm = () => {
                 errors.description ? "border-red-500" : "border-gray-900"
               } text-dark-grey text-sm focus:ring-blue-500 focus:border-yellow-500 block w-full outline-none`}
               placeholder="Type something about your company for customers to see"
-              required
               disabled={loading}
             ></textarea>
             <ErrorMessage message={submitted ? errors.description : ""} />
@@ -264,9 +263,23 @@ const SignupForm = () => {
         <button
           type="submit"
           className={`${
-            loading ? "opacity-50" : ""
+            loading ||
+            formData.description.length < 1 ||
+            formData.password.length < 1 ||
+            formData.surname.length < 1 ||
+            formData.name.length < 1 ||
+            formData.number.length < 1
+              ? "opacity-50"
+              : ""
           } bg-kupi-yellow px-8 py-3 rounded-lg w-full text-dark-grey text-md font-semibold mt-10`}
-          disabled={loading}
+          disabled={
+            loading ||
+            formData.description.length < 1 ||
+            formData.password.length < 1 ||
+            formData.surname.length < 1 ||
+            formData.name.length < 1 ||
+            formData.number.length < 1
+          }
         >
           {loading ? "Please Wait..." : "Create Account"}
         </button>

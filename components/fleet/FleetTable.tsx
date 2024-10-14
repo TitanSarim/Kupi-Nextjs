@@ -11,8 +11,7 @@ import {
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { TicketsDataType, TicketsReturn } from "@/types/ticket";
-import TicketDetailDialgue from "./TicketDetailDialgue";
+// import TicketDetailDialgue from "./TicketDetailDialgue";
 import TableComponent from "../Table/Table";
 import {
   DropdownMenu,
@@ -21,11 +20,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
+import { Busses } from "@prisma/client";
+import { PaginationData } from "@/types/fleet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import UpdateBus from "./UpdateBus";
 
-const TicketTable: React.FC<TicketsReturn> = ({
-  ticketData,
-  paginationData,
-}) => {
+interface fleetOptions {
+  busses: Busses[];
+  paginationData: PaginationData;
+}
+
+const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -34,27 +44,14 @@ const TicketTable: React.FC<TicketsReturn> = ({
     pageIndex: 0,
     pageSize: paginationData.pageSize,
   });
-  const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(
-    null
-  );
+  const [selectedBus, setSelectedBus] = useState<Busses | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
 
   const handleShowDetail = (id: string) => {
-    const ticket = ticketData.find((t) => t.tickets.id === id) || null;
-    setSelectedTicket(ticket);
+    const bus = busses.find((b) => b.id === id) || null;
+    setSelectedBus(bus);
     setDialogOpen(true);
-  };
-
-  const handleDownloadPdf = async (id: string) => {
-    try {
-      const response = `https://1921mideab.execute-api.us-east-1.amazonaws.com/getTicket?id=${id}`;
-      if (response) {
-        window.open(response, "_blank");
-      }
-    } catch (error) {
-      console.error(error);
-    }
   };
 
   const handleCloseDialog = () => {
@@ -88,112 +85,90 @@ const TicketTable: React.FC<TicketsReturn> = ({
   }, [pagination, updateUrl]);
 
   // Table initialization
-  const columns: ColumnDef<TicketsDataType>[] = [
+  const columns: ColumnDef<Busses>[] = [
     {
-      accessorKey: "reservedAt",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Date <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
-      cell: ({ row }) => (
-        <div>
-          {row.original?.tickets.reservedAt?.toLocaleTimeString("en-US", {
-            timeZone: "UTC",
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hourCycle: "h23",
-          })}
-        </div>
-      ),
+      accessorKey: "#",
+      header: ({ column }) => <div>#</div>,
+      cell: ({ row }) => <div>{row.index}</div>,
     },
     {
-      accessorKey: "ticketId",
+      accessorKey: "busID",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Ticket ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Bus Number <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <div>
-          <span>{row.original.tickets.ticketId}</span>
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.original.busID}</div>,
     },
     {
-      accessorKey: "CustomerName",
+      accessorKey: "driverName",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Customer Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Driver Name <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <span>{row.original.customer?.name}</span>,
+      cell: ({ row }) => <span>{row.original.driverName}</span>,
     },
     {
-      accessorKey: "sourceCity",
+      accessorKey: "registration",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Locations <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Bus Registration <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <div>
-          <div>
-            <span className="midGray-text">Departure:</span>{" "}
-            {row.original.sourceCity.name}
-          </div>
-          <div>
-            <span className="midGray-text">Arrival:</span>{" "}
-            {row.original.arrivalCity.name}
-          </div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const registrationNum = row.original.registration || "";
+        const limitedNum =
+          registrationNum.length > 9
+            ? `${registrationNum.slice(0, 9)}...`
+            : registrationNum;
+        return (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                }}
+              >
+                {limitedNum}
+              </TooltipTrigger>
+              <TooltipContent className="bg-white border-2 px-2 py-2">
+                {row.original.registration}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        );
+      },
     },
     {
-      accessorKey: "status",
+      accessorKey: "capacity",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Status <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Bus Capacity <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <div>
-          {row.original.tickets.status === "CONFIRMED" ? (
-            <p className="text-green-600">Confirmed</p>
-          ) : row.original.tickets.status === "CANCELED" ? (
-            <p className="text-orange-500">Canceled</p>
-          ) : (
-            <p className="text-kupi-yellow">{row.original.tickets.status}</p>
-          )}
-        </div>
-      ),
+      cell: ({ row }) => <div>{row.original.capacity}</div>,
     },
 
     {
-      accessorKey: "totalPrice",
+      accessorKey: "class",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Price <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Bus Class <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => (
-        <div>${row.original.tickets.priceDetails.totalPrice}</div>
-      ),
+      cell: ({ row }) => <div>{row.original.busClass}</div>,
     },
     {
       accessorKey: "action",
@@ -217,19 +192,11 @@ const TicketTable: React.FC<TicketsReturn> = ({
             <DropdownMenuContent className="w-40  px-5 py-2">
               <button
                 onClick={() => {
-                  handleShowDetail(row.original.tickets.id);
+                  handleShowDetail(row.original.id);
                 }}
-                className="w-full text-left py-1"
+                className="w-full text-left py-1 text-sm"
               >
-                View
-              </button>
-              <DropdownMenuSeparator />
-              <button
-                className="w-full text-left py-1"
-                onClick={() => handleDownloadPdf(row.original.tickets.id)}
-              >
-                {" "}
-                PDF Download
+                Edit
               </button>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -240,7 +207,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
   ];
 
   const table = useReactTable({
-    data: ticketData,
+    data: busses,
     columns,
     state: { sorting, pagination },
     onSortingChange: setSorting,
@@ -262,14 +229,14 @@ const TicketTable: React.FC<TicketsReturn> = ({
 
       {/* Dialogue */}
       <div className="w-full">
-        <TicketDetailDialgue
+        <UpdateBus
           open={dialogOpen}
           onClose={handleCloseDialog}
-          TicketData={selectedTicket}
+          busData={selectedBus}
         />
       </div>
     </div>
   );
 };
 
-export default TicketTable;
+export default FleetTable;

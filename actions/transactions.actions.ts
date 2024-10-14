@@ -162,32 +162,32 @@ export async function getAllTransactions(searchParams: {
     const wrappedTransactionData: TransactionsType[] = transactionData.map(
       (transaction) => {
         const firstTicket = transaction.tickets[0];
-        const carmaDetails =
-          firstTicket?.carmaDetails?.selectedAvailability &&
-          typeof firstTicket.carmaDetails.selectedAvailability === "object" &&
-          "id" in firstTicket.carmaDetails.selectedAvailability &&
-          typeof firstTicket.carmaDetails.selectedAvailability.id ===
-            "string" &&
-          "carrier" in firstTicket.carmaDetails.selectedAvailability &&
-          typeof firstTicket.carmaDetails.selectedAvailability.carrier ===
-            "string"
-            ? {
-                selectedAvailability: {
-                  id: firstTicket.carmaDetails.selectedAvailability.id,
-                  carrier:
-                    firstTicket.carmaDetails.selectedAvailability.carrier,
-                },
-              }
-            : null;
+        const carmaDetails = transaction.tickets
+          .map((ticket) =>
+            ticket?.carmaDetails?.selectedAvailability &&
+            typeof ticket.carmaDetails.selectedAvailability === "object" &&
+            "id" in ticket.carmaDetails.selectedAvailability &&
+            typeof ticket.carmaDetails.selectedAvailability.id === "string" &&
+            "carrier" in ticket.carmaDetails.selectedAvailability &&
+            typeof ticket.carmaDetails.selectedAvailability.carrier === "string"
+              ? {
+                  selectedAvailability: {
+                    id: ticket.carmaDetails.selectedAvailability.id,
+                    carrier: ticket.carmaDetails.selectedAvailability.carrier,
+                  },
+                }
+              : null
+          )
+          .filter((detail) => detail !== null);
 
         return {
           transactions: transaction,
           customer: transaction?.customer,
-          paymentReference:
-            transaction.paymentReference &&
-            typeof transaction.paymentReference === "object"
-              ? (transaction.paymentReference as PaymentReference)
-              : null,
+          paymentReference: Array.isArray(transaction.paymentReference)
+            ? (transaction.paymentReference as PaymentReference[])
+            : transaction.paymentReference
+            ? [transaction.paymentReference as PaymentReference]
+            : null,
           tickets: transaction.tickets || [],
           bus: firstTicket?.bus || null,
           sourceCity: firstTicket?.sourceCity || null,

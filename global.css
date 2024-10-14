@@ -432,6 +432,10 @@ input:checked+.slider-live:before {
 .select-dropdown_bus_operator {
     width: 600px !important;
   }
+  .tickettableclass {
+    min-height: max-content;
+    max-height: 80vh;
+  }
 }
 
 @media screen and (max-height: 900px) {
@@ -475,7 +479,7 @@ input:checked+.slider-live:before {
   }
 
   .tickettableclass{
-    min-height: 80vh;
+    min-height: max-content;
     max-height: 80vh;
   }
 }

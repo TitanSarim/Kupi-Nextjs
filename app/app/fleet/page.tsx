@@ -1,18 +1,25 @@
-import { auth } from '@/auth'
-import Loading from '@/components/Loading'
-import NavBar from '@/components/NavBar'
-import SideBar from '@/components/SideBar'
-import { redirect } from 'next/navigation'
-import React, { Suspense } from 'react'
+import { getAllFleet } from "@/actions/fleet.actions";
+import FleetList from "@/components/fleet/FleetList";
+import { BusQuery } from "@/types/fleet";
+import React, { Suspense } from "react";
 
-const Fleet = async () => {
-
+const Fleet = async ({
+  searchParams,
+}: {
+  searchParams: BusQuery["searchParams"];
+}) => {
+  const busses = await getAllFleet(searchParams);
 
   return (
-    <div className="bg-page-backgound h-screen w-full">
-      <p>Fleet</p>
+    <div className="bg-page-backgound flex items-start justify-center h-full mb-12 w-full">
+      <div className="w-11/12">
+        <FleetList
+          busses={busses?.bussData}
+          paginationData={busses?.paginationData}
+        />
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default Fleet
+export default Fleet;

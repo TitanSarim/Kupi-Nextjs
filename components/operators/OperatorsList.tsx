@@ -40,8 +40,6 @@ const OperatorsList: React.FC<OperatorsData> = ({
   const router = useRouter();
   const params = new URLSearchParams();
 
-  console.log(source.length);
-
   const updateSearchParams = () => {
     if (source !== "All" && source.length > 1) {
       params.set("source", source);
@@ -82,21 +80,21 @@ const OperatorsList: React.FC<OperatorsData> = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-40  px-2 py-2">
                 <button
-                  className="w-full text-left py-1 px-2 outline-none border-none"
+                  className="w-full text-left py-1 px-2 outline-none border-none text-xs"
                   onClick={() => setSource("All")}
                 >
                   All
                 </button>
                 <DropdownMenuSeparator />
                 <button
-                  className="w-full text-left py-1 px-2"
+                  className="w-full text-left py-1 px-2 text-xs"
                   onClick={() => setSource("KUPI")}
                 >
                   KUPI
                 </button>
                 <DropdownMenuSeparator />
                 <button
-                  className="w-full text-left py-1 px-2"
+                  className="w-full text-left py-1 px-2 text-xs"
                   onClick={() => setSource("CARMA")}
                 >
                   CARMA
