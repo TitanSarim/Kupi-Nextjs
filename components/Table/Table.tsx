@@ -40,7 +40,9 @@ interface TableComponentProps<TData extends RowData> {
     getHeaderGroups: () => HeaderGroup<TData>[];
     getRowModel: () => RowModel<TData>;
   };
-  handleDownload?: () => void;
+  exportCarmaCSV?: () => void;
+  handleDownloadExcel?: () => void;
+  handleTicketExcel?: () => void;
 }
 
 const TableComponent = <TData extends RowData>({
@@ -48,7 +50,9 @@ const TableComponent = <TData extends RowData>({
   setPagination,
   tableData,
   pagination,
-  handleDownload,
+  handleDownloadExcel,
+  exportCarmaCSV,
+  handleTicketExcel,
 }: TableComponentProps<TData>) => {
   const { pageSize } = pagination;
 
@@ -131,7 +135,9 @@ const TableComponent = <TData extends RowData>({
           paginationData={paginationData}
           pagination={pagination}
           setPagination={setPagination}
-          handleDownload={handleDownload}
+          handleDownloadExcel={handleDownloadExcel}
+          exportCarmaCSV={exportCarmaCSV}
+          handleTicketExcel={handleTicketExcel}
         />
       </div>
     </div>

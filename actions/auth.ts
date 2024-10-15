@@ -13,8 +13,8 @@ export const login = async (provider: string) => {
 
 export const logout = async () => {
   try {
-    await signOut({ redirectTo: "/login" });
-    revalidatePath("/login");
+    await signOut({ redirectTo: "/" });
+    revalidatePath("/");
   } catch (error) {
     console.error("Error during logout:", error);
     throw new Error("Logout failed. Please try again.");

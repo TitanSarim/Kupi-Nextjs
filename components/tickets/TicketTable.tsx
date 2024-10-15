@@ -219,13 +219,13 @@ const TicketTable: React.FC<TicketsReturn> = ({
                 onClick={() => {
                   handleShowDetail(row.original.tickets.id);
                 }}
-                className="w-full text-left py-1"
+                className="w-full text-left py-1 text-sm"
               >
                 View
               </button>
               <DropdownMenuSeparator />
               <button
-                className="w-full text-left py-1"
+                className="w-full text-left py-1 text-sm"
                 onClick={() => handleDownloadPdf(row.original.tickets.id)}
               >
                 {" "}

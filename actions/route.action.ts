@@ -2,10 +2,19 @@
 import { db } from "@/db";
 import { auth } from "@/auth";
 import { RouteActionReturn, RouteDataType } from "@/types/route";
-import { Routes, DAYS } from "@prisma/client";
+import { Routes, DAYS, Operators } from "@prisma/client";
 import { RolesEnum } from "@/types/auth";
 
-export async function getAllRoutes(searchParams?: any) {
+export async function getAllRoutes(searchParams?: {
+  busNumber?: string;
+  carrier?: string;
+  departureCity?: string;
+  arrivalCity?: string;
+  onlyPending?: boolean;
+  sort?: string;
+  pageIndex?: number;
+  pageSize?: number;
+}) {
   try {
     const session = await auth();
     if (!session || !session.userId) {
@@ -66,19 +75,24 @@ export async function getAllRoutes(searchParams?: any) {
       const [field, order] = sort.split("_");
       const sortDirection = order === "asc" ? "asc" : "desc";
 
+      // Apply sorting based on the selected field
       if (field === "busIdentifier") {
         sortOrder.push({ bus: { name: sortDirection } });
+      } else if (field === "routeLocation") {
+        sortOrder.push({ departureCity: sortDirection });
+        sortOrder.push({ arrivalCity: sortDirection });
       } else if (field === "departureCity" || field === "arrivalCity") {
         sortOrder.push({ [field]: sortDirection });
       } else if (field === "type" || field === "status") {
         sortOrder.push({ [field]: sortDirection });
-      } else if (field === "departureTime" || field === "arrivalTime") {
-        sortOrder.push({ [field]: sortDirection });
+      } else if (field === "timings") {
+        sortOrder.push({ departureTime: sortDirection });
+        sortOrder.push({ arrivalTime: sortDirection });
       } else {
         sortOrder.push({ departureTime: "desc" });
       }
     } else {
-      sortOrder.push({ departureTime: "desc" });
+      sortOrder.push({ createdAt: "desc" });
     }
 
     // Fetch routes with filters
@@ -92,27 +106,65 @@ export async function getAllRoutes(searchParams?: any) {
       take,
     });
 
-    const formattedRoutes: RouteDataType[] = routes.map((route) => ({
-      ...route,
-      busIdentifier: route.bus?.name || "Unknown Bus",
-      pricing: {
-        amountUSD:
-          typeof route.pricing.amountUSD === "number"
-            ? route.pricing.amountUSD
-            : 0,
-        pricingData: route.pricing.pricingData || {},
-      },
-      stops: route.stops.map((stop) => ({
-        ...stop,
-        arrivalTime: stop.arrivalTime,
-        departureTime: stop.departureTime,
-      })),
-    }));
+    // Fetch operator names using operatorIds
+    const routeWithOperators = await Promise.all(
+      routes.map(async (route) => {
+        if (route.operatorIds && route.operatorIds.length > 0) {
+          // Fetch operators using the operatorIds
+          const operators = await db.operators.findMany({
+            where: { id: { in: route.operatorIds } }, // Fetching operator names using operatorIds
+            select: { name: true },
+          });
+
+          // Map operator names
+          const operatorNames = operators
+            .map((operator) => operator.name)
+            .join(", ");
+          return {
+            ...route,
+            busIdentifier: route.bus?.name || "Unknown Bus",
+            operatorName: operatorNames || "Unknown",
+            pricing: {
+              amountUSD:
+                typeof route.pricing.amountUSD === "number"
+                  ? route.pricing.amountUSD
+                  : 0,
+              pricingData: route.pricing.pricingData || {},
+            },
+            stops: route.stops.map((stop) => ({
+              ...stop,
+              arrivalTime: stop.arrivalTime,
+              departureTime: stop.departureTime,
+            })),
+            isLive: route.isLive,
+          };
+        } else {
+          return {
+            ...route,
+            busIdentifier: route.bus?.name || "Unknown Bus",
+            operatorName: "Unknown", // Default to "Unknown" if no operatorIds
+            pricing: {
+              amountUSD:
+                typeof route.pricing.amountUSD === "number"
+                  ? route.pricing.amountUSD
+                  : 0,
+              pricingData: route.pricing.pricingData || {},
+            },
+            stops: route.stops.map((stop) => ({
+              ...stop,
+              arrivalTime: stop.arrivalTime,
+              departureTime: stop.departureTime,
+            })),
+            isLive: route.isLive,
+          };
+        }
+      })
+    );
 
     const totalCount = await db.routes.count({ where: filterConditions });
 
     return {
-      routeData: formattedRoutes,
+      routeData: routeWithOperators,
       paginationData: {
         totalCount,
         pageSize: pageSizeNumber,
@@ -202,8 +254,6 @@ export async function updateRoute(
     // Use the operatorId from the session
     const operatorIds = session.operatorId ? [session.operatorId] : [];
 
-    const { departureCity, arrivalCity } = routeData;
-
     // Sanitize locations and pricing data
     const sanitizedDepartureLocation = { ...routeData.departureLocation };
     const sanitizedArrivalLocation = { ...routeData.arrivalLocation };
@@ -224,6 +274,17 @@ export async function updateRoute(
       delete sanitizedPricing.arrivalLocation.cityName;
     }
 
+    // Fetch the city names from the Cities table using cityId
+    const departureCity = await db.cities.findUnique({
+      where: { id: routeData.departureLocation.cityId },
+      select: { name: true },
+    });
+
+    const arrivalCity = await db.cities.findUnique({
+      where: { id: routeData.arrivalLocation.cityId },
+      select: { name: true },
+    });
+
     // Perform the update operation
     const updatedRoute = await db.routes.update({
       where: { id: routeId },
@@ -236,8 +297,8 @@ export async function updateRoute(
         arrivalLocation: {
           set: sanitizedArrivalLocation,
         },
-        departureCity,
-        arrivalCity,
+        departureCity: departureCity?.name ?? routeData.departureCity,
+        arrivalCity: arrivalCity?.name ?? routeData.arrivalCity,
         departureTime: routeData.departureTime,
         arrivalTime: routeData.arrivalTime,
         stops: routeData.stops.map((stop: any) => ({
@@ -304,9 +365,22 @@ export async function getRouteById(
       return null;
     }
 
+    // Fetch operator names using operatorIds
+    const operators =
+      route.operatorIds && route.operatorIds.length > 0
+        ? await db.operators.findMany({
+            where: { id: { in: route.operatorIds } },
+            select: { name: true },
+          })
+        : [];
+
+    const operatorNames =
+      operators.map((operator) => operator.name).join(", ") || "Unknown";
+
     const formattedRoute: RouteDataType = {
       ...route,
       busIdentifier: route.bus?.name || "Unknown Bus",
+      operatorName: operatorNames,
       pricing: {
         amountUSD:
           typeof route.pricing.amountUSD === "number"
@@ -323,6 +397,28 @@ export async function getRouteById(
 
     return formattedRoute;
   } catch (error) {
+    return null;
+  }
+}
+
+export async function updateRouteLiveStatus(
+  routeId: string,
+  isLive: boolean
+): Promise<Routes | null> {
+  try {
+    const session = await auth();
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const updatedRoute = await db.routes.update({
+      where: { id: routeId },
+      data: { isLive },
+    });
+
+    return updatedRoute;
+  } catch (error) {
+    console.error("Failed to update isLive status:", error);
     return null;
   }
 }

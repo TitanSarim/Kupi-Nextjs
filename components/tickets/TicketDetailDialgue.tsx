@@ -221,7 +221,11 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                 >
                   <div className="w-5/12">
                     <p className="text-gray-600 font-light">Name</p>
-                    <span className="whitespace-nowrap">{passenger.name}</span>
+                    <span className="whitespace-nowrap">
+                      {passenger.name.length > 11
+                        ? `${passenger.name.substring(0, 11)}...`
+                        : passenger.name}
+                    </span>
                   </div>
                   <div className="w-5/12">
                     <p className="text-gray-600 font-light">Passport</p>

@@ -1,8 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
-import { useRouter } from "next/navigation";
-import { TransactionReturn } from "@/types/transactions";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  TransactionReturn,
+  TransactionReturnWithDateRange,
+} from "@/types/transactions";
 import Datepicker from "react-tailwindcss-datepicker";
 import TransactionTable from "./TransactionTable";
 import {
@@ -22,10 +25,12 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 
-const TransactionList: React.FC<TransactionReturn> = ({
+const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
   transactionData,
   paginationData,
   cities,
+  dateRange,
+  allTransactionData,
 }) => {
   const NEXT_MONTH = new Date();
   NEXT_MONTH.setMonth(NEXT_MONTH.getMonth() + 1);
@@ -43,32 +48,35 @@ const TransactionList: React.FC<TransactionReturn> = ({
   });
 
   const router = useRouter();
-  const params = new URLSearchParams();
-
+  const searchParams = useSearchParams();
   const updateSearchParams = () => {
-    if (busOperator) params.set("carrier", busOperator);
-    if (destinationCity !== "clear") {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (busOperator) {
+      params.set("carrier", busOperator);
+    } else {
+      params.delete("carrier");
+    }
+    if (destinationCity) {
       params.set("destinationCity", destinationCity);
     } else {
-      setDestinationCity("");
+      params.delete("destinationCity");
     }
-    if (arrivalCity !== "clear") {
+    if (arrivalCity) {
       params.set("arrivalCity", arrivalCity);
     } else {
-      setArrivalCity("");
+      params.delete("arrivalCity");
     }
-    if (value.startDate)
+    if (value.startDate) {
       params.set("startDate", value.startDate.getTime().toString());
-    if (value.endDate)
+    } else {
+      params.delete("startDate");
+    }
+    if (value.endDate) {
       params.set("endDate", value.endDate.getTime().toString());
-    router.push(`?${params.toString()}`, { scroll: false });
-  };
-
-  const updateSearchDateParams = () => {
-    if (value.startDate)
-      params.set("startDate", value.startDate.getTime().toString());
-    if (value.endDate)
-      params.set("endDate", value.endDate.getTime().toString());
+    } else {
+      params.delete("endDate");
+    }
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -83,10 +91,10 @@ const TransactionList: React.FC<TransactionReturn> = ({
         startDate: null,
         endDate: null,
       });
-    } else if (newValue.startDate && newValue.endDate) {
+    } else {
       setValue({
-        startDate: new Date(newValue.startDate),
-        endDate: new Date(newValue.endDate),
+        startDate: newValue.startDate,
+        endDate: newValue.endDate,
       });
     }
   };
@@ -109,7 +117,7 @@ const TransactionList: React.FC<TransactionReturn> = ({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      updateSearchDateParams();
+      updateSearchParams();
     }, 200);
 
     return () => {
@@ -287,6 +295,8 @@ const TransactionList: React.FC<TransactionReturn> = ({
         transactionData={transactionData}
         paginationData={paginationData}
         cities={cities}
+        dateRange={value}
+        allTransactionData={allTransactionData}
       />
     </div>
   );

@@ -137,6 +137,7 @@ model Busses {
   homeBase     String
   driverName   String
   comments     String
+  isLive       Boolean   @default(true)
   Routes       Routes[]
 }
 
@@ -158,6 +159,8 @@ model Routes {
   status            String
   departureCity     String
   arrivalCity       String
+  isLive            Boolean      @default(false)
+  createdAt         DateTime?    @default(now())
 }
 
 model Transactions {

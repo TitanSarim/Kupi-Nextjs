@@ -17,6 +17,8 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
 }) => {
   if (!open) return null;
 
+  console.log("TransactionData", TransactionData);
+
   const carmaProfit =
     TransactionData?.tickets && TransactionData.tickets.length > 0
       ? TransactionData.tickets.reduce((total, ticket) => {
@@ -79,10 +81,11 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
 
         <div className="flex flex-col gap-1 inner-transaction_dialguebox">
           <div className="relative bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
-            {TransactionData?.paymentReference?.status ===
-              TransactionStatus.Paid && (
-              <p className="transaction-paid">Paid</p>
-            )}
+            {Array.isArray(TransactionData?.paymentReference) &&
+              TransactionData.paymentReference[0]?.status ===
+                TransactionStatus.Paid && (
+                <p className="transaction-paid">Paid</p>
+              )}
             <p className="text-black font-semibold text-md">
               Customer Information
             </p>

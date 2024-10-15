@@ -288,7 +288,7 @@ const SignupForm = () => {
       <div className="flex justify-center mt-5">
         <label className="text-dark-grey text-md font-semibold text-center">
           Already have an account?{" "}
-          <Link href="/login">
+          <Link href="/">
             <span className="text-kupi-yellow cursor-pointer">Login</span>
           </Link>
         </label>

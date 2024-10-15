@@ -106,7 +106,7 @@ export async function getAllFleet(searchParams: {
         field === "driverName" ||
         field === "registration" ||
         field === "capacity" ||
-        field === "class"
+        field === "busClass"
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
       }
@@ -173,7 +173,6 @@ export async function updateBus(
       },
     });
 
-    console.log("bus", bus);
     if (!bus) {
       return null;
     }
@@ -181,6 +180,37 @@ export async function updateBus(
     return true;
   } catch (error) {
     console.error("Error creating bus:", error);
+    return null;
+  }
+}
+
+export async function updateBusStatus(
+  id: string,
+  status: boolean
+): Promise<true | null> {
+  try {
+    const session = await auth();
+
+    if (!session || !session.userId) {
+      return null;
+    }
+
+    const Busses = await db.busses.update({
+      where: {
+        id: id,
+      },
+      data: {
+        isLive: status,
+      },
+    });
+    if (!Busses) {
+      return null;
+    }
+
+    revalidatePath("/app/fleet");
+    return true;
+  } catch (error) {
+    console.error(error);
     return null;
   }
 }

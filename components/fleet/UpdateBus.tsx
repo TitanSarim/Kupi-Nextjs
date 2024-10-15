@@ -195,7 +195,6 @@ const UpdateBus: React.FC<DialogProps> = ({ open, onClose, busData }) => {
     setErrorState(null);
     try {
       const response = await updateBus(formData, id);
-      console.log("response", response);
       if (response === true) {
         toast.success("Bus updated successfully");
       }

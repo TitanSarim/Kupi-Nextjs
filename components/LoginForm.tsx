@@ -103,8 +103,11 @@ const LoginForm: React.FC = () => {
         {loading ? "Please Wait..." : "Login"}
       </button>
 
-      {error && (
-        <ErrorMessage message="Incorrect email or password, please try again." />
+      {error === "suspended" && error !== null ? (
+        <ErrorMessage message="Your account has been suspended." />
+      ) : (
+        error !== "suspended" &&
+        error !== null && <ErrorMessage message="Invalid Email or Password." />
       )}
     </form>
   );

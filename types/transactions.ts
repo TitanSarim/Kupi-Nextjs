@@ -61,27 +61,47 @@ export type carmaDetails = {
   selectedAvailability: {
     id: string;
     carrier: string;
+    serviceNumber?: string;
+    departureDatetime?: string;
+    arrivalDatetime?: string;
+    departureTime?: string;
+    arrivalTime?: string;
+    price?: number;
+    priceWithMarkup?: number;
+    availableSeats?: string;
+    boardDescription?: string;
+    destinationDescription?: string;
+    STBoard?: string;
+    STDest?: string;
+    STCarrier?: string;
   };
 };
 
 export type TransactionsType = {
   transactions: Transactions;
   customer?: Customers | null;
-  paymentReference?: PaymentReference | null;
+  paymentReference?: PaymentReference | PaymentReference[] | null;
   tickets?: Tickets[] | null;
   bus?: Busses | null;
   sourceCity?: Cities | null;
   arrivalCity?: Cities | null;
-  carmaDetails?: carmaDetails[] | null;
+  carmaDetails?: carmaDetails | carmaDetails[] | null;
 };
 
 export type TransactionReturn = {
   transactionData: TransactionsType[];
+  allTransactionData: TransactionsType[];
   cities: Cities[];
   paginationData: {
     totalCount: number;
     pageSize: number;
     pageIndex: number;
+  };
+};
+export type TransactionReturnWithDateRange = TransactionReturn & {
+  dateRange: {
+    startDate: Date | null;
+    endDate: Date | null;
   };
 };
 
@@ -204,3 +224,21 @@ export type OperatorsType = {
   source?: TicketSources;
   isLive?: boolean;
 };
+
+interface SelectedAvailability {
+  id: string;
+  carrier: string;
+  serviceNumber: string;
+  departureDatetime: string;
+  arrivalDatetime: string;
+  departureTime: string;
+  arrivalTime: string;
+  price: string;
+  priceWithMarkup: string;
+  availableSeats: string;
+  boardDescription: string;
+  destinationDescription: string;
+  STBoard: string;
+  STDest: string;
+  STCarrier: string;
+}

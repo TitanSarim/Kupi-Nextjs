@@ -26,7 +26,7 @@ export const isAlphabetic = (value: string): boolean => {
 
 // Validate WhatsApp number format
 export const validateWhatsAppNumber = (number: string): boolean => {
-  const numberRegex = /^\+?[0-9]{1,15}$/;
+  const numberRegex = /^\+?[0-9]{9,15}$/;
   return numberRegex.test(number);
 };
 

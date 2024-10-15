@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
@@ -78,27 +79,32 @@ const OperatorsList: React.FC<OperatorsData> = ({
                   View Source
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-40  px-2 py-2">
-                <button
+
+              <DropdownMenuContent className="w-40 px-2 py-2">
+                <DropdownMenuItem
                   className="w-full text-left py-1 px-2 outline-none border-none text-xs"
-                  onClick={() => setSource("All")}
+                  onSelect={() => setSource("All")}
                 >
                   All
-                </button>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
-                <button
+
+                <DropdownMenuItem
                   className="w-full text-left py-1 px-2 text-xs"
-                  onClick={() => setSource("KUPI")}
+                  onSelect={() => setSource("KUPI")}
                 >
                   KUPI
-                </button>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
-                <button
+
+                <DropdownMenuItem
                   className="w-full text-left py-1 px-2 text-xs"
-                  onClick={() => setSource("CARMA")}
+                  onSelect={() => setSource("CARMA")}
                 >
                   CARMA
-                </button>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <button

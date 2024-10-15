@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,14 @@ import {
 } from "@/components/ui/tooltip";
 import Image from "next/image";
 import AddLocation from "@/components/route/AddLocation";
-import { Cities, Location, Busses, DAYS, RouteType } from "@prisma/client";
+import {
+  Cities,
+  Location,
+  Busses,
+  DAYS,
+  RouteType,
+  Countries,
+} from "@prisma/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,12 +59,14 @@ import {
   validateTicketPrices,
   validateStops,
 } from "@/libs/ClientSideHelpers";
+import { count } from "console";
 
 interface AddRouteProps {
   cities: Cities[];
+  countries: { name: string; id: string }[] | null;
 }
 
-const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
+const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
   const [stops, setStops] = useState<
     { location: Location; arrivalTime: string; departureTime: string }[]
   >([]);
@@ -103,14 +112,6 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
 
   // Add a new stop to the schedule
   const addStop = () => {
-    const newStop = {
-      location: {} as Location,
-      arrivalTime: "",
-      departureTime: "",
-    };
-    setStops([...stops, newStop]);
-
-    // Open the modal for the new stop
     setSelectedLocationType(stops.length);
     setShowAddLocationModal(true);
   };
@@ -138,7 +139,12 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
     } else if (selectedLocationType === "arrival") {
       setArrivalLocation(location);
     } else if (typeof selectedLocationType === "number") {
-      handleStopChange(selectedLocationType, "location", location);
+      const newStop = {
+        location,
+        arrivalTime: "",
+        departureTime: "",
+      };
+      setStops([...stops, newStop]);
     }
     closeAddLocationModal();
   };
@@ -250,7 +256,12 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
       };
 
       const result = await createRoute(routeData);
-      router.push("/app/routes");
+      if (result) {
+        startTransition(() => {
+          router.refresh(); // Ensures the table re-renders with updated data
+        });
+        router.push("/app/routes");
+      }
     } catch (error) {}
   };
 
@@ -268,9 +279,24 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="route-type"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="flex text-md font-medium leading-6 text-dark-grey items-center gap-2"
               >
                 Route Type
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select either Daily or Weekly for this route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="flex flex-wrap mt-4">
                 <div className="px-4 py-2 bg-gray-100 border-gray-300 border rounded-lg mr-4">
@@ -317,9 +343,24 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="route-number"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="flex text-md font-medium leading-6 text-dark-grey gap-2"
               >
                 Route Number
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      This number is auto-generated and unique for each route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Input
@@ -339,9 +380,24 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="route-days"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="flex text-md font-medium leading-6 text-dark-grey items-center gap-2"
               >
                 Select Route Days
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Choose the days when the route will operate.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="flex flex-wrap mt-2">
                 {daysEnum.map((day) => (
@@ -365,9 +421,24 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="route-bus"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Add Route Bus
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select a bus that will be assigned to this route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Popover open={openBusPopover} onOpenChange={setOpenBusPopover}>
@@ -444,9 +515,24 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="departure-location"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Add Departure Location
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select the location where the route will start.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div
                 className="block mt-2 px-5 py-2 border border-gray-500 w-full rounded-lg cursor-pointer"
@@ -455,7 +541,11 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                 <div className="flex justify-between items-center">
                   <h4 className="text-gray-500">
                     {departureLocation
-                      ? `${departureLocation.stationName}, ${departureLocation.suburb}`
+                      ? `${departureLocation.stationName}, ${
+                          cities.find(
+                            (city) => city.id === departureLocation.cityId
+                          )?.name || ""
+                        }`
                       : "Click to add location"}
                   </h4>
                   <Button
@@ -473,9 +563,25 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="departure-time"
-                className="text-md font-medium leading-6 inline-flex text-dark-grey"
+                className="text-md font-medium leading-6 inline-flex text-dark-grey items-center gap-2"
               >
                 Select Departure Time
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Set the time when the route will start from the departure
+                      location.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Input
@@ -495,9 +601,24 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="arrival-location"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Add Arrival Location
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select the final destination for the route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div
                 className="block mt-2 px-5 py-2 border border-gray-500 w-full rounded-lg cursor-pointer"
@@ -506,7 +627,11 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                 <div className="flex justify-between items-center">
                   <h4 className="text-gray-500">
                     {arrivalLocation
-                      ? `${arrivalLocation.stationName}, ${arrivalLocation.suburb}`
+                      ? `${arrivalLocation.stationName}, ${
+                          cities.find(
+                            (city) => city.id === arrivalLocation.cityId
+                          )?.name || ""
+                        }`
                       : "Click to add location"}
                   </h4>
                   <Button
@@ -525,9 +650,25 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
             <div className="w-full">
               <label
                 htmlFor="arrival-time"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Select Arrival Time
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Set the time when the route will reach the final
+                      destination.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Input
@@ -576,7 +717,11 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                     <TableCell>
                       <h4 className="text-gray-500">
                         {stop.location.stationName
-                          ? `${stop.location.stationName}, ${stop.location.suburb}`
+                          ? `${stop.location.stationName}, ${
+                              cities.find(
+                                (city) => city.id === stop.location.cityId
+                              )?.name || ""
+                            }`
                           : "Location not set"}
                       </h4>
                     </TableCell>
@@ -605,6 +750,26 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                         className="border-gray-400 rounded-lg"
                       />
                     </TableCell>
+
+                    {/* Tooltip */}
+                    <TableCell>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Image
+                              src="/img/settings/question-icon.svg"
+                              alt="tooltip"
+                              width={20}
+                              height={20}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-white border-2 px-2 py-2">
+                            Add additional details about the stop here.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -670,6 +835,48 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                   {/* Prices from Departure Point to Stops and Arrival Point */}
                   {stops.map((_, index) => (
                     <TableCell key={`dp-${index}`}>
+                      <div className="currency-input">
+                        <Input
+                          type="number"
+                          placeholder="$0.00"
+                          className="border-gray-400 rounded-lg text-center"
+                          value={
+                            prices.find(
+                              (price) =>
+                                price.fromIndex === -1 &&
+                                price.toIndex === index
+                            )?.price || ""
+                          }
+                          onChange={(e) => {
+                            const priceValue =
+                              e.target.value !== "" &&
+                              !isNaN(parseFloat(e.target.value))
+                                ? Math.max(0, parseFloat(e.target.value)) // Prevent negative values
+                                : null;
+
+                            setPrices((prevPrices) => {
+                              const updatedPrices = prevPrices.filter(
+                                (price) =>
+                                  !(
+                                    price.fromIndex === -1 &&
+                                    price.toIndex === index
+                                  )
+                              );
+                              updatedPrices.push({
+                                fromIndex: -1,
+                                toIndex: index,
+                                price: priceValue,
+                              });
+                              return updatedPrices;
+                            });
+                          }}
+                        />
+                      </div>
+                    </TableCell>
+                  ))}
+                  {/* Price from Departure Point to Arrival Point */}
+                  <TableCell key="dp-arrival">
+                    <div className="currency-input">
                       <Input
                         type="number"
                         placeholder="$0.00"
@@ -677,69 +884,53 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                         value={
                           prices.find(
                             (price) =>
-                              price.fromIndex === -1 && price.toIndex === index
+                              price.fromIndex === -1 &&
+                              price.toIndex === stops.length
                           )?.price || ""
                         }
                         onChange={(e) => {
                           const priceValue =
                             e.target.value !== "" &&
                             !isNaN(parseFloat(e.target.value))
-                              ? parseFloat(e.target.value)
+                              ? Math.max(0, parseFloat(e.target.value)) // Prevent negative values
                               : null;
-
                           setPrices((prevPrices) => {
                             const updatedPrices = prevPrices.filter(
                               (price) =>
                                 !(
                                   price.fromIndex === -1 &&
-                                  price.toIndex === index
+                                  price.toIndex === stops.length
                                 )
                             );
                             updatedPrices.push({
-                              fromIndex: -1,
-                              toIndex: index,
+                              fromIndex: -1, // -1 represents Departure Point
+                              toIndex: stops.length, // Arrival Point index
                               price: priceValue,
                             });
                             return updatedPrices;
                           });
                         }}
                       />
-                    </TableCell>
-                  ))}
-                  {/* Price from Departure Point to Arrival Point */}
-                  <TableCell key="dp-arrival">
-                    <Input
-                      type="number"
-                      placeholder="$0.00"
-                      className="border-gray-400 rounded-lg text-center"
-                      value={
-                        prices.find(
-                          (price) =>
-                            price.fromIndex === -1 &&
-                            price.toIndex === stops.length
-                        )?.price || ""
-                      }
-                      onChange={(e) => {
-                        const priceValue = e.target.value
-                          ? parseFloat(e.target.value)
-                          : null;
-                        setPrices((prevPrices) => {
-                          const updatedPrices = prevPrices.filter(
-                            (price) =>
-                              !(
-                                price.fromIndex === -1 &&
-                                price.toIndex === stops.length
-                              )
-                          );
-                          updatedPrices.push({
-                            fromIndex: -1, // -1 represents Departure Point
-                            toIndex: stops.length, // Arrival Point index
-                            price: priceValue,
-                          });
-                          return updatedPrices;
-                        });
-                      }}
-                    />
+                    </div>
+                  </TableCell>
+
+                  {/* Tooltip */}
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Image
+                            src="/img/settings/question-icon.svg"
+                            alt="tooltip"
+                            width={20}
+                            height={20}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white border-2 px-2 py-2">
+                          Add additional details about ticket pricing here.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
 
@@ -760,6 +951,48 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                       <TableCell
                         key={`s${rowIndex}-s${rowIndex + colIndex + 1}`}
                       >
+                        <div className="currency-input">
+                          <Input
+                            type="number"
+                            placeholder="$0.00"
+                            className="border-gray-400 rounded-lg text-center"
+                            value={
+                              prices.find(
+                                (price) =>
+                                  price.fromIndex === rowIndex &&
+                                  price.toIndex === rowIndex + colIndex + 1
+                              )?.price || ""
+                            }
+                            onChange={(e) => {
+                              const priceValue =
+                                e.target.value !== "" &&
+                                !isNaN(parseFloat(e.target.value))
+                                  ? Math.max(0, parseFloat(e.target.value)) // Prevent negative values
+                                  : null;
+                              setPrices((prevPrices) => {
+                                const updatedPrices = prevPrices.filter(
+                                  (price) =>
+                                    !(
+                                      price.fromIndex === rowIndex &&
+                                      price.toIndex === rowIndex + colIndex + 1
+                                    )
+                                );
+                                updatedPrices.push({
+                                  fromIndex: rowIndex,
+                                  toIndex: rowIndex + colIndex + 1,
+                                  price: priceValue,
+                                });
+                                return updatedPrices;
+                              });
+                            }}
+                          />
+                        </div>
+                      </TableCell>
+                    ))}
+
+                    {/* Price from this Stop to Arrival Point */}
+                    <TableCell key={`s${rowIndex}-arrival`}>
+                      <div className="currency-input">
                         <Input
                           type="number"
                           placeholder="$0.00"
@@ -768,67 +1001,52 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
                             prices.find(
                               (price) =>
                                 price.fromIndex === rowIndex &&
-                                price.toIndex === rowIndex + colIndex + 1
+                                price.toIndex === stops.length
                             )?.price || ""
                           }
                           onChange={(e) => {
-                            const priceValue = e.target.value
-                              ? parseFloat(e.target.value)
-                              : null;
+                            const priceValue =
+                              e.target.value !== "" &&
+                              !isNaN(parseFloat(e.target.value))
+                                ? Math.max(0, parseFloat(e.target.value)) // Prevent negative values
+                                : null;
                             setPrices((prevPrices) => {
                               const updatedPrices = prevPrices.filter(
                                 (price) =>
                                   !(
                                     price.fromIndex === rowIndex &&
-                                    price.toIndex === rowIndex + colIndex + 1
+                                    price.toIndex === stops.length
                                   )
                               );
                               updatedPrices.push({
                                 fromIndex: rowIndex,
-                                toIndex: rowIndex + colIndex + 1,
+                                toIndex: stops.length, // Arrival Point index
                                 price: priceValue,
                               });
                               return updatedPrices;
                             });
                           }}
                         />
-                      </TableCell>
-                    ))}
+                      </div>
+                    </TableCell>
 
-                    {/* Price from this Stop to Arrival Point */}
-                    <TableCell key={`s${rowIndex}-arrival`}>
-                      <Input
-                        type="number"
-                        placeholder="$0.00"
-                        className="border-gray-400 rounded-lg text-center"
-                        value={
-                          prices.find(
-                            (price) =>
-                              price.fromIndex === rowIndex &&
-                              price.toIndex === stops.length
-                          )?.price || ""
-                        }
-                        onChange={(e) => {
-                          const priceValue = e.target.value
-                            ? parseFloat(e.target.value)
-                            : null;
-                          setPrices((prevPrices) => {
-                            const updatedPrices = prevPrices.filter(
-                              (price) =>
-                                !(
-                                  price.fromIndex === rowIndex &&
-                                  price.toIndex === stops.length
-                                )
-                            );
-                            updatedPrices.push({
-                              fromIndex: rowIndex,
-                              toIndex: stops.length, // Arrival Point index
-                              price: priceValue,
-                            });
-                            return updatedPrices;
-                          });
-                        }}
-                      />
+                    {/* Tooltip */}
+                    <TableCell>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Image
+                              src="/img/settings/question-icon.svg"
+                              alt="tooltip"
+                              width={20}
+                              height={20}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-white border-2 px-2 py-2">
+                            Add additional details about ticket pricing here.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -864,6 +1082,7 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities }) => {
         open={showAddLocationModal}
         onClose={closeAddLocationModal}
         cities={cities}
+        countries={countries || []}
         onAddLocation={handleAddLocation}
       />
     </div>

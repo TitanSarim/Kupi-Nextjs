@@ -5,7 +5,15 @@ import {
   SortingState,
   getCoreRowModel,
   useReactTable,
+  Column,
+  Row,
 } from "@tanstack/react-table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
@@ -19,6 +27,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deleteRoute } from "@/actions/route.action";
+import { updateRouteLiveStatus } from "@/actions/route.action";
+import Switch from "@/components/ui/switch";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
+import DeleteModal from "../ui/delete-modal";
 
 interface RouteTableProps {
   routeData: RouteDataType[];
@@ -41,6 +54,43 @@ const RouteTable: React.FC<RouteTableProps> = ({
   });
 
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  // Handle showing delete modal
+  const handleDeleteModal = (id: string) => {
+    setSelectedRouteId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedRouteId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedRouteId) {
+      await deleteRoute(selectedRouteId);
+      startTransition(() => {
+        router.refresh();
+      });
+      handleCloseModal();
+    }
+  };
+
+  const handleLiveStatusChange = async (id: string, isLive: boolean) => {
+    try {
+      const result = await updateRouteLiveStatus(id, isLive);
+      if (result) {
+        startTransition(() => {
+          router.refresh();
+        });
+      } else {
+        console.error("Failed to update isLive status");
+      }
+    } catch (error) {
+      console.error("Error updating isLive status:", error);
+    }
+  };
 
   // Function to update the URL for pagination and sorting
   const updateUrl = () => {
@@ -70,6 +120,7 @@ const RouteTable: React.FC<RouteTableProps> = ({
       router.refresh();
     });
   };
+  const { data: session } = useSession();
 
   // Table column definitions
   const columns: ColumnDef<RouteDataType>[] = [
@@ -97,34 +148,50 @@ const RouteTable: React.FC<RouteTableProps> = ({
           Route Type <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <span>{row.original.type}</span>,
+      cell: ({ row }) => {
+        const routeType = row.original.type;
+        const selectedDays = row.original.days; // Assuming `days` is an array of selected days
+
+        return routeType === "WEEKLY" ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>{routeType}</TooltipTrigger>
+              <TooltipContent className="bg-white border-2 px-2 py-2">
+                {selectedDays.length > 0
+                  ? selectedDays.join(", ")
+                  : "No days selected"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          <span>{routeType}</span>
+        );
+      },
     },
+
     {
-      accessorKey: "departureCity",
+      accessorKey: "routeLocation",
       header: ({ column }) => (
         <button
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc", false)
-          }
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Departure City <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+          Locations <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <span>{row.original.departureCity}</span>,
-    },
-    {
-      accessorKey: "arrivalCity",
-      header: ({ column }) => (
-        <button
-          onClick={() =>
-            column.toggleSorting(column.getIsSorted() === "asc", false)
-          }
-        >
-          Arrival City <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
+      cell: ({ row }) => (
+        <div>
+          <div>
+            <span className="midGray-text">Departure:</span>{" "}
+            {row.original.departureCity || "N/A"}
+          </div>
+          <div>
+            <span className="midGray-text">Arrival:</span>{" "}
+            {row.original.arrivalCity || "N/A"}
+          </div>
+        </div>
       ),
-      cell: ({ row }) => <span>{row.original.arrivalCity}</span>,
     },
+
     {
       accessorKey: "timings",
       header: ({ column }) => (
@@ -149,6 +216,26 @@ const RouteTable: React.FC<RouteTableProps> = ({
         </div>
       ),
     },
+    ...(session?.role === RolesEnum.SuperAdmin ||
+    session?.role === RolesEnum.KupiUser
+      ? [
+          {
+            accessorKey: "operatorName",
+            header: ({ column }: { column: Column<RouteDataType> }) => (
+              <button
+                onClick={() =>
+                  column.toggleSorting(column.getIsSorted() === "asc", false)
+                }
+              >
+                Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+              </button>
+            ),
+            cell: ({ row }: { row: Row<RouteDataType> }) => (
+              <span>{row.original.operatorName}</span>
+            ),
+          },
+        ]
+      : []),
     {
       accessorKey: "status",
       header: ({ column }) => (
@@ -163,13 +250,32 @@ const RouteTable: React.FC<RouteTableProps> = ({
       cell: ({ row }) => (
         <p
           className={
-            row.original.status === "CONFIRMED"
+            row.original.status === "APPROVED"
               ? "text-green-600"
               : "text-kupi-yellow"
           }
         >
           {row.original.status}
         </p>
+      ),
+    },
+    {
+      accessorKey: "isLive",
+      header: "Live",
+      cell: ({ row }) => (
+        <div className="flex flex-row gap-10">
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={row.original.isLive}
+              onChange={(e) =>
+                handleLiveStatusChange(row.original.id, e.target.checked)
+              }
+              disabled={row.original.status !== "APPROVED"}
+            />
+            <span className="slider round"></span>
+          </label>
+        </div>
       ),
     },
     {
@@ -188,12 +294,19 @@ const RouteTable: React.FC<RouteTableProps> = ({
                 />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+              align="end"
+              side="bottom"
+              className="w-24 dropdown-fixed"
+              sideOffset={5}
+              avoidCollisions={false}
+              alignOffset={5}
+            >
               <DropdownMenuItem onClick={() => onEditRoute(row.original.id)}>
                 Edit Route
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleDeleteRoute(row.original.id)}
+                onClick={() => handleDeleteModal(row.original.id)}
               >
                 Delete Route
               </DropdownMenuItem>
@@ -224,6 +337,12 @@ const RouteTable: React.FC<RouteTableProps> = ({
         setPagination={setPagination}
         pagination={pagination}
         tableData={table}
+      />
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDelete}
+        message="You want to delete this route"
       />
     </div>
   );

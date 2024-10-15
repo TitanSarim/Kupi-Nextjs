@@ -9,8 +9,13 @@ const Transactions = async ({
 }: {
   searchParams: TransactionQuery["searchParams"];
 }) => {
-  const data = await getAllTransactions(searchParams);
+  const data = await getAllTransactions(searchParams, false);
+  const allData = await getAllTransactions(searchParams, true);
   const cities = await getAllMatchedCity();
+  const dateRange = {
+    startDate: null,
+    endDate: null,
+  };
 
   if (!data || !cities) {
     return (
@@ -26,9 +31,11 @@ const Transactions = async ({
     <div className="w-full">
       <div className="w-full">
         <TransactionList
-          transactionData={data?.transactionData}
+          transactionData={data?.transactionData || []}
           cities={cities}
           paginationData={data.paginationData}
+          dateRange={dateRange}
+          allTransactionData={allData?.transactionData || []}
         />
       </div>
     </div>

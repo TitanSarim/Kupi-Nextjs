@@ -17,7 +17,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Cities } from "@prisma/client";
+import { Cities, Countries } from "@prisma/client";
 import dynamic from "next/dynamic";
 
 const Map = dynamic(() => import("./GoogleMap"), { ssr: false });
@@ -26,6 +26,7 @@ interface AddLocationProps {
   open: boolean;
   onClose: () => void;
   cities: Cities[];
+  countries: { name: string; id: string }[];
   onAddLocation?: (location: LocationType) => void; // Callback to send location data back
 }
 
@@ -42,6 +43,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
   open,
   onClose,
   cities = [],
+  countries = [],
   onAddLocation,
 }) => {
   const [stationName, setStationName] = useState("");
@@ -53,9 +55,11 @@ const AddLocation: React.FC<AddLocationProps> = ({
   const [countryId, setCountryId] = useState("");
   const [geolocation, setGeolocation] = useState({ lat: 0, lng: 0 });
   const [openCity, setOpenCity] = useState(false);
+  const [openCountry, setOpenCountry] = useState(false); // State for country popover
   const [loading, setLoading] = useState(false);
   const [errorState, setErrorState] = useState<[string, boolean]>(["", false]);
   const [filteredCities, setFilteredCities] = useState<Cities[]>(cities);
+  const [filteredCountries, setFilteredCountries] = useState(countries);
 
   useEffect(() => {
     if (!openCity && city) {
@@ -66,6 +70,37 @@ const AddLocation: React.FC<AddLocationProps> = ({
       setFilteredCities(cities);
     }
   }, [openCity, city, cities]);
+
+  useEffect(() => {
+    if (!openCountry && country) {
+      setFilteredCountries(
+        countries.filter((c) =>
+          c.name.toLowerCase().includes(country.toLowerCase())
+        )
+      );
+    } else {
+      setFilteredCountries(countries);
+    }
+  }, [openCountry, country, countries]);
+
+  useEffect(() => {
+    if (open) {
+      setStationName("");
+      setStreetAddress("");
+      setSuburb("");
+      setCity("");
+      setCityId("");
+      setCountry("");
+      setCountryId("");
+      setGeolocation({ lat: 0, lng: 0 });
+      setOpenCity(false);
+      setOpenCountry(false); // Reset country state
+      setLoading(false);
+      setErrorState(["", false]);
+      setFilteredCities(cities);
+      setFilteredCountries(countries);
+    }
+  }, [open, cities, countries]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,6 +144,12 @@ const AddLocation: React.FC<AddLocationProps> = ({
     setCityId(selectedCity.id);
     setCountryId(selectedCity.countryId);
     setOpenCity(false);
+  };
+
+  const handleCountryChange = (selectedCountry: Countries) => {
+    setCountry(selectedCountry.name);
+    setCountryId(selectedCountry.id);
+    setOpenCountry(false);
   };
 
   const handleGeolocationSelect = (coords: { lat: number; lng: number }) => {
@@ -155,6 +196,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
                 onChange={(e) => setStationName(e.target.value)}
                 placeholder="Enter station"
                 className="block px-5 py-3 text-dark-grey border border-gray-500 w-full rounded-lg"
+                maxLength={25}
               />
             </div>
             {errorState[1] && !stationName && (
@@ -179,6 +221,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
                 onChange={(e) => setStreetAddress(e.target.value)}
                 placeholder="Enter street address"
                 className="block px-5 py-3 text-dark-grey border border-gray-500 w-full rounded-lg"
+                maxLength={60}
               />
             </div>
             {errorState[1] && !streetAddress && (
@@ -203,6 +246,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
                 onChange={(e) => setSuburb(e.target.value)}
                 placeholder="Enter suburb"
                 className="block px-5 py-3 text-dark-grey border border-gray-500 w-full rounded-lg"
+                maxLength={20}
               />
             </div>
             {errorState[1] && !suburb && (
@@ -270,7 +314,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
             )}
           </div>
 
-          {/* Country Field */}
+          {/* Country Selection */}
           <div className="w-full mb-3">
             <label
               htmlFor="country"
@@ -278,17 +322,53 @@ const AddLocation: React.FC<AddLocationProps> = ({
             >
               Country
             </label>
-            <div className="mt-2">
-              <Input
-                type="text"
-                name="country"
-                id="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                placeholder="Enter country"
-                className="block px-5 py-3 text-dark-grey border border-gray-500 w-full rounded-lg"
-              />
-            </div>
+            <Popover open={openCountry} onOpenChange={setOpenCountry}>
+              <PopoverTrigger
+                asChild
+                className="w-full h-12 rounded-lg text-gray-500 border-gray-500"
+              >
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openCountry}
+                  className="w-full justify-between outline-none"
+                >
+                  {country || "Select country..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 select-dropdown">
+                <Command>
+                  <CommandInput
+                    placeholder="Search country..."
+                    value={country}
+                    onValueChange={(value) => setCountry(value)}
+                  />
+                  <CommandList className="w-full">
+                    <CommandEmpty>No country found.</CommandEmpty>
+                    <CommandGroup>
+                      {filteredCountries.map((countryData) => (
+                        <CommandItem
+                          key={countryData.id}
+                          value={countryData.name}
+                          onSelect={() => handleCountryChange(countryData)}
+                          className="cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              countryData.name === country
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          {countryData.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {errorState[1] && !country && (
               <p className="text-red-500">Country is required.</p>
             )}

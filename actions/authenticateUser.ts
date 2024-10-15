@@ -1,11 +1,19 @@
 "use server";
 
 import { signIn } from "@/auth";
-
+import { db } from "@/db";
 
 // Authenticate a user with their email and password
 export async function authenticateUser(email: string, password: string) {
   try {
+    const user = await db.users.findUnique({
+      where: { email: email },
+      include: { operator: true },
+    });
+
+    if (user?.operator?.status === "SUSPENDED") {
+      return { error: "suspended" };
+    }
     const result = await signIn("credentials", {
       redirect: false,
       email,

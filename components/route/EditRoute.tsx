@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, startTransition } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +18,14 @@ import {
 } from "@/components/ui/tooltip";
 import Image from "next/image";
 import AddLocation from "@/components/route/AddLocation";
-import { Cities, Location, Busses, DAYS, RouteType } from "@prisma/client";
+import {
+  Cities,
+  Location,
+  Busses,
+  DAYS,
+  RouteType,
+  Countries,
+} from "@prisma/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,13 +60,18 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import { RouteDataType } from "@/types/route";
 import { useRouter } from "next/navigation";
 import ErrorMessage from "@/components/ErrorMessage";
+import Switch from "@/components/ui/switch";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 interface EditRouteProps {
   cities: Cities[];
   route: RouteDataType;
+  countries: Countries[];
 }
 
-const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
+const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const routeId = searchParams.get("id");
 
@@ -83,6 +95,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
   >([]);
   const [routeType, setRouteType] = useState<RouteType>("DAILY");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [isApproved, setIsApproved] = useState<boolean>(false);
 
   const daysEnum = Object.values(DAYS) as DAYS[];
 
@@ -107,6 +120,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             setRouteNumber(routeId || "");
             setDepartureLocation(fetchedRoute.departureLocation || null);
             setArrivalLocation(fetchedRoute.arrivalLocation || null);
+            setIsApproved(fetchedRoute.status === "APPROVED");
             setDepartureTime(fetchedRoute.departureTime || "00:00");
             setArrivalTime(fetchedRoute.arrivalTime || "00:00");
             setRouteDays(fetchedRoute.days || []);
@@ -251,7 +265,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
       const routeData = {
         type: routeType,
         days: routeDays,
-        status: "PENDING",
+        status: isApproved ? "APPROVED" : "PENDING",
         routeNumber,
         departureLocation,
         arrivalLocation,
@@ -267,9 +281,21 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
       if (routeId) {
         // Call the updateRoute function instead of createRoute
         const result = await updateRoute(routeId, routeData);
-        router.push("/app/routes");
+
+        if (result) {
+          // Trigger a re-fetch of the route data
+          startTransition(() => {
+            router.refresh(); // Ensures the table re-renders with updated data
+          });
+          router.push("/app/routes"); // This will redirect back to the routes list
+        } else {
+          // Handle the case where the update fails
+          console.error("Failed to update route");
+        }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("An error occurred while saving the route:", error);
+    }
   };
 
   // Handle route days selection
@@ -309,7 +335,25 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
       <div className="card border-0 shadow-lg">
         <div className="card-body">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-xl text-dark-grey">Edit Route</h2>
+            <h2 className="font-bold text-xl text-dark-grey">
+              Edit Route {session?.role}
+            </h2>
+            {session?.role === RolesEnum.SuperAdmin ||
+            session?.role === RolesEnum.KupiUser ? (
+              <div className="flex items-center">
+                <span className="mr-2">Approve Route</span>
+                <div className="flex flex-row gap-10">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={isApproved}
+                      onChange={(e) => setIsApproved(e.target.checked)}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
@@ -317,9 +361,24 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="route-type"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Route Type
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select either Daily or Weekly for this route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="flex flex-wrap mt-4">
                 <div className="px-4 py-2 bg-gray-100 border-gray-300 border rounded-lg mr-4">
@@ -366,9 +425,24 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="route-number"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Route Number
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      The route number is automatically generated.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Input
@@ -388,9 +462,24 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="route-days"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Select Route Days
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Choose the days when the route will operate.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="flex flex-wrap mt-2">
                 {daysEnum.map((day) => (
@@ -414,9 +503,24 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="route-bus"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Add Route Bus
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select the bus for this route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Popover open={openBusPopover} onOpenChange={setOpenBusPopover}>
@@ -478,6 +582,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
           </div>
         </div>
       </div>
+
       {/* Add Time and Location */}
       <div className="card border-0 shadow-lg mt-5">
         <div className="card-body">
@@ -492,9 +597,24 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="departure-location"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Edit Departure Location
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select the location where the route will start.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div
                 className="block mt-2 px-5 py-2 border border-gray-500 w-full rounded-lg cursor-pointer"
@@ -503,7 +623,11 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                 <div className="flex justify-between items-center">
                   <h4 className="text-gray-500">
                     {departureLocation
-                      ? `${departureLocation.stationName}, ${departureLocation.suburb}`
+                      ? `${departureLocation.stationName}, ${
+                          cities.find(
+                            (city) => city.id === departureLocation.cityId
+                          )?.name || ""
+                        }`
                       : "Click to edit location"}
                   </h4>
                   <Button
@@ -516,13 +640,30 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                 </div>
               </div>
             </div>
+
             {/* Select Departure Time */}
             <div className="w-full">
               <label
                 htmlFor="departure-time"
-                className="text-md font-medium leading-6 inline-flex text-dark-grey"
+                className="text-md font-medium leading-6 inline-flex text-dark-grey items-center gap-2"
               >
                 Select Departure Time
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Set the time when the route will start from the departure
+                      location.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Input
@@ -542,9 +683,24 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="arrival-location"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Edit Arrival Location
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Select the final destination for the route.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div
                 className="block mt-2 px-5 py-2 border border-gray-500 w-full rounded-lg cursor-pointer"
@@ -553,7 +709,11 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                 <div className="flex justify-between items-center">
                   <h4 className="text-gray-500">
                     {arrivalLocation
-                      ? `${arrivalLocation.stationName}, ${arrivalLocation.suburb}`
+                      ? `${arrivalLocation.stationName}, ${
+                          cities.find(
+                            (city) => city.id === arrivalLocation.cityId
+                          )?.name || ""
+                        }`
                       : "Click to edit location"}
                   </h4>
                   <Button
@@ -572,9 +732,25 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
             <div className="w-full">
               <label
                 htmlFor="arrival-time"
-                className="block text-md font-medium leading-6 text-dark-grey"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
               >
                 Select Arrival Time
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Image
+                        src="/img/settings/question-icon.svg"
+                        alt="tooltip"
+                        width={20}
+                        height={20}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2">
+                      Set the time when the route will reach the final
+                      destination.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </label>
               <div className="mt-2">
                 <Input
@@ -625,7 +801,11 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                     <TableCell>
                       <h4 className="text-gray-500">
                         {stop.location.stationName
-                          ? `${stop.location.stationName}, ${stop.location.suburb}`
+                          ? `${stop.location.stationName}, ${
+                              cities.find(
+                                (city) => city.id === stop.location.cityId
+                              )?.name || ""
+                            }`
                           : "Location not set"}
                       </h4>
                     </TableCell>
@@ -654,6 +834,26 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                         className="border-gray-400 rounded-lg"
                       />
                     </TableCell>
+
+                    {/* Tooltip */}
+                    <TableCell>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Image
+                              src="/img/settings/question-icon.svg"
+                              alt="tooltip"
+                              width={20}
+                              height={20}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-white border-2 px-2 py-2">
+                            Add additional details about this stop here.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -721,6 +921,45 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                   {/* Prices from Departure Point to Stops and Arrival Point */}
                   {stops.map((_, index) => (
                     <TableCell key={`dp-${index}`}>
+                      <div className="currency-input">
+                        <Input
+                          type="number"
+                          placeholder="$0.00"
+                          className="border-gray-400 rounded-lg text-center"
+                          value={
+                            prices.find(
+                              (price) =>
+                                price.fromIndex === -1 &&
+                                price.toIndex === index
+                            )?.price || ""
+                          }
+                          onChange={(e) => {
+                            const priceValue = e.target.value
+                              ? parseFloat(e.target.value)
+                              : null;
+                            setPrices((prevPrices) => {
+                              const updatedPrices = prevPrices.filter(
+                                (price) =>
+                                  !(
+                                    price.fromIndex === -1 &&
+                                    price.toIndex === index
+                                  )
+                              );
+                              updatedPrices.push({
+                                fromIndex: -1, // -1 represents Departure Point
+                                toIndex: index,
+                                price: priceValue,
+                              });
+                              return updatedPrices;
+                            });
+                          }}
+                        />
+                      </div>
+                    </TableCell>
+                  ))}
+                  {/* Price from Departure Point to Arrival Point */}
+                  <TableCell key="dp-arrival">
+                    <div className="currency-input">
                       <Input
                         type="number"
                         placeholder="$0.00"
@@ -728,7 +967,8 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                         value={
                           prices.find(
                             (price) =>
-                              price.fromIndex === -1 && price.toIndex === index
+                              price.fromIndex === -1 &&
+                              price.toIndex === stops.length
                           )?.price || ""
                         }
                         onChange={(e) => {
@@ -740,54 +980,38 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                               (price) =>
                                 !(
                                   price.fromIndex === -1 &&
-                                  price.toIndex === index
+                                  price.toIndex === stops.length
                                 )
                             );
                             updatedPrices.push({
                               fromIndex: -1, // -1 represents Departure Point
-                              toIndex: index,
+                              toIndex: stops.length, // Arrival Point index
                               price: priceValue,
                             });
                             return updatedPrices;
                           });
                         }}
                       />
-                    </TableCell>
-                  ))}
-                  {/* Price from Departure Point to Arrival Point */}
-                  <TableCell key="dp-arrival">
-                    <Input
-                      type="number"
-                      placeholder="$0.00"
-                      className="border-gray-400 rounded-lg text-center"
-                      value={
-                        prices.find(
-                          (price) =>
-                            price.fromIndex === -1 &&
-                            price.toIndex === stops.length
-                        )?.price || ""
-                      }
-                      onChange={(e) => {
-                        const priceValue = e.target.value
-                          ? parseFloat(e.target.value)
-                          : null;
-                        setPrices((prevPrices) => {
-                          const updatedPrices = prevPrices.filter(
-                            (price) =>
-                              !(
-                                price.fromIndex === -1 &&
-                                price.toIndex === stops.length
-                              )
-                          );
-                          updatedPrices.push({
-                            fromIndex: -1, // -1 represents Departure Point
-                            toIndex: stops.length, // Arrival Point index
-                            price: priceValue,
-                          });
-                          return updatedPrices;
-                        });
-                      }}
-                    />
+                    </div>
+                  </TableCell>
+
+                  {/* Tooltip */}
+                  <TableCell>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Image
+                            src="/img/settings/question-icon.svg"
+                            alt="tooltip"
+                            width={20}
+                            height={20}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white border-2 px-2 py-2">
+                          Add additional details about ticket pricing here.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                 </TableRow>
 
@@ -808,6 +1032,46 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                       <TableCell
                         key={`s${rowIndex}-s${rowIndex + colIndex + 1}`}
                       >
+                        <div className="currency-input">
+                          <Input
+                            type="number"
+                            placeholder="$0.00"
+                            className="border-gray-400 rounded-lg text-center"
+                            value={
+                              prices.find(
+                                (price) =>
+                                  price.fromIndex === rowIndex &&
+                                  price.toIndex === rowIndex + colIndex + 1
+                              )?.price || ""
+                            }
+                            onChange={(e) => {
+                              const priceValue = e.target.value
+                                ? parseFloat(e.target.value)
+                                : null;
+                              setPrices((prevPrices) => {
+                                const updatedPrices = prevPrices.filter(
+                                  (price) =>
+                                    !(
+                                      price.fromIndex === rowIndex &&
+                                      price.toIndex === rowIndex + colIndex + 1
+                                    )
+                                );
+                                updatedPrices.push({
+                                  fromIndex: rowIndex,
+                                  toIndex: rowIndex + colIndex + 1,
+                                  price: priceValue,
+                                });
+                                return updatedPrices;
+                              });
+                            }}
+                          />
+                        </div>
+                      </TableCell>
+                    ))}
+
+                    {/* Price from this Stop to Arrival Point */}
+                    <TableCell key={`s${rowIndex}-arrival`}>
+                      <div className="currency-input">
                         <Input
                           type="number"
                           placeholder="$0.00"
@@ -816,7 +1080,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                             prices.find(
                               (price) =>
                                 price.fromIndex === rowIndex &&
-                                price.toIndex === rowIndex + colIndex + 1
+                                price.toIndex === stops.length
                             )?.price || ""
                           }
                           onChange={(e) => {
@@ -828,55 +1092,39 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
                                 (price) =>
                                   !(
                                     price.fromIndex === rowIndex &&
-                                    price.toIndex === rowIndex + colIndex + 1
+                                    price.toIndex === stops.length
                                   )
                               );
                               updatedPrices.push({
                                 fromIndex: rowIndex,
-                                toIndex: rowIndex + colIndex + 1,
+                                toIndex: stops.length, // Arrival Point index
                                 price: priceValue,
                               });
                               return updatedPrices;
                             });
                           }}
                         />
-                      </TableCell>
-                    ))}
+                      </div>
+                    </TableCell>
 
-                    {/* Price from this Stop to Arrival Point */}
-                    <TableCell key={`s${rowIndex}-arrival`}>
-                      <Input
-                        type="number"
-                        placeholder="$0.00"
-                        className="border-gray-400 rounded-lg text-center"
-                        value={
-                          prices.find(
-                            (price) =>
-                              price.fromIndex === rowIndex &&
-                              price.toIndex === stops.length
-                          )?.price || ""
-                        }
-                        onChange={(e) => {
-                          const priceValue = e.target.value
-                            ? parseFloat(e.target.value)
-                            : null;
-                          setPrices((prevPrices) => {
-                            const updatedPrices = prevPrices.filter(
-                              (price) =>
-                                !(
-                                  price.fromIndex === rowIndex &&
-                                  price.toIndex === stops.length
-                                )
-                            );
-                            updatedPrices.push({
-                              fromIndex: rowIndex,
-                              toIndex: stops.length, // Arrival Point index
-                              price: priceValue,
-                            });
-                            return updatedPrices;
-                          });
-                        }}
-                      />
+                    {/* Tooltip */}
+                    <TableCell>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Image
+                              src="/img/settings/question-icon.svg"
+                              alt="tooltip"
+                              width={20}
+                              height={20}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-white border-2 px-2 py-2">
+                            Add additional details about ticket pricing for this
+                            stop.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -913,6 +1161,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route }) => {
         onClose={closeAddLocationModal}
         cities={cities}
         onAddLocation={handleAddLocation}
+        countries={countries}
       />
     </div>
   );

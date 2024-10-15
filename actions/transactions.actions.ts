@@ -17,18 +17,21 @@ import { getSignedURL, uploadPdfToS3 } from "@/libs/s3";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 
-export async function getAllTransactions(searchParams: {
-  carrier?: string;
-  source?: string;
-  destinationCity?: string;
-  arrivalCity?: string;
-  onlyPending?: boolean;
-  startDate?: string;
-  endDate?: string;
-  sort?: string;
-  pageIndex?: number;
-  pageSize?: number;
-}): Promise<TransactionActionReturn | null> {
+export async function getAllTransactions(
+  searchParams: {
+    carrier?: string;
+    source?: string;
+    destinationCity?: string;
+    arrivalCity?: string;
+    onlyPending?: boolean;
+    startDate?: string;
+    endDate?: string;
+    sort?: string;
+    pageIndex?: number;
+    pageSize?: number;
+  },
+  fetchAll: boolean = false
+): Promise<TransactionActionReturn | null> {
   try {
     const session = await auth();
 
@@ -50,8 +53,8 @@ export async function getAllTransactions(searchParams: {
     const pageSizeNumber = Number(pageSize);
     const pageIndexNumber = Number(pageIndex);
 
-    const skip = pageIndexNumber * pageSizeNumber;
-    const take = pageSizeNumber;
+    const skip = fetchAll ? undefined : pageIndexNumber * pageSizeNumber;
+    const take = fetchAll ? undefined : pageSizeNumber;
 
     const filter: FilterProps = {};
     const Cities: FilterProps = {};
@@ -174,6 +177,8 @@ export async function getAllTransactions(searchParams: {
                   selectedAvailability: {
                     id: ticket.carmaDetails.selectedAvailability.id,
                     carrier: ticket.carmaDetails.selectedAvailability.carrier,
+                    serviceNumber: ticket.carmaDetails.selectedAvailability
+                      .serviceNumber as string | undefined,
                   },
                 }
               : null
@@ -183,11 +188,11 @@ export async function getAllTransactions(searchParams: {
         return {
           transactions: transaction,
           customer: transaction?.customer,
-          paymentReference:
-            transaction.paymentReference &&
-            typeof transaction.paymentReference === "object"
-              ? (transaction.paymentReference as PaymentReference)
-              : null,
+          paymentReference: Array.isArray(transaction.paymentReference)
+            ? (transaction.paymentReference as PaymentReference[])
+            : transaction.paymentReference
+            ? [transaction.paymentReference as PaymentReference]
+            : null,
           tickets: transaction.tickets || [],
           bus: firstTicket?.bus || null,
           sourceCity: firstTicket?.sourceCity || null,

@@ -225,10 +225,10 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     setFormChanged(true);
   };
 
-  const formatTime = (timeInSeconds: number): string => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+  const formatTime = (timeAsInt: number): string => {
+    const hours = Math.floor(timeAsInt / 100);
+    const minutes = timeAsInt % 100;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
       2,
       "0"
     )}`;

@@ -16,7 +16,7 @@ const Routes = async ({
   // Check for a network or data fetching error
   if (!routesResponse) {
     return (
-      <div className="bg-page-background flex items-start justify-center h-screen w-full">
+      <div className="bg-page-backgound flex items-start justify-center h-full mb-12 w-full">
         <div className="mt-32">
           <p>Error fetching data</p>
         </div>
@@ -26,7 +26,7 @@ const Routes = async ({
 
   // Render RouteList even if routeData is empty
   return (
-    <div className="bg-page-background flex items-start justify-center h-full mb-12 w-full">
+    <div className="bg-page-backgound flex items-start justify-center h-full mb-12 w-full">
       <div className="w-11/12">
         <RouteList
           routeData={routesResponse.routeData || []} // Pass an empty array if no route data

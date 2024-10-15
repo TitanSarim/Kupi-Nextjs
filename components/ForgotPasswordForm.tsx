@@ -92,7 +92,7 @@ const ForgotPasswordForm = () => {
       <div className="flex justify-center mt-5">
         <label className="text-dark-grey text-md font-semibold text-center">
           Go back to{" "}
-          <Link href="/login">
+          <Link href="/">
             <span className="text-kupi-yellow cursor-pointer">Login</span>
           </Link>
         </label>

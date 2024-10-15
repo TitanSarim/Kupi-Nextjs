@@ -493,14 +493,6 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                       : "Suspend Account"}
                   </button>
                 )}
-                <DropdownMenuSeparator />
-
-                <button
-                  className="w-full text-left py-1 text-sm"
-                  onClick={() => handleDeleteAccount(row.original.operators.id)}
-                >
-                  Delete Account
-                </button>
               </DropdownMenuContent>
             </DropdownMenu>
           )}

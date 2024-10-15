@@ -1,6 +1,8 @@
 "use client";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import React from "react";
 
 interface PaginationState {
@@ -8,7 +10,7 @@ interface PaginationState {
   pageSize: number;
 }
 
-interface PaginationComponentProps<> {
+interface PaginationComponentProps {
   paginationData: {
     totalCount: number;
   };
@@ -17,15 +19,20 @@ interface PaginationComponentProps<> {
     pageSize: number;
   };
   setPagination: React.Dispatch<React.SetStateAction<PaginationState>>;
-  handleDownload?: () => void;
+  handleDownloadExcel?: () => void;
+  exportCarmaCSV?: () => void;
+  handleTicketExcel?: () => void;
 }
 
 const TablePagination: React.FC<PaginationComponentProps> = ({
   pagination,
   setPagination,
   paginationData,
-  handleDownload,
+  handleDownloadExcel,
+  exportCarmaCSV,
+  handleTicketExcel,
 }) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const pathname = usePathname();
 
   const { pageIndex, pageSize } = pagination;
@@ -59,19 +66,18 @@ const TablePagination: React.FC<PaginationComponentProps> = ({
     } else if (pageIndex + 1 >= pageCount - 1) {
       return [1, "...", ...range(pageCount - 2, pageCount)];
     } else {
-      // Define the current page
-      const currentPage = pageIndex + 1; // Adjusting to 1-based index
-      const showPreviousPage = currentPage - 1; // One page before current
-      const showNextPage = currentPage + 1; // One page after current
+      const currentPage = pageIndex + 1;
+      const showPreviousPage = currentPage - 1;
+      const showNextPage = currentPage + 1;
 
       return [
-        ...(showPreviousPage > 1 ? [1] : []), // Show 1 only if there's a page before the current page
-        ...(showPreviousPage > 1 ? ["..."] : []), // Add ellipsis if needed
-        ...(showPreviousPage >= 1 ? [showPreviousPage] : []), // Show the previous page if it exists
-        currentPage, // Always show the current page
-        ...(showNextPage < lastPage ? [showNextPage] : []), // Show the next page if it exists
-        ...(showNextPage < lastPage ? ["..."] : []), // Add ellipsis if there are more pages after
-        ...(showNextPage < lastPage ? [lastPage] : []), // Include lastPage if needed
+        ...(showPreviousPage > 1 ? [1] : []),
+        ...(showPreviousPage > 1 ? ["..."] : []),
+        ...(showPreviousPage >= 1 ? [showPreviousPage] : []),
+        currentPage,
+        ...(showNextPage < lastPage ? [showNextPage] : []),
+        ...(showNextPage < lastPage ? ["..."] : []),
+        ...(showNextPage < lastPage ? [lastPage] : []),
       ];
     }
   })();
@@ -103,14 +109,62 @@ const TablePagination: React.FC<PaginationComponentProps> = ({
   };
 
   return (
-    <div className="flex flex-row gap-3">
+    <div className="flex flex-row gap-3 relative">
       {pathname === "/app/transactions/transactions" && (
-        <button
-          className="bg-kupi-yellow mr-5 px-3 py-1 rounded-md"
-          onClick={handleDownload}
-        >
-          Download Excel
-        </button>
+        <div className="relative">
+          <button
+            className="bg-kupi-yellow px-5 py-2 rounded-md flex items-center gap-2"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            Download Files
+            <Image
+              src="/img/icons/DownArrow.svg"
+              alt="Down Arrow"
+              width={16}
+              height={16}
+            />
+          </button>
+          {dropdownOpen && (
+            <div className="absolute bottom-full mb-2 bg-white shadow-lg rounded-md z-10">
+              <button
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
+                onClick={handleDownloadExcel}
+              >
+                <Image
+                  src="/img/icons/download.svg"
+                  alt="Download Excel"
+                  width={16}
+                  height={16}
+                />
+                Transactions
+              </button>
+              <button
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
+                onClick={exportCarmaCSV}
+              >
+                <Image
+                  src="/img/icons/export.svg"
+                  alt="Export CSV"
+                  width={16}
+                  height={16}
+                />
+                Carma CSV
+              </button>
+              <button
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
+                onClick={handleTicketExcel}
+              >
+                <Image
+                  src="/img/icons/export.svg"
+                  alt="Export CSV"
+                  width={16}
+                  height={16}
+                />
+                Tickets
+              </button>
+            </div>
+          )}
+        </div>
       )}
       <div className="flex flex-row items-center gap-2">
         <button

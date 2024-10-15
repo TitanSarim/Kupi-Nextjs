@@ -3,8 +3,8 @@ import React, { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { updatePassword } from "../actions/updatePassword";
 import { validatePassword } from "../libs/ClientSideHelpers";
-import InputField from "../components/InputField"; 
-import ErrorMessage from "../components/ErrorMessage"; 
+import InputField from "../components/InputField";
+import ErrorMessage from "../components/ErrorMessage";
 
 function NewPasswordFormContent(): JSX.Element {
   const searchParams = useSearchParams();
@@ -38,7 +38,7 @@ function NewPasswordFormContent(): JSX.Element {
     if (response?.message) {
       setMessage(response.message);
       if (response.status === 200) {
-        router.push("/login");
+        router.push("/");
       }
     }
 
@@ -97,7 +97,7 @@ function NewPasswordFormContent(): JSX.Element {
           Go back to{" "}
           <span
             className="text-kupi-yellow cursor-pointer"
-            onClick={() => router.push("/login")}
+            onClick={() => router.push("/")}
           >
             Login
           </span>

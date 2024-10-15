@@ -152,6 +152,26 @@ input:checked+.slider:before {
   border-radius: 50%;
 }
 
+.switch.updating .slider {
+  opacity: 0.5;
+}
+
+.switch.updating .slider:before {
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* toggle switch */
 .switch-live {
   position: relative;
@@ -239,7 +259,7 @@ input:checked+.slider-live:before {
   overflow-y: hidden;
 }
 
-.select-dropdown_add_trans{
+.select-dropdown_add_trans {
   width: 485px;
   z-index: 50;
   max-height: 16.7rem;
@@ -312,15 +332,15 @@ input:checked+.slider-live:before {
   scrollbar-color: transparent transparent !important;
 }
 
-.dialguebox{
+.dialguebox {
   width: 900px;
 }
 
-.transaction_dialguebox{
+.transaction_dialguebox {
   width: 600px;
 }
 
-.add_transaction_dialguebox{
+.add_transaction_dialguebox {
   width: 550px;
 }
 
@@ -359,13 +379,13 @@ input:checked+.slider-live:before {
   left: 47.7%;
 }
 
-.inner-dialguebox{
+.inner-dialguebox {
   max-height: 70vh !important;
   overflow-y: auto;
   padding-top: 10px;
 }
 
-.passenger_info_dialgue{
+.passenger_info_dialgue {
   position: relative;
   min-width: 250px !important;
   height: 67.7vh;
@@ -377,7 +397,7 @@ input:checked+.slider-live:before {
 
 
 
-.citylistpopUp{
+.citylistpopUp {
   outline: none;
   border: none;
   border-radius: 6px;
@@ -385,19 +405,19 @@ input:checked+.slider-live:before {
   background-color: #f1f1f1;
 }
 
-.remove-file{
+.remove-file {
   top: -10px;
   right: -10px;
   border-radius: 50px;
   padding: 8px;
 }
 
-.invite-dialguebox{
+.invite-dialguebox {
   width: 550px;
   background-color: white;
 }
 
-.discount-dialguebox{
+.discount-dialguebox {
   width: 550px;
   background-color: white;
   max-height: 95%;
@@ -411,12 +431,12 @@ input:checked+.slider-live:before {
 }
 
 
-.invite-textarea{
+.invite-textarea {
   min-height: 100px;
   max-height: 100px;
 }
 
-.cropper-height{
+.cropper-height {
   height: 500px;
 }
 
@@ -429,12 +449,14 @@ input:checked+.slider-live:before {
   }
   
   .passenger_info_dialgue {
-      min-height: 102.6vh !important;
-      max-height: 102.6vh !important;
-    }
+    min-height: 102.6vh !important;
+    max-height: 102.6vh !important;
+  }
 }
 
 @media screen and (max-width: 1200px) {
+
+
 .select-dropdown_bus_operator {
     width: 600px !important;
   }
@@ -446,31 +468,37 @@ input:checked+.slider-live:before {
 
 @media screen and (max-height: 900px) {
 
-  .dialguebox-container{
+  .dialguebox-container {
     max-height: 800px;
   }
-  .dialguebox{
+
+  .dialguebox {
     max-height: 95% !important;
     min-height: 95%;
   }
-  .inner-dialguebox{
+
+  .inner-dialguebox {
     overflow-y: auto;
     min-height: 78vh;
     max-height: 78vh;
     padding-top: 10px;
   }
-  .passenger_info_dialgue{
+
+  .passenger_info_dialgue {
     min-height: 88.9vh;
     max-height: 88.9vh;
   }
-  .transaction_dialguebox-container{
+
+  .transaction_dialguebox-container {
     max-height: 800px;
   }
-  .transaction_dialguebox{
-      min-height: 95%;
-      max-height: 95%;
+
+  .transaction_dialguebox {
+    min-height: 95%;
+    max-height: 95%;
   }
-  .inner-transaction_dialguebox{
+
+  .inner-transaction_dialguebox {
     max-height: 78vh;
     min-height: 78vh;
     overflow-y: auto;
@@ -478,18 +506,56 @@ input:checked+.slider-live:before {
     margin-bottom: 5px;
   }
 
-  .discount-dialoguebox-inner{
+  .discount-dialoguebox-inner {
     max-height: 72vh;
     min-height: 72vh;
     overflow-y: auto;
   }
   .bus-dialoguebox-inner{
-      max-height: 72vh;
-      min-height: 72vh;
+    position: relative;
+      max-height: 72vh !important;
+      min-height: 72vh !important;
       overflow-y: auto;
   }
   .tickettableclass{
     min-height: max-content;
     max-height: 80vh;
   }
+
+  .select-dropdown {
+    width: 240px !important;
+  }
+}
+
+.bg-page-backgound {
+  background-color: #f8f8f8 !important;
+}
+.currency-input {
+  position: relative;
+}
+
+.currency-input input {
+  padding-left: 15px;
+}
+
+.currency-input::before {
+  content: '$';
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+.hamburger{
+  position: relative !important;
+  left: 30px !important;
+  }
+  /* Add styles for disabled state */
+.switch input:disabled + .slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dropdown-fixed {
+  position: fixed !important;
 }

@@ -73,7 +73,7 @@ const VerificationCodeForm = ({
       setIsSuccess(true);
       setMessage("Verification successful! Redirecting...");
       if (response.type === "signup") {
-        router.push("/login");
+        router.push("/");
       } else if (response.type === "reset-password") {
         router.push(`/new-password?email=${email}`);
       }
@@ -98,7 +98,6 @@ const VerificationCodeForm = ({
       email,
       type as VerificationType
     );
-    console.log("response", response);
     if (response === true) {
       setIsSuccess(true); // Set success state for resend
       setMessage("Verification code resent successfully.");

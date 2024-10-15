@@ -20,6 +20,7 @@ export interface RouteDataType {
   id: string;
   busId: string;
   busIdentifier: string;
+  isLive: boolean;
   type: RouteType;
   days: DAYS[];
   departureTime: string;
@@ -30,6 +31,7 @@ export interface RouteDataType {
   departureCity: string;
   arrivalCity: string;
   operatorIds: string[];
+  operatorName: string;
   stops: StopDataType[];
   pricing: RoutePricing;
 }

@@ -106,7 +106,7 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
       ),
       cell: ({ row }) => (
         <div>
-          <span>{row.original.discount.percentage}</span>
+          <span>{row.original.discount.percentage}%</span>
         </div>
       ),
     },

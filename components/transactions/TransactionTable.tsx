@@ -13,16 +13,26 @@ import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import TransactionDetailDialgue from "./TransactionDetailDialgue";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { TransactionReturn, TransactionsType } from "@/types/transactions";
+import {
+  TransactionReturnWithDateRange,
+  TransactionsType,
+} from "@/types/transactions";
 import { TicketsDataType } from "@/types/ticket";
 import { getTicketById } from "@/actions/ticket.action";
 import TicketDetailDialgue from "../tickets/TicketDetailDialgue";
 import * as XLSX from "xlsx";
 import TableComponent from "../Table/Table";
 
-const TransactionTable: React.FC<TransactionReturn> = ({
+const isCarmaDetails = (
+  obj: any
+): obj is { selectedAvailability: { carrier: string } } => {
+  return obj && typeof obj.selectedAvailability?.carrier === "string";
+};
+
+const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
   transactionData,
   paginationData,
+  allTransactionData = [],
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,8 +49,6 @@ const TransactionTable: React.FC<TransactionReturn> = ({
   const [selectedTicket, setSelectedTicket] = useState<TicketsDataType | null>(
     null
   );
-
-  console.log("transactionData", transactionData);
 
   const handleShowDetail = (id: string) => {
     const transaction =
@@ -161,10 +169,13 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => {
-        const operator1 =
-          row.original.carmaDetails?.[0]?.selectedAvailability?.carrier || "";
+        const carmaDetails = row.original.carmaDetails;
+        const operator = Array.isArray(carmaDetails)
+          ? carmaDetails[0]?.selectedAvailability?.carrier || "N/A"
+          : "N/A";
+
         const limitedName =
-          operator1.length > 9 ? `${operator1.slice(0, 9)}...` : operator1;
+          operator.length > 9 ? `${operator.slice(0, 9)}...` : operator;
 
         return <span className="uppercase">{limitedName}</span>;
       },
@@ -182,10 +193,14 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => {
-        const operator2 =
-          row.original.carmaDetails?.[1]?.selectedAvailability?.carrier || "";
+        const carmaDetails = row.original.carmaDetails;
+        const returnOperator = Array.isArray(carmaDetails)
+          ? carmaDetails[1]?.selectedAvailability?.carrier || "N/A"
+          : "N/A";
         const limitedName =
-          operator2.length > 9 ? `${operator2.slice(0, 9)}...` : operator2;
+          returnOperator.length > 9
+            ? `${returnOperator.slice(0, 9)}...`
+            : returnOperator;
 
         return <span className="uppercase">{limitedName}</span>;
       },
@@ -268,13 +283,19 @@ const TransactionTable: React.FC<TransactionReturn> = ({
     pageCount: Math.ceil(paginationData.totalCount / pagination.pageSize),
   });
 
-  const handleDownload = () => {
-    const exportData = transactionData.map((transaction) => ({
-      TicketID:
-        transaction.tickets?.map((ticket) => ticket.ticketId).join(", ") ||
-        "N/A",
-      Customer: transaction.customer?.name || "N/A",
-      Date: transaction.transactions?.paidAt
+  const handleDownloadExcel = () => {
+    const dataToExport = allTransactionData.length
+      ? allTransactionData
+      : transactionData;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      console.error("No transaction data available for download.");
+      return;
+    }
+
+    const exportData = dataToExport.map((transaction) => {
+      // Booking Date
+      const bookingDate = transaction.transactions?.paidAt
         ? new Date(transaction.transactions.paidAt).toLocaleString("en-US", {
             day: "2-digit",
             month: "short",
@@ -282,14 +303,609 @@ const TransactionTable: React.FC<TransactionReturn> = ({
             hour: "2-digit",
             minute: "2-digit",
           })
-        : "N/A",
-    }));
+        : "N/A";
 
+      // Customer Details
+      const customerName = transaction.customer?.name || "N/A";
+      const customerPhone = transaction.customer?.number
+        ? `+${String(transaction.customer.number)}`
+        : "N/A";
+
+      // City Pair
+      const cityPair = `${transaction.sourceCity?.name || "N/A"} - ${
+        transaction.arrivalCity?.name || "N/A"
+      }`;
+
+      // Departure Date & Time
+      const departureDateTime = transaction.tickets?.[0]?.departureTime
+        ? new Date(transaction.tickets[0].departureTime).toLocaleString(
+            "en-US",
+            {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          )
+        : "N/A";
+
+      // Bus Number
+      const busNumber = transaction.tickets?.[0]?.busIdentifier || "N/A";
+      // Transaction Details
+      const transactionNo = transaction.transactions.id || "N/A";
+      const transactionFee = Array.isArray(transaction.paymentReference)
+        ? transaction.paymentReference[0]?.merchantCharge || 0
+        : transaction.paymentReference?.merchantCharge || 0; // Ensure numeric value
+      const paymentMethod = transaction.transactions.paymentMethod || "N/A";
+      const operator = Array.isArray(transaction.carmaDetails)
+        ? transaction.carmaDetails[0]?.selectedAvailability?.carrier || "N/A"
+        : "N/A";
+      const returnOperator = Array.isArray(transaction.carmaDetails)
+        ? transaction.carmaDetails[1]?.selectedAvailability?.carrier || "N/A"
+        : "N/A";
+
+      // Ticket Numbers
+      const ticketNo =
+        transaction.tickets?.map((ticket) => ticket.ticketId).join(", ") ||
+        "N/A";
+
+      // Summing kupiMarkup for all tickets
+      const markup = transaction.tickets?.reduce((sum, ticket) => {
+        return sum + (ticket.priceDetails?.kupiMarkup || 0);
+      }, 0);
+      const pricePaid = transaction.transactions?.totalAmount || 0;
+
+      // Sum fields across all tickets
+      const originalPrice = transaction.tickets?.reduce((sum, ticket) => {
+        const totalPrice = ticket.priceDetails?.totalPrice || 0;
+        const kupiMarkup = ticket.priceDetails?.kupiMarkup || 0;
+        return sum + (totalPrice - kupiMarkup);
+      }, 0);
+
+      const OperatorOwed = transaction.tickets?.reduce((sum, ticket) => {
+        return (
+          sum +
+          (ticket.priceDetails?.totalPrice || 0) -
+          (ticket.priceDetails?.kupiProfit || 0) -
+          (ticket.priceDetails?.carmaProfit || 0)
+        );
+      }, 0);
+
+      const carmaComission = transaction.tickets?.reduce((sum, ticket) => {
+        return sum + (ticket.priceDetails?.carmaProfit || 0);
+      }, 0);
+      const kupiCommission = transaction.tickets?.reduce((sum, ticket) => {
+        return sum + (ticket.priceDetails?.kupiProfit || 0);
+      }, 0);
+
+      const kupiRevenue = transaction.tickets?.reduce((sum, ticket) => {
+        return (
+          sum +
+          (ticket.priceDetails?.kupiProfit || 0) +
+          (ticket.priceDetails?.kupiMarkup || 0)
+        );
+      }, 0);
+
+      const kupiProfitFinal =
+        (typeof kupiRevenue === "number" ? kupiRevenue : 0) -
+        (Array.isArray(transaction.paymentReference)
+          ? transaction.paymentReference[0]?.merchantCharge || 0
+          : transaction.paymentReference?.merchantCharge || 0);
+
+      return {
+        "Ticket Booking Date": bookingDate,
+        "Customer Name": customerName,
+        "Customer Phone Number": customerPhone,
+        "City Pair": cityPair,
+        "Departure Date & Time": departureDateTime,
+        "Bus Number": busNumber,
+        "Ticket No.": ticketNo,
+        "Transaction No.": transactionNo,
+        "Transaction Fee (merchant fee)": transactionFee,
+        "Payment Method": paymentMethod,
+        Operator: operator,
+        "Return Operator": returnOperator,
+        "Price Paid": pricePaid,
+        "Original Price": originalPrice,
+        Markup: markup,
+        "Operator Owed": OperatorOwed,
+        "Carma Comission": carmaComission,
+        "Kupi Commission": kupiCommission,
+        "Kupi Revenue": kupiRevenue,
+        "Kupi Profit": kupiProfitFinal,
+      };
+    });
+
+    // Create Excel file
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+
+    // Trigger Excel download
+    XLSX.writeFile(workbook, "transactions_data.xlsx");
+  };
+
+  const handleExportCSV = () => {
+    const dataToExport = allTransactionData.length
+      ? allTransactionData
+      : transactionData;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      console.error("No transaction data available for download.");
+      return;
+    }
+
+    const exportData = dataToExport.map((transaction) => {
+      // Booking Date
+      const bookingDate = transaction.transactions?.paidAt
+        ? new Date(transaction.transactions.paidAt).toLocaleString("en-US", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "N/A";
+
+      // Customer Details
+      const customerName = transaction.customer?.name || "N/A";
+      const customerPhone = transaction.customer?.number
+        ? `="+${String(transaction.customer.number)}"`
+        : "N/A";
+
+      // City Pair
+      const cityPair = `${transaction.sourceCity?.name || "N/A"} - ${
+        transaction.arrivalCity?.name || "N/A"
+      }`;
+
+      // Departure Date & Time
+      const departureDateTime = transaction.tickets?.[0]?.departureTime
+        ? new Date(transaction.tickets[0].departureTime).toLocaleString(
+            "en-US",
+            {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          )
+        : "N/A";
+
+      // Bus Number
+      const busNumber = transaction.tickets?.[0]?.busIdentifier || "N/A";
+      // Transaction Details
+      const transactionNo = transaction.transactions.id || "N/A";
+      const transactionFee = Array.isArray(transaction.paymentReference)
+        ? transaction.paymentReference[0]?.merchantCharge || 0
+        : transaction.paymentReference?.merchantCharge || 0; // Ensure numeric value
+      const paymentMethod = transaction.transactions.paymentMethod || "N/A";
+      const operator = Array.isArray(transaction.carmaDetails)
+        ? transaction.carmaDetails[0]?.selectedAvailability?.carrier || "N/A"
+        : "N/A";
+      const returnOperator = Array.isArray(transaction.carmaDetails)
+        ? transaction.carmaDetails[1]?.selectedAvailability?.carrier || "N/A"
+        : "N/A";
+
+      // Ticket Numbers
+      const ticketNo =
+        transaction.tickets?.map((ticket) => ticket.ticketId).join(", ") ||
+        "N/A";
+
+      // Summing kupiMarkup for all tickets
+      const markup = transaction.tickets?.reduce((sum, ticket) => {
+        return sum + (ticket.priceDetails?.kupiMarkup || 0);
+      }, 0);
+      const pricePaid = transaction.transactions?.totalAmount || 0;
+
+      // Sum fields across all tickets
+      const originalPrice = transaction.tickets?.reduce((sum, ticket) => {
+        const totalPrice = ticket.priceDetails?.totalPrice || 0;
+        const kupiMarkup = ticket.priceDetails?.kupiMarkup || 0;
+        return sum + (totalPrice - kupiMarkup);
+      }, 0);
+
+      const OperatorOwed = transaction.tickets?.reduce((sum, ticket) => {
+        return (
+          sum +
+          (ticket.priceDetails?.totalPrice || 0) -
+          (ticket.priceDetails?.kupiProfit || 0) -
+          (ticket.priceDetails?.carmaProfit || 0)
+        );
+      }, 0);
+
+      const carmaComission = transaction.tickets?.reduce((sum, ticket) => {
+        return sum + (ticket.priceDetails?.carmaProfit || 0);
+      }, 0);
+      const kupiCommission = transaction.tickets?.reduce((sum, ticket) => {
+        return sum + (ticket.priceDetails?.kupiProfit || 0);
+      }, 0);
+
+      const kupiRevenue = transaction.tickets?.reduce((sum, ticket) => {
+        return (
+          sum +
+          (ticket.priceDetails?.kupiProfit || 0) +
+          (ticket.priceDetails?.kupiMarkup || 0)
+        );
+      }, 0);
+
+      const kupiProfitFinal =
+        (typeof kupiRevenue === "number" ? kupiRevenue : 0) -
+        (Array.isArray(transaction.paymentReference)
+          ? transaction.paymentReference[0]?.merchantCharge || 0
+          : transaction.paymentReference?.merchantCharge || 0);
+
+      return {
+        "Ticket Booking Date": bookingDate,
+        "Customer Name": customerName,
+        "Customer Phone Number": customerPhone,
+        "City Pair": cityPair,
+        "Departure Date & Time": departureDateTime,
+        "Bus Number": busNumber,
+        "Ticket No.": ticketNo,
+        "Transaction No.": transactionNo,
+        "Transaction Fee (merchant fee)": transactionFee,
+        "Payment Method": paymentMethod,
+        Operator: operator,
+        "Return Operator": returnOperator,
+        "Price Paid": pricePaid,
+        "Original Price": originalPrice,
+        Markup: markup,
+        "Operator Owed": OperatorOwed,
+        "Carma Comission": carmaComission,
+        "Kupi Commission": kupiCommission,
+        "Kupi Revenue": kupiRevenue,
+        "Kupi Profit": kupiProfitFinal,
+      };
+    });
+
+    // Convert data to CSV
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const csv = XLSX.utils.sheet_to_csv(worksheet);
+
+    // CSV download
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "transactions_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportCarmaCSV = () => {
+    const dataToExport = allTransactionData.length
+      ? allTransactionData
+      : transactionData;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      console.error("No transaction data available for download.");
+      return;
+    }
+
+    const exportData = dataToExport.map((transaction) => {
+      // Transaction Datetime
+
+      const transactionDateTime = transaction.transactions?.paidAt
+        ? new Date(transaction.transactions.paidAt)
+            .toISOString()
+            .replace("T", " ")
+            .slice(0, 13)
+            .replace(/-/g, "")
+        : "N/A";
+
+      // Transaction Type
+      const transactionType = "SALE";
+
+      // Reference Number (INTrace)
+      const referenceNumber = transaction.transactions.id || "N/A";
+
+      // Implementation ID
+      const implementationId = "KPI";
+
+      // Terminal ID
+      const terminalId = "INTERNET";
+
+      // Ticket Number
+      const ticketNumber = transaction.tickets?.[0]?.ticketId || "N/A";
+
+      // Amount (in cents)
+      const amountCents =
+        Math.round(transaction.transactions.totalAmount * 100) || 0;
+
+      // Admin (in cents)
+      const adminCents =
+        Math.round(
+          Array.isArray(transaction.paymentReference)
+            ? transaction.paymentReference[0]?.merchantCharge || 0
+            : transaction.paymentReference?.merchantCharge || 0
+        ) || 0;
+
+      // Service Number
+      let serviceNumber = "N/A";
+      if (Array.isArray(transaction.carmaDetails)) {
+        serviceNumber =
+          transaction.carmaDetails?.[0]?.selectedAvailability?.serviceNumber ||
+          "N/A";
+      } else if (
+        transaction.carmaDetails &&
+        typeof transaction.carmaDetails === "object"
+      ) {
+        serviceNumber =
+          transaction.carmaDetails?.selectedAvailability?.serviceNumber ||
+          "N/A";
+      }
+      // Departure Date
+      const departureDate = transaction.tickets?.[0]?.departureTime
+        ? new Date(transaction.tickets[0].departureTime)
+            .toISOString()
+            .slice(0, 10)
+            .replace(/-/g, "")
+        : "N/A";
+
+      return {
+        "TRANSACTION DATETIME": transactionDateTime,
+        "TRANSACTION TYPE": transactionType,
+        "REFERENCE NUMBER (INTrace)": referenceNumber,
+        "IMPLEMENTATION ID": implementationId,
+        "TERMINAL ID": terminalId,
+        "TICKET NUMBER": ticketNumber,
+        "AMOUNT (CENTS)": amountCents,
+        "ADMIN (CENTS)": adminCents,
+        "SERVICE NUMBER": serviceNumber,
+        "DEPARTURE DATE": departureDate,
+      };
+    });
+
+    // Convert data to CSV
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const csv = XLSX.utils.sheet_to_csv(worksheet);
+
+    // CSV download
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "carma_transactions_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownload = () => {
+    if (!transactionData || transactionData.length === 0) {
+      console.error("No transaction data available for download.");
+      return;
+    }
+
+    // Prepare the export data
+    const exportData = transactionData.map((transaction) => {
+      const bookingDate = transaction.transactions?.paidAt
+        ? new Date(transaction.transactions.paidAt).toLocaleString("en-US", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "N/A";
+      const customerName = transaction.customer?.name || "N/A";
+      const customerPhone = transaction.customer?.number || "N/A";
+      const cityPair = `${transaction.sourceCity?.name || "N/A"} - ${
+        transaction.arrivalCity?.name || "N/A"
+      }`;
+      const departureDateTime = transaction.tickets?.[0]?.departureTime
+        ? new Date(transaction.tickets[0].departureTime).toLocaleString(
+            "en-US",
+            {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }
+          )
+        : "N/A";
+      const busNumber = transaction.tickets?.[0].busIdentifier || "N/A";
+      const ticketNo =
+        transaction.tickets?.map((ticket) => ticket.ticketId).join(", ") ||
+        "N/A";
+      const transactionNo = transaction.transactions.id || "N/A";
+      const transactionFee = Array.isArray(transaction.paymentReference)
+        ? transaction.paymentReference[0]?.merchantCharge || "N/A"
+        : transaction.paymentReference?.merchantCharge || "N/A";
+      const paymentMethod = transaction.transactions.paymentMethod || "N/A";
+      const operator = Array.isArray(transaction.carmaDetails)
+        ? transaction.carmaDetails[0]?.selectedAvailability?.carrier || "N/A"
+        : "N/A";
+      const returnOperator = Array.isArray(transaction.carmaDetails)
+        ? transaction.carmaDetails[1]?.selectedAvailability?.carrier || "N/A"
+        : "N/A";
+      const pricePaid = transaction.transactions?.totalAmount || "N/A";
+      const originalPrice =
+        transaction.tickets?.[0]?.priceDetails?.totalPrice || "N/A";
+      const markupOperatorOwed =
+        (transaction.tickets?.[0]?.priceDetails?.totalPrice || 0) -
+          (transaction.tickets?.[0]?.priceDetails?.kupiProfit || 0) -
+          (transaction.tickets?.[0]?.priceDetails?.carmaProfit || 0) || "N/A";
+      const kupiCommission =
+        transaction.tickets?.[0]?.priceDetails?.kupiCommissionPercentage ||
+        "N/A";
+      const kupiRevenue =
+        transaction.tickets?.[0]?.priceDetails?.kupiMarkup || "N/A";
+      const kupiProfit =
+        transaction.tickets?.[0]?.priceDetails?.kupiProfit || "N/A";
+
+      return {
+        "Ticket Booking Date": bookingDate,
+        "Customer Name": customerName,
+        "Customer Phone Number": customerPhone,
+        "City Pair": cityPair,
+        "Departure Date & Time": departureDateTime,
+        "Bus Number": busNumber,
+        "Ticket No.": ticketNo,
+        "Transaction No.": transactionNo,
+        "Transaction Fee (merchant fee)": transactionFee,
+        "Payment Method": paymentMethod,
+        Operator: operator,
+        "Return Operator": returnOperator,
+        "Price Paid": pricePaid,
+        "Original Price": originalPrice,
+        "Markup Operator Owed": markupOperatorOwed,
+        "Kupi Commission": kupiCommission,
+        "Kupi Revenue": kupiRevenue,
+        "Kupi Profit": kupiProfit,
+      };
+    });
+
+    // Create a new worksheet
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
 
     XLSX.writeFile(workbook, "transactions_data.xlsx");
+    const csv = XLSX.utils.sheet_to_csv(worksheet);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "transactions_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleTicketExcel = () => {
+    const dataToExport = allTransactionData.length
+      ? allTransactionData
+      : transactionData;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      console.error("No ticket data available for download.");
+      return;
+    }
+
+    const exportData = dataToExport.flatMap((transaction) => {
+      const totalTransactionFee = Array.isArray(transaction.paymentReference)
+        ? transaction.paymentReference[0]?.merchantCharge || 0
+        : transaction.paymentReference?.merchantCharge || 0;
+
+      const totalTransactionAmount = transaction.tickets?.reduce(
+        (sum, ticket) => {
+          return sum + (ticket.priceDetails?.totalPrice || 0);
+        },
+        0
+      );
+
+      return (
+        transaction.tickets?.map((ticket) => {
+          // Booking Date
+          const bookingDate = transaction.transactions?.paidAt
+            ? new Date(transaction.transactions.paidAt).toLocaleString(
+                "en-US",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }
+              )
+            : "N/A";
+
+          // Customer Details
+          const customerName = transaction.customer?.name || "N/A";
+          const customerPhone = transaction.customer?.number
+            ? `="+${String(transaction.customer.number)}"`
+            : "N/A";
+
+          // City Pair
+          const cityPair = `${transaction.sourceCity?.name || "N/A"} - ${
+            transaction.arrivalCity?.name || "N/A"
+          }`;
+
+          // Departure Date & Time
+          const departureDateTime = ticket.departureTime
+            ? new Date(ticket.departureTime).toLocaleString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "N/A";
+
+          // Bus Number
+          const busNumber = ticket.busIdentifier || "N/A";
+
+          // Transaction Details
+          const transactionNo = transaction.transactions.id || "N/A";
+          const paymentMethod = transaction.transactions.paymentMethod || "N/A";
+
+          // Proportional Transaction Fee Calculation
+          const ticketPrice = ticket.priceDetails?.totalPrice || 0;
+          const proportionalTransactionFee = totalTransactionAmount
+            ? (ticketPrice / totalTransactionAmount) * totalTransactionFee
+            : 0;
+
+          // Operator Details
+          const operator =
+            Array.isArray(transaction.carmaDetails) &&
+            isCarmaDetails(transaction.carmaDetails[0])
+              ? transaction.carmaDetails[0]?.selectedAvailability?.carrier ||
+                "N/A"
+              : "N/A";
+
+          // Price and Commission Calculations
+          const markup = ticket.priceDetails?.kupiMarkup || 0;
+          const pricePaid = ticket.priceDetails?.totalPrice || 0;
+          const originalPrice = pricePaid - markup;
+          const operatorOwed =
+            pricePaid -
+            (ticket.priceDetails?.kupiProfit || 0) -
+            (ticket.priceDetails?.carmaProfit || 0);
+          const carmaCommission = ticket.priceDetails?.carmaProfit || 0;
+          const kupiCommission = ticket.priceDetails?.kupiProfit || 0;
+          const kupiRevenue = kupiCommission + markup;
+          const kupiProfitFinal = kupiRevenue - proportionalTransactionFee;
+
+          return {
+            "Ticket Booking Date": bookingDate,
+            "Customer Name": customerName,
+            "Customer Phone Number": customerPhone,
+            "City Pair": cityPair,
+            "Departure Date & Time": departureDateTime,
+            "Bus Number": busNumber,
+            "Ticket No.": ticket.ticketId || "N/A",
+            "Transaction No.": transactionNo,
+            "Transaction Fee (merchant fee)":
+              proportionalTransactionFee.toFixed(2),
+            "Payment Method": paymentMethod,
+            Operator: operator,
+            "Price Paid": pricePaid,
+            "Original Price": originalPrice,
+            Markup: markup,
+            "Operator Owed": operatorOwed,
+            "Carma Commission": carmaCommission,
+            "Kupi Commission": kupiCommission,
+            "Kupi Revenue": kupiRevenue,
+            "Kupi Profit": kupiProfitFinal,
+          };
+        }) || []
+      );
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Tickets_data");
+
+    // Trigger Excel download
+    XLSX.writeFile(workbook, "Tickets_data.xlsx");
   };
 
   // actual table
@@ -300,7 +916,9 @@ const TransactionTable: React.FC<TransactionReturn> = ({
         setPagination={setPagination}
         pagination={pagination}
         tableData={table}
-        handleDownload={handleDownload}
+        handleDownloadExcel={handleDownloadExcel}
+        exportCarmaCSV={exportCarmaCSV}
+        handleTicketExcel={handleTicketExcel}
       />
 
       {/* dialogue */}

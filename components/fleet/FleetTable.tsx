@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, startTransition } from "react";
 import {
   ColumnDef,
   SortingState,
@@ -13,13 +13,6 @@ import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 // import TicketDetailDialgue from "./TicketDetailDialgue";
 import TableComponent from "../Table/Table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
 import { Busses } from "@prisma/client";
 import { PaginationData } from "@/types/fleet";
 import {
@@ -29,10 +22,16 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import UpdateBus from "./UpdateBus";
+import toast from "react-hot-toast";
+import { updateBusStatus } from "@/actions/fleet.actions";
 
 interface fleetOptions {
   busses: Busses[];
   paginationData: PaginationData;
+}
+
+interface LiveStatuses {
+  [key: string]: boolean;
 }
 
 const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
@@ -47,6 +46,7 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
   const [selectedBus, setSelectedBus] = useState<Busses | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [liveStatuses, setLiveStatuses] = useState<LiveStatuses>({});
 
   const handleShowDetail = (id: string) => {
     const bus = busses.find((b) => b.id === id) || null;
@@ -56,6 +56,35 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
+  };
+
+  const handleChange = async (id: string, status: boolean) => {
+    let newLiveStatus = false;
+    if (status === true) {
+      newLiveStatus = false;
+      setLiveStatuses((prev) => ({
+        ...prev,
+        [id]: false,
+      }));
+    } else if (status === false) {
+      newLiveStatus = true;
+      setLiveStatuses((prev) => ({
+        ...prev,
+        [id]: true,
+      }));
+    }
+
+    try {
+      const liveStatus = await updateBusStatus(id, newLiveStatus);
+      if (liveStatus === true) {
+        toast.success("Status updated successfully");
+        startTransition(() => {
+          router.refresh();
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
@@ -158,9 +187,8 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
       ),
       cell: ({ row }) => <div>{row.original.capacity}</div>,
     },
-
     {
-      accessorKey: "class",
+      accessorKey: "busClass",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -171,36 +199,48 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
       cell: ({ row }) => <div>{row.original.busClass}</div>,
     },
     {
+      accessorKey: "isLive",
+      header: ({ column }) => (
+        <button
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Live <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+        </button>
+      ),
+      cell: ({ row }) => (
+        <>
+          <div className="">
+            <label className="switch-live">
+              <input
+                type="checkbox"
+                checked={liveStatuses[row.original.id] || row.original.isLive}
+                onChange={(e) => {
+                  handleChange(row.original.id, row.original.isLive);
+                }}
+              />
+              <span className="slider-live round-live"></span>
+            </label>
+          </div>
+        </>
+      ),
+    },
+    {
       accessorKey: "action",
       header: "",
       cell: ({ row }) => (
-        <div className="flex justify-end">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="p-2 rounded-md hover:bg-gray-100 border-none outline-none"
-              >
-                <Image
-                  src="/img/icons/actions.svg"
-                  alt="icon"
-                  height={4.5}
-                  width={4.5}
-                />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-40  px-5 py-2">
-              <button
-                onClick={() => {
-                  handleShowDetail(row.original.id);
-                }}
-                className="w-full text-left py-1 text-sm"
-              >
-                Edit
-              </button>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <button
+          className="flex justify-end"
+          onClick={() => {
+            handleShowDetail(row.original.id);
+          }}
+        >
+          <Image
+            src="/img/icons/actions.svg"
+            alt="icon"
+            height={4.5}
+            width={4.5}
+          />
+        </button>
       ),
       enableSorting: false,
     },
