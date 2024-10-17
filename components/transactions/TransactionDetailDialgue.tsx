@@ -152,7 +152,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                       TransactionData?.tickets?.[0]?.departureTime.toLocaleTimeString(
                         "en-US",
                         {
-                          timeZone: "UTC",
+                          timeZone: "Africa/Harare",
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
@@ -167,7 +167,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                       TransactionData?.tickets?.[0]?.arrivalTime.toLocaleTimeString(
                         "en-US",
                         {
-                          timeZone: "UTC",
+                          timeZone: "Africa/Harare",
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
@@ -260,17 +260,23 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                     )}
                   </div>
                 </div>
-                <div className="w-full hrGap bg-gray-500"></div>
-                <div className="flex w-full flex-row justify-between">
-                  <p className="text-gray-600 font-light">Price</p>
-                  <p className="text-black font-semibold text-md">
-                    $
-                    {TransactionData?.tickets &&
-                      TransactionData?.tickets?.[0]?.priceDetails.totalPrice.toFixed(
-                        1
-                      )}
-                  </p>
-                </div>
+                {TransactionData?.tickets &&
+                  TransactionData?.tickets?.length > 1 && (
+                    <>
+                      <div className="w-full hrGap bg-gray-500"></div>
+
+                      <div className="flex w-full flex-row justify-between">
+                        <p className="text-gray-600 font-light">Price</p>
+                        <p className="text-black font-semibold text-md">
+                          $
+                          {TransactionData?.tickets &&
+                            TransactionData?.tickets?.[0]?.priceDetails.totalPrice.toFixed(
+                              1
+                            )}
+                        </p>
+                      </div>
+                    </>
+                  )}
               </div>
             </div>
             {/* second transaction if */}
@@ -325,7 +331,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                           TransactionData?.tickets?.[1]?.departureTime.toLocaleTimeString(
                             "en-US",
                             {
-                              timeZone: "UTC",
+                              timeZone: "Africa/Harare",
                               day: "2-digit",
                               month: "short",
                               year: "numeric",
@@ -340,7 +346,7 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                           TransactionData?.tickets?.[1]?.arrivalTime.toLocaleTimeString(
                             "en-US",
                             {
-                              timeZone: "UTC",
+                              timeZone: "Africa/Harare",
                               day: "2-digit",
                               month: "short",
                               year: "numeric",

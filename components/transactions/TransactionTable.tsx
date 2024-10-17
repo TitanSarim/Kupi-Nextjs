@@ -120,7 +120,7 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
       cell: ({ row }) => (
         <span>
           {row.original?.transactions?.paidAt?.toLocaleTimeString("en-US", {
-            timeZone: "UTC",
+            timeZone: "Africa/Harare",
             day: "2-digit",
             month: "short",
             year: "numeric",

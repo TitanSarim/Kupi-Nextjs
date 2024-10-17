@@ -172,7 +172,7 @@ model Transactions {
   operators        Operators  @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
   paymentMethod    String
   paymentRef       String     @unique
-  paidAt           DateTime   @default(now())
+  paidAt           DateTime?  @default(now())
   totalAmount      Float
   currency         String
   paymentReference Json

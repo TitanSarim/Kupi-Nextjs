@@ -19,10 +19,15 @@ interface AdminSettingsProps {
   settings: Settings[];
 }
 
+// ! sales commission will always be less then kupi comission (comission)
+
 const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const { currency, amount, equivalent, unit } = Rates.globalExchangeRate;
   const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [commission, setCommission] = useState<number>(0);
+  const [salesCommission, setSalesCommission] = useState<number>(0);
+  const [salesCommissionError, setSalesCommissionError] =
+    useState<boolean>(false);
   const [carmaCommission, setCarmaCommission] = useState<number>(0);
   const [kupiMarkup, setKupiMarkup] = useState<number>(0);
   const [tickets, setTickets] = useState<number>(0);
@@ -74,6 +79,28 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     }
 
     setCommission(commission);
+    setFormChanged(true);
+  };
+
+  const handleSalesCommissionChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    let value = event.target.value;
+    let numericValue = value.replace(/[^0-9]/g, "");
+    let salesCommissionValue = Number(numericValue);
+
+    if (salesCommissionValue < 0) {
+      salesCommissionValue = 0;
+    }
+
+    if (salesCommissionValue >= commission) {
+      setSalesCommissionError(true);
+      setSalesCommission(0);
+    } else {
+      setSalesCommissionError(false);
+      setSalesCommission(salesCommissionValue);
+    }
+
     setFormChanged(true);
   };
 
@@ -157,15 +184,19 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
         value: exchangeRate,
       },
       {
-        key: "SALES_COMMISSION_PERCENTAGE",
+        key: "KUPI_COMMISSION_PERCENTAGE",
         value: commission,
+      },
+      {
+        key: "SALES_COMMISSION_PERCENTAGE",
+        value: salesCommission,
       },
       {
         key: "CARMA_COMMISSION_PERCENTAGE",
         value: carmaCommission,
       },
       {
-        key: "KUPI_COMMISSION_PERCENTAGE",
+        key: "KUPI_MARKUP_PERCENTAGE",
         value: kupiMarkup,
       },
       {
@@ -210,6 +241,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
         try {
           let exchangeRate = "";
           let commission = "";
+          let salesCommission = "";
           let tickets = "";
           let bookingAt = "";
           let reminder = "";
@@ -222,13 +254,15 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               case "EXCHANGE_RATE":
                 exchangeRate = setting.value;
                 break;
-              case "SALES_COMMISSION_PERCENTAGE":
+              case "KUPI_COMMISSION_PERCENTAGE":
                 commission = setting.value;
                 break;
+              case "SALES_COMMISSION_PERCENTAGE":
+                salesCommission = setting.value;
               case "CARMA_COMMISSION_PERCENTAGE":
                 carmaCommission = setting.value;
                 break;
-              case "KUPI_COMMISSION_PERCENTAGE":
+              case "KUPI_MARKUP_PERCENTAGE":
                 kupiMarkup = setting.value;
                 break;
               case "NUM_OF_TICKETS":
@@ -254,6 +288,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             : formatTime(parsedBookingAt);
           setExchangeRate(parseInt(exchangeRate));
           setCommission(parseInt(commission));
+          setSalesCommission(parseInt(salesCommission));
           setTickets(parseInt(tickets));
           setBookingAt(formattedBookingAt);
           setReminder(parseInt(reminder));
@@ -381,12 +416,32 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               />
             </div>
             <div className="w-5/12 mb-2">
+              <p className="mb-1 darkGray-text font-normal pb-1">
+                Sales Commission
+              </p>
+              <Input
+                type="text"
+                className="h-12 border-gray-400 rounded-lg"
+                placeholder="10%"
+                value={
+                  salesCommission > 0 ? `${salesCommission.toFixed(0)}%` : ""
+                }
+                onChange={handleSalesCommissionChange}
+                required
+              />
+              {salesCommissionError === true && (
+                <p className="text-red-500">
+                  Sales Commission should be less then Kupi Commission
+                </p>
+              )}
+            </div>
+            <div className="w-5/12 mb-2">
               <p className="mb-1 darkGray-text font-normal pb-1">Kupi Markup</p>
               <Input
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="$10"
-                value={kupiMarkup > 0 ? `$${kupiMarkup.toFixed(0)}` : ""}
+                value={kupiMarkup > 0 ? `${kupiMarkup.toFixed(0)}%` : ""}
                 onChange={handleKupiCommissionChange}
                 required
               />

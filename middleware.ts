@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { secureRoutes } from "@/secureRoutes";
 import { RolesEnum } from "./types/auth";
+import { db } from "./db";
 
 export async function middleware(req: NextRequest) {
   const session = (await auth().catch(() => null)) ?? null;
@@ -12,7 +13,7 @@ export async function middleware(req: NextRequest) {
   const role = session?.role;
 
   if (secureRoutes.includes(path) && !session) {
-    url.pathname = "/login";
+    url.pathname = "/";
     return NextResponse.redirect(url);
   }
 

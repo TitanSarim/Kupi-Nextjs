@@ -56,7 +56,13 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
               <div className="flex flex-row w-full items-start justify-start gap-10">
                 <div className="w-6/12">
                   <p className="text-gray-600 font-light">Name</p>
-                  <span>{TicketData?.customer?.name}</span>
+                  <span>
+                    {TicketData?.customer && TicketData.customer.name
+                      ? TicketData.customer.name.length > 18
+                        ? `${TicketData.customer.name.substring(0, 18)}...`
+                        : TicketData.customer.name
+                      : "NA"}
+                  </span>
                 </div>
                 <div className="w-6/12">
                   <p className="text-gray-600 font-light">Phone</p>
@@ -94,7 +100,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                     {TicketData?.tickets.departureTime?.toLocaleTimeString(
                       "en-US",
                       {
-                        timeZone: "UTC",
+                        timeZone: "Africa/Harare",
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
@@ -111,7 +117,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                     {TicketData?.tickets.arrivalTime?.toLocaleTimeString(
                       "en-US",
                       {
-                        timeZone: "UTC",
+                        timeZone: "Africa/Harare",
                         day: "2-digit",
                         month: "short",
                         year: "numeric",
@@ -212,8 +218,8 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                   <div className="w-5/12">
                     <p className="text-gray-600 font-light">Name</p>
                     <span className="whitespace-nowrap">
-                      {passenger.name.length > 11
-                        ? `${passenger.name.substring(0, 11)}...`
+                      {passenger.name.length > 18
+                        ? `${passenger.name.substring(0, 18)}...`
                         : passenger.name}
                     </span>
                   </div>

@@ -198,7 +198,7 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
       cell: ({ row }) => (
         <div>
           {row.original.discount?.expiryDate?.toLocaleTimeString("en-US", {
-            timeZone: "UTC",
+            timeZone: "Africa/Harare",
             day: "2-digit",
             month: "short",
             year: "numeric",

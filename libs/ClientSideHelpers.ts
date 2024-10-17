@@ -226,3 +226,23 @@ export const validateStops = (
 ): boolean => {
   return stops.every((stop) => stop.arrivalTime && stop.departureTime);
 };
+
+export function formatNumber(value: number): string {
+  if (value >= 1_000_000) {
+    return (value / 1_000_000).toFixed(1) + "M"; // Millions
+  } else if (value >= 1_000) {
+    return (value / 1_000).toFixed(1) + "K"; // Thousands
+  } else {
+    return value.toFixed(1); // Less than 1000, show as is
+  }
+}
+
+export function formatTickets(value: number): string {
+  if (value >= 1_000_000) {
+    return (value / 1_000_000).toFixed(0) + "M"; // Millions
+  } else if (value >= 1_000) {
+    return (value / 1_000).toFixed(0) + "K"; // Thousands
+  } else {
+    return value.toFixed(0); // Less than 1000, show as is
+  }
+}

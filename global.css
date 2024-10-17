@@ -341,9 +341,18 @@ input:checked+.slider-live:before {
   max-width: 1100px;
 }
 
+.inner-transaction_dialguebox {
+   max-height: 80vh;
+   min-height: 80vh;
+   overflow-y: auto;
+   padding-top: 10px;
+   margin-bottom: 5px;
+}
+
 .add_transaction_dialguebox {
   width: 550px;
 }
+
 
 .hrGap {
   height: 1px;

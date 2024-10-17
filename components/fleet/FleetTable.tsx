@@ -185,7 +185,7 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
           Bus Capacity <ArrowUpDown className="ml-2 h-4 w-4 inline" />
         </button>
       ),
-      cell: ({ row }) => <div>{row.original.capacity}</div>,
+      cell: ({ row }) => <div>{row.original.capacity} Seats</div>,
     },
     {
       accessorKey: "busClass",

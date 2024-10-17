@@ -20,12 +20,21 @@ import Datepicker from "react-tailwindcss-datepicker";
 import TicketsCards from "./TicketsCards";
 import TicketStatusCard from "./TicketStatusCard";
 import { CommonRoutes, IncomeChart } from "./Charts";
+import { IncomeChartStats, RoutesChartData, Stats } from "@/types/dashboard";
 
 interface Dashboard {
   operators: OperatorsType[];
+  stats?: Stats | null;
+  IncomeChartStats?: IncomeChartStats | null;
+  RoutesChartStats?: RoutesChartData | null;
 }
 
-const DashboardLayout: React.FC<Dashboard> = ({ operators }) => {
+const DashboardLayout: React.FC<Dashboard> = ({
+  operators,
+  stats,
+  IncomeChartStats,
+  RoutesChartStats,
+}) => {
   const [busOperator, setBusOperator] = useState<string>("");
   const [openOperator, setOpenOperator] = useState(false);
   const [value, setValue] = useState<{
@@ -144,16 +153,23 @@ const DashboardLayout: React.FC<Dashboard> = ({ operators }) => {
       </div>
 
       {/* tickets card */}
-      <TicketsCards />
+      <TicketsCards stats={stats} />
       {/* Tickets status */}
-      <TicketStatusCard />
+      <TicketStatusCard stats={stats} />
 
       <div className="w-full bg-white shadow-sm rounded-md flex flex-col mt-6 justify-between">
         <div className="w-11/12 px-10 flex flex-col  py-10">
           <p className="text-2xl text-black font-semibold w-[90%] mb-6">
             Most Common Routes
           </p>
-          <CommonRoutes />
+          {RoutesChartStats ? (
+            <CommonRoutes
+              labels={RoutesChartStats.labels}
+              count={RoutesChartStats.counts}
+            />
+          ) : (
+            "Loading..."
+          )}
         </div>
       </div>
 
@@ -162,7 +178,14 @@ const DashboardLayout: React.FC<Dashboard> = ({ operators }) => {
           <p className="text-2xl text-black font-semibold w-[90%] mb-6">
             Income Overview
           </p>
-          <IncomeChart />
+          {IncomeChartStats ? (
+            <IncomeChart
+              labels={IncomeChartStats.labels}
+              data={IncomeChartStats.data}
+            />
+          ) : (
+            "Loading..."
+          )}
         </div>
       </div>
     </div>

@@ -101,7 +101,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
       cell: ({ row }) => (
         <div>
           {row.original?.tickets.reservedAt?.toLocaleTimeString("en-US", {
-            timeZone: "UTC",
+            timeZone: "Africa/Harare",
             day: "2-digit",
             month: "short",
             year: "numeric",

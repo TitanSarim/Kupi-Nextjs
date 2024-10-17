@@ -6,8 +6,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Stats } from "@/types/dashboard";
+import { formatTickets } from "@/libs/ClientSideHelpers";
 
-const TicketStatusCard = () => {
+interface TicketsCardsInterface {
+  stats?: Stats | null;
+}
+
+const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
   return (
     <div className="w-full flex flex-row mt-6 justify-between">
       <div className="w-full bg-white flex rounded-lg flex-row justify-between shadow-sm px-2 py-5">
@@ -39,7 +45,7 @@ const TicketStatusCard = () => {
           </p>
           <div className="flex flex-row justify-between  items-end">
             <p className="text-xl flex flex-row items-end gap-1 text-black  font-semibold">
-              500
+              {formatTickets(stats.stats?.totalTickets || 0)}
               <span className="text-sm text-lime-600 font-medium mb-1">
                 {" "}
                 Initiate
@@ -82,7 +88,7 @@ const TicketStatusCard = () => {
           </p>
           <div className="flex flex-row justify-between  items-end">
             <p className="text-xl flex flex-row items-end gap-1 text-black  font-semibold">
-              500
+              {formatTickets(stats.stats?.reservedTickets || 0)}
               <span className="text-sm text-yellow-500 font-medium mb-1">
                 {" "}
                 Reserved
@@ -125,7 +131,7 @@ const TicketStatusCard = () => {
           </p>
           <div className="flex flex-row justify-between  items-end">
             <p className="text-xl flex flex-row items-end gap-1 text-black  font-semibold">
-              500
+              {formatTickets(stats.stats?.unconvertedTickets || 0)}
               <span className="text-sm text-black font-medium mb-1">
                 Unconverted
               </span>
@@ -167,7 +173,7 @@ const TicketStatusCard = () => {
           </p>
           <div className="flex flex-row justify-between  items-end">
             <p className="text-xl flex flex-row items-end gap-1 text-black  font-semibold">
-              500
+              {formatTickets(stats.stats?.unSoldTickets || 0)}
               <span className="text-sm text-red-600 font-medium mb-1">
                 {" "}
                 Unsold
@@ -210,7 +216,7 @@ const TicketStatusCard = () => {
           </p>
           <div className="flex flex-row justify-between  items-end">
             <p className="text-xl flex flex-row items-end gap-1 text-black  font-semibold">
-              500
+              {formatTickets(stats.stats?.soldTickets || 0)}
               <span className="text-sm text-green-600 font-medium mb-1">
                 {" "}
                 Sold

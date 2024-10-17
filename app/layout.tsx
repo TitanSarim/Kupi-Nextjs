@@ -7,6 +7,9 @@ import "/public/css/style.css";
 import "/public/css/custom.css";
 import "/global.css";
 import { Toaster } from "react-hot-toast";
+import { db } from "@/db";
+import Link from "next/link";
+import { SignOut } from "@/components/signOut";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,13 +24,32 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = (await auth().catch(() => null)) ?? null;
+
+  const operatorSession = await db.users.findFirst({
+    where: {
+      id: session?.userId,
+    },
+    include: {
+      operator: true,
+    },
+  });
+
   return (
     <SessionProvider session={session}>
       <html lang="en">
-        <body className={inter.className}>
-          <Toaster position="top-right" reverseOrder={true} />
-          {children}
-        </body>
+        {operatorSession?.operator?.status === "SUSPENDED" ? (
+          <body className={inter.className}>
+            <div>
+              <p>Your account has been suspended</p>
+              <SignOut />
+            </div>
+          </body>
+        ) : (
+          <body className={inter.className}>
+            <Toaster position="top-right" reverseOrder={true} />
+            {children}
+          </body>
+        )}
       </html>
     </SessionProvider>
   );

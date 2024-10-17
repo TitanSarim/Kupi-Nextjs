@@ -245,7 +245,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
             new Date(row.original.operators.joiningDate).toLocaleDateString(
               "en-UK",
               {
-                timeZone: "UTC",
+                timeZone: "Africa/Harare",
                 day: "2-digit",
                 month: "short",
                 year: "numeric",
