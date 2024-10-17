@@ -337,7 +337,8 @@ input:checked+.slider-live:before {
 }
 
 .transaction_dialguebox {
-  width: 600px;
+  min-width: 600px;
+  max-width: 1100px;
 }
 
 .add_transaction_dialguebox {
@@ -558,4 +559,10 @@ input:checked+.slider-live:before {
 
 .dropdown-fixed {
   position: fixed !important;
+}
+
+.dashboard-tiket-divider{
+  position: relative;
+  width: 1px;
+  background-color: #d3d3d38e;
 }

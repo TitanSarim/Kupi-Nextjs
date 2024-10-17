@@ -260,25 +260,25 @@ const AddDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search operator..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No operator found.</CommandEmpty>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setSelectedOperators([]); // Clear all selections
+                          setOpenOperator(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            selectedOperators.length === 0
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
                       <CommandGroup>
-                        <CommandItem
-                          key="clear"
-                          value=""
-                          onSelect={() => {
-                            setSelectedOperators([]); // Clear all selections
-                            setOpenOperator(false);
-                          }}
-                          className="cursor-pointer w-full"
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              selectedOperators.length === 0
-                                ? "opacity-100"
-                                : "opacity-0"
-                            }`}
-                          />
-                          Clear
-                        </CommandItem>
                         {operators &&
                           operators.map((data) => (
                             <CommandItem
@@ -336,25 +336,25 @@ const AddDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search city..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setDestinationCityIds([]);
+                          setOpenDestination(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            destinationCityIds.length === 0
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
                       <CommandGroup>
-                        <CommandItem
-                          key="clear"
-                          value=""
-                          onSelect={() => {
-                            setDestinationCityIds([]);
-                            setOpenDestination(false);
-                          }}
-                          className="cursor-pointer w-full"
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              destinationCityIds.length === 0
-                                ? "opacity-100"
-                                : "opacity-0"
-                            }`}
-                          />
-                          Clear
-                        </CommandItem>
                         {cities &&
                           cities
                             .filter((city) => !arrivalCityIds.includes(city.id))
@@ -411,25 +411,25 @@ const AddDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search city..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setArrivalCityIds([]);
+                          setOpenArrival(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            arrivalCityIds.length === 0
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
                       <CommandGroup>
-                        <CommandItem
-                          key="clear"
-                          value=""
-                          onSelect={() => {
-                            setArrivalCityIds([]);
-                            setOpenArrival(false);
-                          }}
-                          className="cursor-pointer w-full"
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              arrivalCityIds.length === 0
-                                ? "opacity-100"
-                                : "opacity-0"
-                            }`}
-                          />
-                          Clear
-                        </CommandItem>
                         {cities &&
                           cities
                             .filter(
@@ -481,23 +481,23 @@ const AddDiscount: React.FC<DialogProps> = ({
                     {/* <CommandInput placeholder="Search city..." /> */}
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setSource([]);
+                          setOpenSource(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            source.length === 0 ? "opacity-100" : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
                       <CommandGroup>
-                        <CommandItem
-                          key="clear"
-                          value=""
-                          onSelect={() => {
-                            setSource([]);
-                            setOpenSource(false);
-                          }}
-                          className="cursor-pointer w-full"
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              source.length === 0 ? "opacity-100" : "opacity-0"
-                            }`}
-                          />
-                          Clear
-                        </CommandItem>
                         {sources &&
                           sources.map((data: string) => (
                             <CommandItem

@@ -230,7 +230,11 @@ export async function getAllTransactions(
 
 export async function getBusOperators(): Promise<OperatorsType[] | null> {
   try {
-    const operators = await db.operators.findMany();
+    const operators = await db.operators.findMany({
+      where: {
+        status: "REGISTERED",
+      },
+    });
 
     if (!operators) {
       return null;

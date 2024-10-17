@@ -17,19 +17,14 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
   if (!open) return null;
 
   const busCompanyAmount =
-    TicketData?.tickets &&
-    TicketData?.tickets.priceDetails.totalPrice -
-      TicketData?.tickets.priceDetails.carmaProfit -
-      TicketData?.tickets.priceDetails.kupiProfit -
-      TicketData?.tickets.priceDetails.kupiMarkup;
-  const kupiCommissionPercent =
-    TicketData?.tickets &&
-    TicketData?.tickets.priceDetails.kupiCommissionPercentage +
-      TicketData?.tickets.priceDetails.kupiMarkupPercentage;
-  const KupiAmount =
-    TicketData?.tickets &&
-    TicketData?.tickets.priceDetails.kupiMarkup +
-      TicketData?.tickets.priceDetails.kupiProfit;
+    (TicketData?.tickets &&
+      TicketData?.tickets.priceDetails.totalPrice -
+        TicketData?.tickets.priceDetails.carmaProfit -
+        TicketData?.tickets.priceDetails.kupiProfit -
+        TicketData?.tickets.priceDetails.kupiMarkup) ||
+    0;
+  const ticketPrice =
+    busCompanyAmount + (TicketData?.tickets?.priceDetails?.carmaProfit || 0);
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex dialguebox-container items-center justify-center z-50 duration-700 ease-out">
@@ -70,7 +65,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
+            <div className="w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
               <p className="text-black font-semibold text-md">
                 Route Information
               </p>
@@ -130,7 +125,7 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
               </div>
             </div>
 
-            <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
+            <div className="w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
               <p className="text-black font-semibold text-md">
                 Ticket Price Detail
               </p>
@@ -158,45 +153,40 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                     ${TicketData?.tickets.priceDetails.carmaProfit.toFixed(1)}
                   </span>
                 </div>
+              </div>
+              <div className="w-full hrGap bg-gray-500"></div>
+              <div className="flex w-full flex-row justify-between">
+                <p className="text-gray-600 font-light">Price</p>
+                <p className="text-black font-semibold text-md">
+                  ${ticketPrice && ticketPrice.toFixed(1)}{" "}
+                </p>
+              </div>
+            </div>
+
+            <div className="w-full bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
+              <p className="text-black font-semibold text-md">
+                Kupi Price Detail
+              </p>
+              <div className="w-full flex flex-wrap justify-between gap-2">
+                <div className="w-5/12">
+                  <p className="text-gray-600 font-light">Kupi Markup</p>
+                  <span>
+                    {TicketData?.tickets.priceDetails.kupiMarkupPercentage}%
+                  </span>
+                </div>
                 <div className="w-5/12">
                   <p className="text-gray-600 font-light">Kupi Commission</p>
-                  {TicketData &&
-                  TicketData?.tickets.priceDetails.kupiMarkupPercentage > 0 ? (
-                    <span>
-                      (
-                      {
-                        TicketData?.tickets.priceDetails
-                          .kupiCommissionPercentage
-                      }
-                      % +{" "}
-                      {TicketData?.tickets.priceDetails.kupiMarkupPercentage}%)
-                      = {kupiCommissionPercent}%
-                    </span>
-                  ) : (
-                    <span>
-                      {
-                        TicketData?.tickets.priceDetails
-                          .kupiCommissionPercentage
-                      }
-                      %
-                    </span>
-                  )}
+                  <span>
+                    {TicketData?.tickets.priceDetails.kupiCommissionPercentage}%
+                  </span>
+                </div>
+                <div className="w-5/12">
+                  <p className="text-gray-600 font-light">Sales Commission</p>
+                  {0}%
                 </div>
                 <div className="w-5/12">
                   <p className="text-gray-600 font-light">Kupi Amount</p>
-                  {TicketData &&
-                  TicketData?.tickets.priceDetails.kupiMarkup > 0 ? (
-                    <span>
-                      (${TicketData?.tickets.priceDetails.kupiProfit.toFixed(1)}{" "}
-                      + $
-                      {TicketData?.tickets.priceDetails.kupiMarkup.toFixed(1)})
-                      = ${KupiAmount && KupiAmount.toFixed(1)}
-                    </span>
-                  ) : (
-                    <span>
-                      ${TicketData?.tickets.priceDetails.kupiProfit.toFixed(1)}
-                    </span>
-                  )}
+                  {TicketData?.tickets.priceDetails.kupiProfit}
                 </div>
               </div>
               <div className="w-full hrGap bg-gray-500"></div>

@@ -236,27 +236,27 @@ const AddTreansactionDialogue: React.FC<DialogProps> = ({
                   <CommandInput placeholder="Search operator..." />
                   <CommandList className="w-full">
                     <CommandEmpty>No operator found.</CommandEmpty>
+                    <CommandItem
+                      key="clear"
+                      value=""
+                      onSelect={() => {
+                        setBusOperator(""); // Clear selection
+                        setOpenOperator(false);
+                      }}
+                      className="ml-1 cursor-pointer w-full"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${
+                          busOperator === "" ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      Clear
+                    </CommandItem>
                     <CommandGroup>
-                      <CommandItem
-                        key="clear"
-                        value=""
-                        onSelect={() => {
-                          setBusOperator(""); // Clear selection
-                          setOpenOperator(false);
-                        }}
-                        className="cursor-pointer w-full"
-                      >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${
-                            busOperator === "" ? "opacity-100" : "opacity-0"
-                          }`}
-                        />
-                        Clear
-                      </CommandItem>
                       {operators.map((operator) => (
                         <CommandItem
                           key={operator.id}
-                          value={operator.id}
+                          value={operator.name}
                           onSelect={() => {
                             setBusOperator(operator.id); // Save operator ID instead of name
                             setOpenOperator(false);

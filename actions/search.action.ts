@@ -32,7 +32,11 @@ export async function getAllOperators(): Promise<OperatorsType[] | null> {
       return null;
     }
 
-    const operatorsData = await db.operators.findMany();
+    const operatorsData = await db.operators.findMany({
+      where: {
+        status: "REGISTERED",
+      },
+    });
 
     if (!operatorsData) {
       return null;

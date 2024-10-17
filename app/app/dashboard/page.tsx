@@ -1,16 +1,18 @@
 import { auth } from "@/auth";
 import React, { Suspense } from "react";
-import { redirect } from "next/navigation";
-import NavBar from "@/components/NavBar";
-import SideBar from "@/components/SideBar";
-import Loading from "@/components/Loading";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import { getAllOperators } from "@/actions/search.action";
 
 const Dashboard = async () => {
-  
+  const operators = await getAllOperators();
+
+  if (!operators) {
+    return null;
+  }
 
   return (
-    <div className="bg-page-backgound h-screen w-full">
-      <p>Dashboard</p>
+    <div className="bg-page-backgound h-full w-full">
+      <DashboardLayout operators={operators} />
     </div>
   );
 };

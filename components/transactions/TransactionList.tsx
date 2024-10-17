@@ -2,10 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  TransactionReturn,
-  TransactionReturnWithDateRange,
-} from "@/types/transactions";
+import { TransactionReturnWithDateRange } from "@/types/transactions";
 import Datepicker from "react-tailwindcss-datepicker";
 import TransactionTable from "./TransactionTable";
 import {
@@ -23,13 +20,11 @@ import {
 } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSession } from "next-auth/react";
 
 const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
   transactionData,
   paginationData,
   cities,
-  dateRange,
   allTransactionData,
 }) => {
   const NEXT_MONTH = new Date();
