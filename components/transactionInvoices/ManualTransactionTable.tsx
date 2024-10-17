@@ -200,14 +200,15 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
       ),
       cell: ({ row }) => (
         <span>
-          {row.original.transactions.paidAt.toLocaleTimeString("en-US", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-            hourCycle: "h23",
-          })}
+          {row.original.transactions.paidAt &&
+            row.original.transactions.paidAt.toLocaleTimeString("en-US", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hourCycle: "h23",
+            })}
         </span>
       ),
     },
