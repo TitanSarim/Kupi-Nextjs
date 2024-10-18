@@ -1,38 +1,38 @@
-import { deleteAccount } from "@/actions/operators.action";
+import { updateStatus } from "@/actions/operators.action";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { startTransition, useState } from "react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+
+interface LiveStatuses {
+  [key: string]: boolean;
+}
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  id?: string | null;
+  id?: string;
+  handleChange: () => Promise<void>;
+  status?: boolean;
+  name: string;
 }
 
-const DeleteOperator: React.FC<DialogProps> = ({ open, onClose, id }) => {
+const LiveDialogue: React.FC<DialogProps> = ({
+  open,
+  onClose,
+  id,
+  handleChange,
+  name,
+}) => {
   const [loading, setLoading] = useState(false);
-
-  const handleDeleteAccount = async () => {
-    try {
-      setLoading(true);
-      if (!id) {
-        return null;
-      }
-      const response = await deleteAccount(id);
-      if (response === true) {
-        toast.success("Account deleted successfully");
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-      onClose();
-    }
-  };
 
   const handleClose = () => {
     onClose();
   };
+
+  if (!id) {
+    return;
+  }
 
   if (!open) return null;
 
@@ -54,16 +54,14 @@ const DeleteOperator: React.FC<DialogProps> = ({ open, onClose, id }) => {
         </div>
         <div className="relative w-full flex flex-col items-center justify-center">
           <Image
-            src="/img/icons/DeleteIcon.svg"
+            src="/img/icons/isLive.svg"
             alt="delete"
             width={130}
             height={130}
             className="flex justify-center items-center"
           />
           <p className="mb-3 font-semibold text-xl text-black">Are you sure?</p>
-          <span className="mb-3 font-light">
-            You want to delete this operator.
-          </span>
+          <span className="mb-3 font-light">You want to block this {name}</span>
           <div className="flex flex-row gap-10 mt-4">
             <button
               onClick={handleClose}
@@ -73,7 +71,7 @@ const DeleteOperator: React.FC<DialogProps> = ({ open, onClose, id }) => {
             </button>
             <button
               disabled={loading}
-              onClick={handleDeleteAccount}
+              onClick={handleChange}
               className={`${
                 loading ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
@@ -87,4 +85,4 @@ const DeleteOperator: React.FC<DialogProps> = ({ open, onClose, id }) => {
   );
 };
 
-export default DeleteOperator;
+export default LiveDialogue;

@@ -270,22 +270,38 @@ export async function createInvoice(
     const invoiceResult = await uploadPdfToS3(invoiceFile);
     const receiptResult = await uploadPdfToS3(receiptFile);
 
-    const operatorIds = Array.isArray(busOperator)
-      ? busOperator
-      : [busOperator];
-    const paymentRef = new Date();
     const paymentPeriodNumber = Number(paymentPeriod);
     const totalAmountNumber = Number(totalAmount);
 
+    const transactionData = await db.transactions.findMany({
+      where: {
+        paymentMethod: "manual",
+      },
+      orderBy: {
+        paidAt: "desc",
+      },
+      take: 1,
+    });
+
+    let newPaymentRef: string;
+    if (transactionData.length > 0) {
+      const latestPaymentRef = transactionData[0].paymentRef;
+      const latestNumber = parseInt(latestPaymentRef, 10);
+      const newNumber = latestNumber + 1;
+      newPaymentRef = newNumber.toString().padStart(8, "0");
+    } else {
+      newPaymentRef = "00000001";
+    }
+
     const transaction = await db.transactions.create({
       data: {
-        operatorIds: operatorIds,
+        operatorId: busOperator,
         totalAmount: totalAmountNumber,
         paymentPeriod: paymentPeriodNumber,
         paymentMethod: "manual",
         currency: "USD",
         paymentReference: "",
-        paymentRef: JSON.stringify(paymentRef),
+        paymentRef: newPaymentRef,
         invoice: invoiceResult,
         recipt: receiptResult,
       },
@@ -315,10 +331,7 @@ export async function updateInvoice(
 
     const invoiceFile = formData.get("invoiceFiles");
     const receiptFile = formData.get("receiptFiles");
-    const operatorIds = Array.isArray(busOperator)
-      ? busOperator
-      : [busOperator];
-    const paymentRef = new Date();
+    const operatorId = busOperator ? busOperator : [busOperator];
     const paymentPeriodNumber = Number(paymentPeriod);
     const totalAmountNumber = Number(totalAmount);
 
@@ -332,13 +345,12 @@ export async function updateInvoice(
     }
 
     const updateData: any = {
-      operatorIds,
+      operatorId,
       totalAmount: totalAmountNumber,
       paymentPeriod: paymentPeriodNumber,
       paymentMethod: "manual",
       currency: "USD",
       paymentReference: "",
-      paymentRef: JSON.stringify(paymentRef),
     };
 
     if (invoiceResult) {
@@ -365,7 +377,7 @@ export async function updateInvoice(
 
 export async function getAllManualTransactions(searchParams: {
   carrier?: string;
-  id?: string;
+  paymentRef?: string;
   period?: string;
   startDate?: string;
   endDate?: string;
@@ -382,7 +394,7 @@ export async function getAllManualTransactions(searchParams: {
 
     const {
       carrier,
-      id,
+      paymentRef,
       period,
       startDate,
       endDate,
@@ -398,9 +410,9 @@ export async function getAllManualTransactions(searchParams: {
     const take = pageSizeNumber;
 
     const filter: ManualFilterProps = {};
-    if (id) {
-      filter.id = {
-        contains: id,
+    if (paymentRef) {
+      filter.paymentRef = {
+        contains: paymentRef,
         mode: "insensitive",
       };
     }
@@ -430,12 +442,14 @@ export async function getAllManualTransactions(searchParams: {
     if (sort) {
       const [field, order] = sort.split("_");
       if (field === "BusOperator") {
-        sortOrder.push({ ["id"]: order === "asc" ? "asc" : "desc" });
+        sortOrder.push({
+          operators: { name: order === "asc" ? "asc" : "desc" },
+        });
       }
       if (
         field === "totalAmount" ||
         field === "paidAt" ||
-        field === "id" ||
+        field === "paymentRef" ||
         field === "paymentPeriod"
       ) {
         sortOrder.push({ [field]: order === "asc" ? "asc" : "desc" });
@@ -452,18 +466,21 @@ export async function getAllManualTransactions(searchParams: {
       orderBy: sortOrder,
       skip,
       take,
+      include: {
+        operators: true,
+      },
     });
 
     if (!transactionData) {
       return null;
     }
 
-    const operatorIds = transactionData.flatMap(
-      (transaction) => transaction.operatorIds
-    );
+    const operatorId = transactionData
+      .flatMap((transaction) => transaction.operatorId)
+      .filter((id): id is string => id !== null);
     const operators = await db.operators.findMany({
       where: {
-        id: { in: operatorIds },
+        id: { in: operatorId },
       },
     });
 
@@ -472,7 +489,7 @@ export async function getAllManualTransactions(searchParams: {
         return {
           transactions: transaction,
           operators: operators.filter((operator) =>
-            transaction.operatorIds.includes(operator.id)
+            transaction?.operatorId?.includes(operator.id)
           ),
         };
       });

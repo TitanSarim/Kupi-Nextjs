@@ -169,8 +169,8 @@ model Transactions {
   tickets          Tickets[]
   customerId       String?    @db.ObjectId
   customer         Customers? @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  operatorIds      String[]   @db.ObjectId
-  operators        Operators  @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  operatorId       String?    @db.ObjectId
+  operators        Operators? @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   paymentMethod    String
   paymentRef       String     @unique
   paidAt           DateTime?  @default(now())

@@ -478,6 +478,7 @@ export async function updateStatus(
       return null;
     }
 
+    revalidatePath("/app/bus-operators");
     return true;
   } catch (error) {
     console.error(error);

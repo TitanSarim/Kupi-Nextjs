@@ -27,10 +27,11 @@ interface AddLocationProps {
   onClose: () => void;
   cities: Cities[];
   countries: { name: string; id: string }[];
-  onAddLocation?: (location: LocationType) => void; // Callback to send location data back
+  onAddLocation?: (location: LocationType) => void;
+  initialLocation?: LocationType;
 }
 
-interface LocationType {
+interface LocationType extends Partial<Location> {
   stationName: string;
   streetAddress: string;
   suburb: string;
@@ -45,6 +46,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
   cities = [],
   countries = [],
   onAddLocation,
+  initialLocation,
 }) => {
   const [stationName, setStationName] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
@@ -55,7 +57,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
   const [countryId, setCountryId] = useState("");
   const [geolocation, setGeolocation] = useState({ lat: 0, lng: 0 });
   const [openCity, setOpenCity] = useState(false);
-  const [openCountry, setOpenCountry] = useState(false); // State for country popover
+  const [openCountry, setOpenCountry] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorState, setErrorState] = useState<[string, boolean]>(["", false]);
   const [filteredCities, setFilteredCities] = useState<Cities[]>(cities);
@@ -85,22 +87,43 @@ const AddLocation: React.FC<AddLocationProps> = ({
 
   useEffect(() => {
     if (open) {
-      setStationName("");
-      setStreetAddress("");
-      setSuburb("");
-      setCity("");
-      setCityId("");
-      setCountry("");
-      setCountryId("");
-      setGeolocation({ lat: 0, lng: 0 });
+      if (initialLocation) {
+        // Pre-populate the form fields with initialLocation data
+        setStationName(initialLocation.stationName || "");
+        setStreetAddress(initialLocation.streetAddress || "");
+        setSuburb(initialLocation.suburb || "");
+
+        const cityObj = cities.find((c) => c.id === initialLocation.cityId);
+        setCity(cityObj?.name || "");
+        setCityId(cityObj?.id || "");
+
+        const countryObj = countries.find(
+          (c) => c.id === initialLocation.countryId
+        );
+        setCountry(countryObj?.name || "");
+        setCountryId(countryObj?.id || "");
+
+        const [lat, lng] = initialLocation.geoLocation.split(",").map(Number);
+        setGeolocation({ lat, lng });
+      } else {
+        // Reset the form fields for adding a new location
+        setStationName("");
+        setStreetAddress("");
+        setSuburb("");
+        setCity("");
+        setCityId("");
+        setCountry("");
+        setCountryId("");
+        setGeolocation({ lat: 0, lng: 0 });
+      }
       setOpenCity(false);
-      setOpenCountry(false); // Reset country state
+      setOpenCountry(false);
       setLoading(false);
       setErrorState(["", false]);
       setFilteredCities(cities);
       setFilteredCountries(countries);
     }
-  }, [open, cities, countries]);
+  }, [open, initialLocation, cities, countries]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,6 +141,7 @@ const AddLocation: React.FC<AddLocationProps> = ({
     }
 
     const locationData: LocationType = {
+      ...initialLocation,
       stationName,
       streetAddress,
       suburb,

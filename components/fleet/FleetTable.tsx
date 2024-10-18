@@ -25,6 +25,7 @@ import UpdateBus from "./UpdateBus";
 import toast from "react-hot-toast";
 import { updateBusStatus } from "@/actions/fleet.actions";
 import { OperatorsType } from "@/types/transactions";
+import LiveDialogue from "../LiveDialogue";
 
 interface fleetOptions {
   busses: Busses[];
@@ -53,8 +54,23 @@ const FleetTable: React.FC<fleetOptions> = ({
   });
   const [selectedBus, setSelectedBus] = useState<Busses | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogLiveOpen, setDialogLiveOpen] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [liveStatuses, setLiveStatuses] = useState<LiveStatuses>({});
+
+  const handleLiveDialgueOpen = (id: string) => {
+    const bus = busses.find((b) => b.id === id) || null;
+    if (!bus) {
+      setDialogLiveOpen(false);
+      return null;
+    }
+    setSelectedBus(bus);
+    setDialogLiveOpen(true);
+  };
+
+  const handleCloseLiveDialog = () => {
+    setDialogLiveOpen(false);
+  };
 
   const handleShowDetail = (id: string) => {
     const bus = busses.find((b) => b.id === id) || null;
@@ -66,32 +82,34 @@ const FleetTable: React.FC<fleetOptions> = ({
     setDialogOpen(false);
   };
 
-  const handleChange = async (id: string, status: boolean) => {
+  const handleChange = async () => {
+    const id = selectedBus?.id;
+
+    if (!id) {
+      toast.error("Something went wrong");
+      return;
+    }
+    const status = selectedBus.isLive;
     let newLiveStatus = false;
     if (status === true) {
       newLiveStatus = false;
-      setLiveStatuses((prev) => ({
-        ...prev,
-        [id]: false,
-      }));
     } else if (status === false) {
       newLiveStatus = true;
-      setLiveStatuses((prev) => ({
-        ...prev,
-        [id]: true,
-      }));
     }
 
     try {
       const liveStatus = await updateBusStatus(id, newLiveStatus);
       if (liveStatus === true) {
         toast.success("Status updated successfully");
-        startTransition(() => {
-          router.refresh();
-        });
+        setLiveStatuses((prev) => ({
+          ...prev,
+          [id]: newLiveStatus,
+        }));
       }
     } catch (error) {
       console.error(error);
+    } finally {
+      handleCloseLiveDialog();
     }
   };
 
@@ -223,7 +241,7 @@ const FleetTable: React.FC<fleetOptions> = ({
                 type="checkbox"
                 checked={liveStatuses[row.original.id] || row.original.isLive}
                 onChange={(e) => {
-                  handleChange(row.original.id, row.original.isLive);
+                  handleLiveDialgueOpen(row.original.id);
                 }}
               />
               <span className="slider-live round-live"></span>
@@ -293,6 +311,14 @@ const FleetTable: React.FC<fleetOptions> = ({
           role={role}
         />
       </div>
+
+      <LiveDialogue
+        open={dialogLiveOpen}
+        onClose={handleCloseLiveDialog}
+        id={selectedBus?.id}
+        handleChange={handleChange}
+        name="Bus"
+      />
     </div>
   );
 };

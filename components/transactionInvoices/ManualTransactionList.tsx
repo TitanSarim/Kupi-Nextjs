@@ -29,7 +29,7 @@ const ManualTransactionList: React.FC<ManualTransactionReturn> = ({
   const params = new URLSearchParams();
 
   const updateSearchParams = () => {
-    if (id) params.set("id", id);
+    if (id) params.set("paymentRef", id);
     if (period) params.set("period", period);
     if (value.startDate)
       params.set("startDate", value.startDate.getTime().toString());

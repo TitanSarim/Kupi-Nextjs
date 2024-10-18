@@ -244,7 +244,7 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
         arrivalTime,
         stops: formattedStops,
         pricing: pricingData,
-        busId: selectedBus ? selectedBus.id : null,
+        busId: selectedBus ? selectedBus.busID : null,
         departureCity: departureLocation?.cityId
           ? cities.find((city) => city.id === departureLocation.cityId)?.name ||
             ""
@@ -449,7 +449,7 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
                       aria-expanded={openBusPopover}
                       className="w-full justify-between outline-none"
                     >
-                      {selectedBus ? selectedBus.name : "Select bus..."}
+                      {selectedBus ? selectedBus.busID : "Select bus..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -465,14 +465,14 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
                         <CommandGroup>
                           {buses
                             .filter((bus) =>
-                              bus.name
+                              bus.busID
                                 .toLowerCase()
                                 .includes(busSearch.toLowerCase())
                             )
                             .map((bus) => (
                               <CommandItem
                                 key={bus.id}
-                                value={bus.name}
+                                value={bus.busID}
                                 onSelect={() => {
                                   setSelectedBus(bus);
                                   setOpenBusPopover(false);
@@ -486,7 +486,7 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
                                       : "opacity-0"
                                   }`}
                                 />
-                                {bus.name}
+                                {bus.busID}
                               </CommandItem>
                             ))}
                         </CommandGroup>

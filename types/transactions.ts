@@ -196,7 +196,7 @@ export interface ManualFilterProps {
     lte?: Date;
   };
   status?: "RESERVED";
-  id?: string | { contains: string; mode: "insensitive" };
+  paymentRef?: string | { contains: string; mode: "insensitive" };
   paymentPeriod?: number;
 }
 

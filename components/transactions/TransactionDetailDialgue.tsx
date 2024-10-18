@@ -105,179 +105,6 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
           {/* tickets info */}
           <div className="w-full flex flex-row">
             {/* 1st transaction if */}
-            <div className="w-auto flex flex-col gap-1">
-              {/* Route Infotmation */}
-              <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
-                <p className="text-black font-semibold text-md">
-                  Route Information
-                </p>
-                <div className="w-full flex flex-wrap justify-between gap-2">
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Ticket ID</p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData?.tickets?.[0]?.ticketId}
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Bus Number</p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData?.tickets &&
-                        TransactionData?.tickets?.[0]?.busIdentifier}
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">
-                      Departure Location
-                    </p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData?.tickets &&
-                        TransactionData.sourceCity?.name}
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Arrival Location</p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData.arrivalCity?.name}
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Departure Time</p>
-                    {TransactionData?.tickets &&
-                      TransactionData?.tickets?.[0]?.departureTime.toLocaleTimeString(
-                        "en-US",
-                        {
-                          timeZone: "Africa/Harare",
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Arrival Time</p>
-                    {TransactionData?.tickets &&
-                      TransactionData?.tickets?.[0]?.arrivalTime.toLocaleTimeString(
-                        "en-US",
-                        {
-                          timeZone: "Africa/Harare",
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        }
-                      )}
-                  </div>
-                </div>
-              </div>
-              {/* Ticket Price Details */}
-              <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
-                <p className="text-black font-semibold text-md">
-                  Ticket Price Detail
-                </p>
-                <div className="w-full flex flex-wrap justify-between gap-2">
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Payment Method</p>
-                    <span>{TransactionData?.transactions.paymentMethod}</span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">
-                      Bus Company Amount
-                    </p>
-                    <span>
-                      ${busCompanyAmountOne && busCompanyAmountOne.toFixed(1)}
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Carma Commission</p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData?.tickets?.[0].priceDetails
-                          .carmaCommissionPercentage}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Carma Amount</p>
-                    <span>${carmaProfitOne.toFixed(1)}</span>
-                  </div>
-                </div>
-              </div>
-              {/* Kuppi Price */}
-              <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
-                <p className="text-black font-semibold text-md">
-                  Kupi Price Detail
-                </p>
-                <div className="w-full flex flex-wrap justify-between gap-2">
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Kupi Markup</p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData?.tickets[0].priceDetails
-                          .kupiCommissionPercentage}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Kupi Commission</p>
-                    <span>
-                      {TransactionData?.tickets &&
-                        TransactionData?.tickets[0].priceDetails
-                          .kupiMarkupPercentage}
-                      %
-                    </span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Sales Commission</p>
-                    <span>{0}%</span>
-                  </div>
-                  <div className="w-5/12">
-                    <p className="text-gray-600 font-light">Kupi Amount</p>
-                    {TransactionData?.tickets &&
-                    TransactionData?.tickets?.[0]?.priceDetails.kupiMarkup >
-                      0 ? (
-                      <span>
-                        (${kupiProfitOne.toFixed(1)} + $
-                        {kupiMarkupiOne.toFixed(1)}) = $
-                        {(kupiProfitOne + kupiMarkupiOne).toFixed(1)}
-                      </span>
-                    ) : (
-                      <span>
-                        $
-                        {TransactionData?.tickets &&
-                          TransactionData?.tickets?.[0]?.priceDetails.kupiProfit.toFixed(
-                            1
-                          )}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {TransactionData?.tickets &&
-                  TransactionData?.tickets?.length > 1 && (
-                    <>
-                      <div className="w-full hrGap bg-gray-500"></div>
-
-                      <div className="flex w-full flex-row justify-between">
-                        <p className="text-gray-600 font-light">Price</p>
-                        <p className="text-black font-semibold text-md">
-                          $
-                          {TransactionData?.tickets &&
-                            TransactionData?.tickets?.[0]?.priceDetails.totalPrice.toFixed(
-                              1
-                            )}
-                        </p>
-                      </div>
-                    </>
-                  )}
-              </div>
-            </div>
-            {/* second transaction if */}
             {TransactionData?.tickets &&
               TransactionData?.tickets?.length > 1 && (
                 <div className="w-auto flex flex-col gap-1">
@@ -463,6 +290,179 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
                   </div>
                 </div>
               )}
+            {/* Second transaction if */}
+            <div className="w-auto flex flex-col gap-1">
+              {/* Route Infotmation */}
+              <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
+                <p className="text-black font-semibold text-md">
+                  Route Information
+                </p>
+                <div className="w-full flex flex-wrap justify-between gap-2">
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Ticket ID</p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData?.tickets?.[0]?.ticketId}
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Bus Number</p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData?.tickets &&
+                        TransactionData?.tickets?.[0]?.busIdentifier}
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">
+                      Departure Location
+                    </p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData?.tickets &&
+                        TransactionData.sourceCity?.name}
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Arrival Location</p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData.arrivalCity?.name}
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Departure Time</p>
+                    {TransactionData?.tickets &&
+                      TransactionData?.tickets?.[0]?.departureTime.toLocaleTimeString(
+                        "en-US",
+                        {
+                          timeZone: "Africa/Harare",
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Arrival Time</p>
+                    {TransactionData?.tickets &&
+                      TransactionData?.tickets?.[0]?.arrivalTime.toLocaleTimeString(
+                        "en-US",
+                        {
+                          timeZone: "Africa/Harare",
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                  </div>
+                </div>
+              </div>
+              {/* Ticket Price Details */}
+              <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
+                <p className="text-black font-semibold text-md">
+                  Ticket Price Detail
+                </p>
+                <div className="w-full flex flex-wrap justify-between gap-2">
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Payment Method</p>
+                    <span>{TransactionData?.transactions.paymentMethod}</span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">
+                      Bus Company Amount
+                    </p>
+                    <span>
+                      ${busCompanyAmountOne && busCompanyAmountOne.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Carma Commission</p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData?.tickets?.[0].priceDetails
+                          .carmaCommissionPercentage}
+                      %
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Carma Amount</p>
+                    <span>${carmaProfitOne.toFixed(1)}</span>
+                  </div>
+                </div>
+              </div>
+              {/* Kuppi Price */}
+              <div className="bg-white rounded-lg px-8 py-4 flex flex-col items-start justify-center gap-4 border-2">
+                <p className="text-black font-semibold text-md">
+                  Kupi Price Detail
+                </p>
+                <div className="w-full flex flex-wrap justify-between gap-2">
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Kupi Markup</p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData?.tickets[0].priceDetails
+                          .kupiCommissionPercentage}
+                      %
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Kupi Commission</p>
+                    <span>
+                      {TransactionData?.tickets &&
+                        TransactionData?.tickets[0].priceDetails
+                          .kupiMarkupPercentage}
+                      %
+                    </span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Sales Commission</p>
+                    <span>{0}%</span>
+                  </div>
+                  <div className="w-5/12">
+                    <p className="text-gray-600 font-light">Kupi Amount</p>
+                    {TransactionData?.tickets &&
+                    TransactionData?.tickets?.[0]?.priceDetails.kupiMarkup >
+                      0 ? (
+                      <span>
+                        (${kupiProfitOne.toFixed(1)} + $
+                        {kupiMarkupiOne.toFixed(1)}) = $
+                        {(kupiProfitOne + kupiMarkupiOne).toFixed(1)}
+                      </span>
+                    ) : (
+                      <span>
+                        $
+                        {TransactionData?.tickets &&
+                          TransactionData?.tickets?.[0]?.priceDetails.kupiProfit.toFixed(
+                            1
+                          )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {TransactionData?.tickets &&
+                  TransactionData?.tickets?.length > 1 && (
+                    <>
+                      <div className="w-full hrGap bg-gray-500"></div>
+
+                      <div className="flex w-full flex-row justify-between">
+                        <p className="text-gray-600 font-light">Price</p>
+                        <p className="text-black font-semibold text-md">
+                          $
+                          {TransactionData?.tickets &&
+                            TransactionData?.tickets?.[0]?.priceDetails.totalPrice.toFixed(
+                              1
+                            )}
+                        </p>
+                      </div>
+                    </>
+                  )}
+              </div>
+            </div>
           </div>
           {/* total amount */}
           <div className="relative bg-white rounded-lg px-8 py-4 flex flex-row items-start justify-between gap-4 border-2">

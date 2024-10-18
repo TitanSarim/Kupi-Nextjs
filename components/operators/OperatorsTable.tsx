@@ -23,7 +23,7 @@ import {
 import { ArrowUpDown } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { startTransition, useEffect, useState } from "react";
 import TableComponent from "../Table/Table";
 import Link from "next/link";
 import { OperatorStatus } from "@prisma/client";
@@ -32,11 +32,10 @@ import {
   updateStatus,
   resendInvite,
   accountStatus,
-  deleteAccount,
 } from "@/actions/operators.action";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
-import DeleteOperator from "./DeleteOperator";
+import LiveDialogue from "../LiveDialogue";
 
 interface LiveStatuses {
   [key: string]: boolean;
@@ -85,6 +84,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       }
     } catch (error) {
       console.error(error);
+    } finally {
     }
   };
 
@@ -108,35 +108,50 @@ const OperatorsTable: React.FC<OperatorsData> = ({
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const handleChange = async (id: string) => {
-    const newLiveStatus = !liveStatuses[id];
-
-    setLiveStatuses((prev) => ({
-      ...prev,
-      [id]: newLiveStatus,
-    }));
-    try {
-      const liveStatus = await updateStatus(id, newLiveStatus);
-      if (liveStatus === true) {
-        toast.success("Status updated successfully");
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-  };
-
-  const handleDeleteAccount = (id: string) => {
-    const operator = operators.find((o) => o.operators.id === id) || null;
+  const handleLiveDialgueOpen = (id: string) => {
+    const operator = operators.find((t) => t.operators.id === id) || null;
     if (!operator) {
       setDialogOpen(false);
       return null;
     }
     setSelectedOperator(operator);
     setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
+  const handleChange = async () => {
+    const id = selectedOperator?.operators.id;
+    if (!id) {
+      toast.error("Something went wrong");
+      return;
+    }
+
+    const status = selectedOperator?.operators.isLive;
+    let newLiveStatus = false;
+    if (status === true) {
+      newLiveStatus = false;
+    } else if (status === false) {
+      newLiveStatus = true;
+    }
+
+    try {
+      const liveStatus = await updateStatus(id, newLiveStatus);
+      if (liveStatus === true) {
+        toast.success("Status updated successfully");
+        setLiveStatuses((prev) => ({
+          ...prev,
+          [id]: newLiveStatus,
+        }));
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update status");
+    } finally {
+      handleCloseDialog();
+    }
   };
 
   useEffect(() => {
@@ -429,7 +444,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                   row.original.operators.isLive
                 }
                 onChange={(e) => {
-                  handleChange(row.original.operators.id);
+                  handleLiveDialgueOpen(row.original.operators.id);
                 }}
               />
               <span className="slider-live round-live"></span>
@@ -473,7 +488,6 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                     >
                       Resend Email
                     </button>
-                    <DropdownMenuSeparator />
                   </>
                 )}
                 {row.original.operators.status === "INVITED" ? (
@@ -531,10 +545,12 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         />
       )}
 
-      <DeleteOperator
+      <LiveDialogue
         open={dialogOpen}
         onClose={handleCloseDialog}
         id={selectedOperator?.operators.id}
+        handleChange={handleChange}
+        name="Operator"
       />
     </div>
   );

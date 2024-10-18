@@ -89,7 +89,7 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
   // table initalizes here
   const columns: ColumnDef<ManualTransactionsType>[] = [
     {
-      accessorKey: "id",
+      accessorKey: "paymentRef",
       header: ({ column }) => (
         <button
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
@@ -98,7 +98,7 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
         </button>
       ),
       cell: ({ row }) => {
-        const transactionId = row.original.transactions.id;
+        const transactionId = row.original.transactions.paymentRef;
         const isFullIdVisible = expandedId === transactionId;
 
         return (
@@ -111,7 +111,7 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
             >
               {isFullIdVisible
                 ? transactionId
-                : transactionId.slice(0, 5) + "..."}
+                : transactionId.slice(4, 8) + "..."}
             </button>
           </div>
         );

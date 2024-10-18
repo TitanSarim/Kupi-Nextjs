@@ -438,8 +438,8 @@ input:checked+.slider-live:before {
 }
 
 .bus-dialoguebox-inner{
-  max-height: 83% !important;
-    min-height: 83% !important;
+  max-height: 74% !important;
+  min-height: 74% !important;
   overflow-y: auto;
 }
 

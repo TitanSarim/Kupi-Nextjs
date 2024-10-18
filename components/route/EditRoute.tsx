@@ -96,6 +96,8 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
   const [routeType, setRouteType] = useState<RouteType>("DAILY");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isApproved, setIsApproved] = useState<boolean>(false);
+  const [initialLocationData, setInitialLocationData] =
+    useState<Location | null>(null);
 
   const daysEnum = Object.values(DAYS) as DAYS[];
 
@@ -104,6 +106,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
   const [selectedBus, setSelectedBus] = useState<{
     id: string;
     name: string;
+    busID: string;
   } | null>(null);
   const [busSearch, setBusSearch] = useState("");
   const [openBusPopover, setOpenBusPopover] = useState(false);
@@ -143,7 +146,11 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
             setRouteType(fetchedRoute.type || "DAILY");
             setSelectedBus(
               fetchedRoute.busId
-                ? { id: fetchedRoute.busId, name: fetchedRoute.busIdentifier }
+                ? {
+                    id: fetchedRoute.busId,
+                    name: fetchedRoute.busIdentifier,
+                    busID: fetchedRoute.busIdentifier,
+                  }
                 : null
             );
           }
@@ -177,6 +184,11 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
     // Open the modal for the new stop
     setSelectedLocationType(stops.length);
     setShowAddLocationModal(true);
+  };
+
+  const handleEditStop = (index: number) => {
+    const stop = stops[index];
+    openAddLocationModal(index, stop.location);
   };
 
   // Handle changes to stop fields
@@ -308,14 +320,19 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
   };
 
   // Open Add Location Modal
-  const openAddLocationModal = (type: string | number) => {
+  const openAddLocationModal = (
+    type: string | number,
+    locationData?: Location | null
+  ) => {
     setSelectedLocationType(type);
     setShowAddLocationModal(true);
+    setInitialLocationData(locationData || null);
   };
 
   // Close Add Location Modal
   const closeAddLocationModal = () => {
     setShowAddLocationModal(false);
+    setInitialLocationData(null);
   };
 
   const handleAddLocation = (location: Location) => {
@@ -531,7 +548,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
                       aria-expanded={openBusPopover}
                       className="w-full justify-between outline-none"
                     >
-                      {selectedBus ? selectedBus.name : "Select bus..."}
+                      {selectedBus ? selectedBus?.busID : "Select bus..."}
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
@@ -554,7 +571,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
                             .map((bus) => (
                               <CommandItem
                                 key={bus.id}
-                                value={bus.name}
+                                value={bus.busID}
                                 onSelect={() => {
                                   setSelectedBus(bus);
                                   setOpenBusPopover(false);
@@ -568,7 +585,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
                                       : "opacity-0"
                                   }`}
                                 />
-                                {bus.name}
+                                {bus.busID}
                               </CommandItem>
                             ))}
                         </CommandGroup>
@@ -618,7 +635,9 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
               </label>
               <div
                 className="block mt-2 px-5 py-2 border border-gray-500 w-full rounded-lg cursor-pointer"
-                onClick={() => openAddLocationModal("departure")}
+                onClick={() =>
+                  openAddLocationModal("departure", departureLocation)
+                }
               >
                 <div className="flex justify-between items-center">
                   <h4 className="text-gray-500">
@@ -704,7 +723,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
               </label>
               <div
                 className="block mt-2 px-5 py-2 border border-gray-500 w-full rounded-lg cursor-pointer"
-                onClick={() => openAddLocationModal("arrival")}
+                onClick={() => openAddLocationModal("arrival", arrivalLocation)}
               >
                 <div className="flex justify-between items-center">
                   <h4 className="text-gray-500">
@@ -867,6 +886,11 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
                           </span>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <DropdownMenuItem
+                            onClick={() => handleEditStop(index)}
+                          >
+                            Edit Location
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
                               setStops(stops.filter((_, i) => i !== index))
@@ -1162,6 +1186,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
         cities={cities}
         onAddLocation={handleAddLocation}
         countries={countries}
+        initialLocation={initialLocationData || undefined}
       />
     </div>
   );

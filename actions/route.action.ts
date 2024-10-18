@@ -62,7 +62,7 @@ export async function getAllRoutes(searchParams?: {
     }
     if (busNumber) {
       filterConditions.bus = {
-        name: { contains: busNumber, mode: "insensitive" },
+        busID: { contains: busNumber, mode: "insensitive" },
       };
     }
     if (onlyPending) {
@@ -71,9 +71,11 @@ export async function getAllRoutes(searchParams?: {
 
     // Prepare the sortOrder
     const sortOrder: Array<any> = [];
+    let sortDirection: "asc" | "desc" = "desc";
+
     if (typeof sort === "string" && sort.includes("_")) {
       const [field, order] = sort.split("_");
-      const sortDirection = order === "asc" ? "asc" : "desc";
+      sortDirection = order === "asc" ? "asc" : "desc";
 
       // Apply sorting based on the selected field
       if (field === "busIdentifier") {
@@ -95,7 +97,7 @@ export async function getAllRoutes(searchParams?: {
       sortOrder.push({ createdAt: "desc" });
     }
 
-    // Fetch routes with filters
+    // Fetch routes with filters, sorting, and pagination
     const routes = await db.routes.findMany({
       where: filterConditions,
       include: {
@@ -106,62 +108,42 @@ export async function getAllRoutes(searchParams?: {
       take,
     });
 
+    const totalCount = await db.routes.count({ where: filterConditions });
+
     // Fetch operator names using operatorIds
     const routeWithOperators = await Promise.all(
       routes.map(async (route) => {
+        let operatorNames = "Unknown";
         if (route.operatorIds && route.operatorIds.length > 0) {
-          // Fetch operators using the operatorIds
           const operators = await db.operators.findMany({
-            where: { id: { in: route.operatorIds } }, // Fetching operator names using operatorIds
+            where: { id: { in: route.operatorIds } },
             select: { name: true },
           });
 
           // Map operator names
-          const operatorNames = operators
-            .map((operator) => operator.name)
-            .join(", ");
-          return {
-            ...route,
-            busIdentifier: route.bus?.name || "Unknown Bus",
-            operatorName: operatorNames || "Unknown",
-            pricing: {
-              amountUSD:
-                typeof route.pricing.amountUSD === "number"
-                  ? route.pricing.amountUSD
-                  : 0,
-              pricingData: route.pricing.pricingData || {},
-            },
-            stops: route.stops.map((stop) => ({
-              ...stop,
-              arrivalTime: stop.arrivalTime,
-              departureTime: stop.departureTime,
-            })),
-            isLive: route.isLive,
-          };
-        } else {
-          return {
-            ...route,
-            busIdentifier: route.bus?.name || "Unknown Bus",
-            operatorName: "Unknown", // Default to "Unknown" if no operatorIds
-            pricing: {
-              amountUSD:
-                typeof route.pricing.amountUSD === "number"
-                  ? route.pricing.amountUSD
-                  : 0,
-              pricingData: route.pricing.pricingData || {},
-            },
-            stops: route.stops.map((stop) => ({
-              ...stop,
-              arrivalTime: stop.arrivalTime,
-              departureTime: stop.departureTime,
-            })),
-            isLive: route.isLive,
-          };
+          operatorNames = operators.map((operator) => operator.name).join(", ");
         }
+
+        return {
+          ...route,
+          busIdentifier: route.bus?.busID || "Unknown Bus",
+          operatorName: operatorNames,
+          pricing: {
+            amountUSD:
+              typeof route.pricing.amountUSD === "number"
+                ? route.pricing.amountUSD
+                : 0,
+            pricingData: route.pricing.pricingData || {},
+          },
+          stops: route.stops.map((stop: any) => ({
+            ...stop,
+            arrivalTime: stop.arrivalTime,
+            departureTime: stop.departureTime,
+          })),
+          isLive: route.isLive,
+        };
       })
     );
-
-    const totalCount = await db.routes.count({ where: filterConditions });
 
     return {
       routeData: routeWithOperators,
@@ -317,7 +299,6 @@ export async function updateRoute(
             pricingData: sanitizedPricing.pricingData ?? [],
           },
         },
-        operatorIds,
         busId: routeData.busId,
         status: routeData.status,
       },
@@ -379,7 +360,7 @@ export async function getRouteById(
 
     const formattedRoute: RouteDataType = {
       ...route,
-      busIdentifier: route.bus?.name || "Unknown Bus",
+      busIdentifier: route.bus?.busID || "Unknown Bus",
       operatorName: operatorNames,
       pricing: {
         amountUSD:

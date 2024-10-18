@@ -14,6 +14,7 @@ import Image from "next/image";
 import TransactionDetailDialgue from "./TransactionDetailDialgue";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
+  TransactionReturn,
   TransactionReturnWithDateRange,
   TransactionsType,
 } from "@/types/transactions";
@@ -32,6 +33,8 @@ const isCarmaDetails = (
 const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
   transactionData,
   paginationData,
+  cities,
+  dateRange,
   allTransactionData = [],
 }) => {
   const router = useRouter();
@@ -169,13 +172,11 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
         </button>
       ),
       cell: ({ row }) => {
-        const carmaDetails = row.original.carmaDetails;
-        const operator = Array.isArray(carmaDetails)
-          ? carmaDetails[0]?.selectedAvailability?.carrier || "N/A"
-          : "N/A";
-
+        const operator1 = Array.isArray(row.original.carmaDetails)
+          ? row.original.carmaDetails[0]?.selectedAvailability?.carrier || ""
+          : "";
         const limitedName =
-          operator.length > 9 ? `${operator.slice(0, 9)}...` : operator;
+          operator1.length > 9 ? `${operator1.slice(0, 9)}...` : operator1;
 
         return <span className="uppercase">{limitedName}</span>;
       },
@@ -193,14 +194,11 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
         </button>
       ),
       cell: ({ row }) => {
-        const carmaDetails = row.original.carmaDetails;
-        const returnOperator = Array.isArray(carmaDetails)
-          ? carmaDetails[1]?.selectedAvailability?.carrier || "N/A"
-          : "N/A";
+        const operator2 = Array.isArray(row.original.carmaDetails)
+          ? row.original.carmaDetails[1]?.selectedAvailability?.carrier || "NA"
+          : "";
         const limitedName =
-          returnOperator.length > 9
-            ? `${returnOperator.slice(0, 9)}...`
-            : returnOperator;
+          operator2.length > 9 ? `${operator2.slice(0, 9)}...` : operator2;
 
         return <span className="uppercase">{limitedName}</span>;
       },
@@ -593,15 +591,16 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
         ? new Date(transaction.transactions.paidAt)
             .toISOString()
             .replace("T", " ")
-            .slice(0, 13)
+            .slice(0, 16)
             .replace(/-/g, "")
+            .replace(/:/g, "")
         : "N/A";
 
       // Transaction Type
       const transactionType = "SALE";
 
       // Reference Number (INTrace)
-      const referenceNumber = transaction.transactions.id || "N/A";
+      const referenceNumber = transaction.tickets?.[0]?.ticketId || "N/A";
 
       // Implementation ID
       const implementationId = "KPI";
@@ -614,15 +613,16 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
 
       // Amount (in cents)
       const amountCents =
-        Math.round(transaction.transactions.totalAmount * 100) || 0;
+        typeof transaction.tickets?.[0]?.carmaDetails?.selectedAvailability ===
+        "object"
+          ? Math.round(
+              (transaction.tickets[0].carmaDetails.selectedAvailability as any)
+                .price * 100
+            )
+          : "N/A";
 
       // Admin (in cents)
-      const adminCents =
-        Math.round(
-          Array.isArray(transaction.paymentReference)
-            ? transaction.paymentReference[0]?.merchantCharge || 0
-            : transaction.paymentReference?.merchantCharge || 0
-        ) || 0;
+      const adminCents = 0;
 
       // Service Number
       let serviceNumber = "N/A";
@@ -821,7 +821,7 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
           // Customer Details
           const customerName = transaction.customer?.name || "N/A";
           const customerPhone = transaction.customer?.number
-            ? `="+${String(transaction.customer.number)}"`
+            ? `+${String(transaction.customer.number)}`
             : "N/A";
 
           // City Pair

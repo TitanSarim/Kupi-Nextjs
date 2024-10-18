@@ -120,7 +120,7 @@ const RouteTable: React.FC<RouteTableProps> = ({
       router.refresh();
     });
   };
-  const { data: session } = useSession();
+  const session = useSession();
 
   // Table column definitions
   const columns: ColumnDef<RouteDataType>[] = [
@@ -150,7 +150,7 @@ const RouteTable: React.FC<RouteTableProps> = ({
       ),
       cell: ({ row }) => {
         const routeType = row.original.type;
-        const selectedDays = row.original.days; // Assuming `days` is an array of selected days
+        const selectedDays = row.original.days;
 
         return routeType === "WEEKLY" ? (
           <TooltipProvider>
@@ -216,8 +216,8 @@ const RouteTable: React.FC<RouteTableProps> = ({
         </div>
       ),
     },
-    ...(session?.role === RolesEnum.SuperAdmin ||
-    session?.role === RolesEnum.KupiUser
+    ...(session.data?.role === RolesEnum.SuperAdmin ||
+    session.data?.role === RolesEnum.KupiUser
       ? [
           {
             accessorKey: "operatorName",
@@ -302,13 +302,29 @@ const RouteTable: React.FC<RouteTableProps> = ({
               avoidCollisions={false}
               alignOffset={5}
             >
-              <DropdownMenuItem onClick={() => onEditRoute(row.original.id)}>
-                Edit Route
+              <DropdownMenuItem
+                className="gap-2"
+                onClick={() => onEditRoute(row.original.id)}
+              >
+                <Image
+                  src="/img/edit.svg"
+                  alt="Edit Route"
+                  width={20}
+                  height={20}
+                />
+                Edit
               </DropdownMenuItem>
               <DropdownMenuItem
+                className="gap-2"
                 onClick={() => handleDeleteModal(row.original.id)}
               >
-                Delete Route
+                <Image
+                  src="/img/delete.svg"
+                  alt="Delete Route"
+                  width={20}
+                  height={20}
+                />
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
