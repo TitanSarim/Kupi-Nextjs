@@ -28,7 +28,7 @@ const SideBar: React.FC<SideBarProps> = ({ role }) => {
     }
   };
   return (
-    <div className="sticky top-0 h-screen lightGray  w-72 px-2 py-2 shadow-sm">
+    <div className="sticky top-0 h-screen siideBarlightGray  w-72 px-2 py-2 shadow-sm">
       <Image
         src="/img/icons/Kupi.png"
         alt="Kupi"

@@ -17,8 +17,6 @@ const TransactionDetailDialgue: React.FC<DialogProps> = ({
 }) => {
   if (!open) return null;
 
-  console.log("TransactionData", TransactionData);
-
   const TransactionTicket = TransactionData?.tickets;
   const carmaProfitOne =
     (TransactionTicket && TransactionTicket?.[0]?.priceDetails.carmaProfit) ||

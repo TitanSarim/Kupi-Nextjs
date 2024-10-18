@@ -19,8 +19,11 @@
   background-color: #FFC107;
 }
 
-.lightGray{
+.siideBarlightGray{
   background-color: #EDEDED;
+}
+.lightGray{
+  background-color: #F8F8F8 !important;
 }
 
 .midGray-text {

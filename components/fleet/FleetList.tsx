@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import { useRouter } from "next/navigation";
 import AddDiscount from "./AddBus";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { BussesReturn, PaginationData } from "@/types/fleet";
+import { PaginationData } from "@/types/fleet";
 import { Busses } from "@prisma/client";
 import FleetTable from "./FleetTable";
 import {
@@ -14,13 +13,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
+import { OperatorsType } from "@/types/transactions";
 
 interface fleetOptions {
   busses?: Busses[];
   paginationData?: PaginationData;
+  operators: OperatorsType[];
 }
 
-const FleetList: React.FC<fleetOptions> = ({ busses, paginationData }) => {
+const FleetList: React.FC<fleetOptions> = ({
+  busses,
+  paginationData,
+  operators,
+}) => {
+  const { data } = useSession();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [busOperator, setBusOperator] = useState("");
   const [busNumber, setBusNumber] = useState("");
@@ -78,16 +86,21 @@ const FleetList: React.FC<fleetOptions> = ({ busses, paginationData }) => {
         </div>
 
         {/* Filters */}
-        <div>
-          <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
-          <Input
-            type="text"
-            value={busOperator}
-            onChange={(e) => setBusOperator(e.target.value)}
-            placeholder="Search bus operator"
-            className="h-12 rounded-lg text-gray-500 border-gray-700"
-          />
-        </div>
+        {(data?.role === RolesEnum.SuperAdmin ||
+          data?.role === RolesEnum.KupiUser) && (
+          <div>
+            <p className="mb-1 darkGray-text font-normal text-sm">
+              Bus Operator
+            </p>
+            <Input
+              type="text"
+              value={busOperator}
+              onChange={(e) => setBusOperator(e.target.value)}
+              placeholder="Search bus operator"
+              className="h-12 rounded-lg text-gray-500 border-gray-700"
+            />
+          </div>
+        )}
 
         <div className="w-full flex flex-row justify-between mt-6 gap-4">
           <div className="w-3/12">
@@ -120,7 +133,7 @@ const FleetList: React.FC<fleetOptions> = ({ busses, paginationData }) => {
             </p>
             <Select value={busClass} onValueChange={setBusClass}>
               <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-700 ">
-                <SelectValue placeholder="Select source" />
+                <SelectValue placeholder="Search by bus class" />
               </SelectTrigger>
               <SelectContent className="select-dropdown z-50">
                 <SelectItem value="Clear">Clear</SelectItem>
@@ -135,11 +148,21 @@ const FleetList: React.FC<fleetOptions> = ({ busses, paginationData }) => {
         {!busses || !paginationData ? (
           ""
         ) : (
-          <FleetTable busses={busses} paginationData={paginationData} />
+          <FleetTable
+            busses={busses}
+            paginationData={paginationData}
+            operators={operators}
+            role={data?.role}
+          />
         )}
 
         <div className="w-full">
-          <AddDiscount open={dialogOpen} onClose={handleCloseDialog} />
+          <AddDiscount
+            open={dialogOpen}
+            onClose={handleCloseDialog}
+            operators={operators}
+            role={data?.role}
+          />
         </div>
       </div>
     </div>

@@ -911,15 +911,23 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
   // actual table
   return (
     <div className="w-full mt-8">
-      <TableComponent
-        paginationData={paginationData}
-        setPagination={setPagination}
-        pagination={pagination}
-        tableData={table}
-        handleDownloadExcel={handleDownloadExcel}
-        exportCarmaCSV={exportCarmaCSV}
-        handleTicketExcel={handleTicketExcel}
-      />
+      {transactionData.length === 0 ? (
+        <div>
+          <p className="text-center text-gray-500 text-lg">
+            No transactions found. Please check the search criteria.
+          </p>
+        </div>
+      ) : (
+        <TableComponent
+          paginationData={paginationData}
+          setPagination={setPagination}
+          pagination={pagination}
+          tableData={table}
+          handleDownloadExcel={handleDownloadExcel}
+          exportCarmaCSV={exportCarmaCSV}
+          handleTicketExcel={handleTicketExcel}
+        />
+      )}
 
       {/* dialogue */}
       <div className="w-full">

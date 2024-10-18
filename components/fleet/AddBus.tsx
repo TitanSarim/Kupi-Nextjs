@@ -3,31 +3,54 @@ import Image from "next/image";
 import React, { useState } from "react";
 import { Input } from "../ui/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { createbus } from "@/actions/fleet.actions";
 import toast from "react-hot-toast";
+import { OperatorsType } from "@/types/transactions";
+import { Button } from "../ui/button";
+import { RolesEnum } from "@/types/auth";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
+  operators: OperatorsType[];
+  role?: string;
 }
 
-const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
+const AddBus: React.FC<DialogProps> = ({ open, onClose, operators, role }) => {
   const [name, setName] = useState<string>("");
   const [Number, setNumber] = useState<string>("");
   const [regNumber, setRegNumber] = useState<string>("");
-  const [capacity, setCapacity] = useState<number>();
+  const [busOperator, setBusOperator] = useState<string>("");
+  const [capacity, setCapacity] = useState<number | null>(null);
   const [busClass, setBusClass] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [driver, setDriver] = useState<string>("");
   const [comments, setComments] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [openOperator, setOpenOperator] = useState(false);
+  const [regError, setRegError] = useState(false);
+  const [numberError, setNumberError] = useState(false);
   const [errorState, setErrorState] = useState<{
     field: string;
     message: string;
@@ -35,6 +58,7 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
 
   const handleClose = () => {
     setErrorState(null);
+    setBusOperator("");
     setName("");
     setNumber("");
     setRegNumber("");
@@ -47,8 +71,18 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
     onClose();
   };
 
+  const selectedOperator = operators.find(
+    (operator) => operator.id === busOperator
+  );
+
   const handleName = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setName(e.target.value.toUpperCase());
+    let value = e.target.value;
+
+    if (value.length > 20) {
+      value = value.slice(0, 20);
+    }
+
+    setName(value.toUpperCase());
   };
   const handleIDTNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -79,7 +113,28 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
   };
 
   const handleCapacity = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
+    const inputValue = e.target.value;
+
+    // Allow empty input for backspace
+    if (inputValue === "") {
+      setCapacity(null);
+      setErrorState({
+        field: "capacity",
+        message: "Capacity must be a number between 1 and 100",
+      });
+      return;
+    }
+
+    const value = parseInt(inputValue, 10);
+
+    if (isNaN(value) || value < 0) {
+      setErrorState({
+        field: "capacity",
+        message: "Capacity must be a positive number",
+      });
+      return;
+    }
+
     if (value > 0 && value <= 100) {
       setCapacity(value);
       setErrorState(null);
@@ -118,15 +173,20 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
   };
 
   const handleDriver = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    let value = e.target.value;
+
+    if (value.length > 20) {
+      value = value.slice(0, 20);
+    }
+
     setDriver(value);
 
-    if (value.length >= 2 && value.length <= 50) {
+    if (value.length >= 2 && value.length <= 20) {
       setErrorState(null);
     } else {
       setErrorState({
         field: "driver",
-        message: "Driver name must be between 2 and 50 characters long",
+        message: "Driver name must be between 2 and 20 characters long",
       });
     }
   };
@@ -150,6 +210,7 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
     setErrorState(null);
     const formData = {
       name,
+      busOperator,
       iden: Number,
       regNumber,
       capacity,
@@ -160,6 +221,8 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
     };
     for (const [field, value] of Object.entries(formData)) {
       if (field === "name") continue;
+      if (field === "comments") continue;
+      if (field === "busOperator") continue;
       if (value === "" || value === undefined || value === null) {
         const uppercase =
           field.charAt(0).toUpperCase() + field.slice(1).toLowerCase();
@@ -170,19 +233,35 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
         return false;
       }
     }
+    if (role === RolesEnum.SuperAdmin && busOperator === "") {
+      setErrorState({
+        field: "busOperator",
+        message: "Please select a bus operator",
+      });
+      return false;
+    }
     setLoading(true);
     setErrorState(null);
     try {
       const response = await createbus(formData);
-      if (response === true) {
+      if (typeof response === "object" && response?.name === "registration") {
+        setRegError(true);
+      } else if (
+        typeof response === "object" &&
+        response?.name === "busNumber"
+      ) {
+        setNumberError(true);
+      } else if (response === "success") {
         toast.success("Bus created successfully");
+        handleClose();
+      } else {
+        toast.error("Failed to create bus");
       }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
       setErrorState(null);
-      handleClose();
     }
   };
 
@@ -221,6 +300,80 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />
             </div>
+            {role === RolesEnum.SuperAdmin && (
+              <div className="w-full mb-3">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Bus Operator
+                </p>
+                <Popover open={openOperator} onOpenChange={setOpenOperator}>
+                  <PopoverTrigger
+                    asChild
+                    className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
+                  >
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openOperator}
+                      className="w-full justify-between outline-none"
+                    >
+                      {selectedOperator?.name || "Select operator..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0 select-dropdown_add_trans">
+                    <Command>
+                      <CommandInput placeholder="Search operator..." />
+                      <CommandList className="w-full">
+                        <CommandEmpty>No operator found.</CommandEmpty>
+                        <CommandItem
+                          key="clear"
+                          value=""
+                          onSelect={() => {
+                            setBusOperator(""); // Clear selection
+                            setOpenOperator(false);
+                          }}
+                          className="ml-1 cursor-pointer w-full"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              busOperator === "" ? "opacity-100" : "opacity-0"
+                            }`}
+                          />
+                          Clear
+                        </CommandItem>
+                        <CommandGroup>
+                          {operators.map((operator) => (
+                            <CommandItem
+                              key={operator.id}
+                              value={operator.name}
+                              onSelect={() => {
+                                setBusOperator(operator.id); // Save operator ID instead of name
+                                setOpenOperator(false);
+                                setErrorState(null);
+                              }}
+                              className="cursor-pointer w-full"
+                            >
+                              <Check
+                                className={`mr-2 h-4 w-4 ${
+                                  operator.id === busOperator
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                }`}
+                              />
+                              {operator.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                {errorState && errorState.field === "busOperator" && (
+                  <p className="text-red-500">{errorState.message}</p>
+                )}
+              </div>
+            )}
+
             <div className="w-full mb-3">
               <p className="mb-1 darkGray-text font-normal text-sm">
                 Bus Identity Number
@@ -234,6 +387,9 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
               />
               {errorState && errorState.field === "Number" && (
                 <p className="text-red-500">{errorState.message}</p>
+              )}
+              {numberError === true && (
+                <p className="text-red-500">Identity number already exists</p>
               )}
             </div>
 
@@ -251,6 +407,11 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
               {errorState && errorState.field === "regNumber" && (
                 <p className="text-red-500">{errorState.message}</p>
               )}
+              {regError === true && (
+                <p className="text-red-500">
+                  Registration number already exists
+                </p>
+              )}
             </div>
             <div className="w-full mb-3">
               <p className="mb-1 darkGray-text font-normal text-sm">
@@ -258,9 +419,8 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
               </p>
               <Input
                 type="number"
-                value={capacity}
+                value={capacity === null ? "" : capacity}
                 onChange={handleCapacity}
-                min={0}
                 placeholder="00"
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />
@@ -273,13 +433,13 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
                 Bus Class
               </p>
               <Select value={busClass} onValueChange={handleBusClass}>
-                <SelectTrigger className="w-full h-12 rounded-lg text-gray-500 border-gray-300 ">
+                <SelectTrigger className="w-full h-12 rounded-lg bg-white text-gray-500 border-gray-300 ">
                   <SelectValue placeholder="Select class" />
                 </SelectTrigger>
                 <SelectContent className="select-dropdown z-50">
                   <SelectItem value="Clear">Clear</SelectItem>
                   <SelectItem value="STANDARD">Standard </SelectItem>
-                  <SelectItem value="LUXURY">Luxry</SelectItem>
+                  <SelectItem value="LUXURY">Luxury</SelectItem>
                 </SelectContent>
               </Select>
               {errorState && errorState.field === "busClass" && (
@@ -294,7 +454,6 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
                 type="text"
                 value={location}
                 onChange={handleLocation}
-                max={99}
                 placeholder="Enter location"
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />
@@ -310,8 +469,6 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
                 type="text"
                 value={driver}
                 onChange={handleDriver}
-                min={0}
-                max={99}
                 placeholder="Enter name"
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />
@@ -320,7 +477,9 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose }) => {
               )}
             </div>
             <div className="w-full mb-3">
-              <p className="mb-1 darkGray-text font-normal text-sm">Comments</p>
+              <p className="mb-1 darkGray-text font-normal text-sm">
+                Comments [Optional]
+              </p>
               <Textarea
                 value={comments}
                 onChange={handleComments}

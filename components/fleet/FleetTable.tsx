@@ -24,17 +24,25 @@ import {
 import UpdateBus from "./UpdateBus";
 import toast from "react-hot-toast";
 import { updateBusStatus } from "@/actions/fleet.actions";
+import { OperatorsType } from "@/types/transactions";
 
 interface fleetOptions {
   busses: Busses[];
   paginationData: PaginationData;
+  operators: OperatorsType[];
+  role?: string;
 }
 
 interface LiveStatuses {
   [key: string]: boolean;
 }
 
-const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
+const FleetTable: React.FC<fleetOptions> = ({
+  busses,
+  paginationData,
+  operators,
+  role,
+}) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -118,7 +126,7 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
     {
       accessorKey: "#",
       header: ({ column }) => <div>#</div>,
-      cell: ({ row }) => <div>{row.index}</div>,
+      cell: ({ row }) => <div>{row.index + 1}</div>,
     },
     {
       accessorKey: "busID",
@@ -260,12 +268,20 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
 
   return (
     <div className="w-full mt-8">
-      <TableComponent
-        paginationData={paginationData}
-        setPagination={setPagination}
-        pagination={pagination}
-        tableData={table}
-      />
+      {busses.length === 0 ? (
+        <div>
+          <p className="text-center text-gray-500 text-lg">
+            No busses found. Please check the search criteria.
+          </p>
+        </div>
+      ) : (
+        <TableComponent
+          paginationData={paginationData}
+          setPagination={setPagination}
+          pagination={pagination}
+          tableData={table}
+        />
+      )}
 
       {/* Dialogue */}
       <div className="w-full">
@@ -273,6 +289,8 @@ const FleetTable: React.FC<fleetOptions> = ({ busses, paginationData }) => {
           open={dialogOpen}
           onClose={handleCloseDialog}
           busData={selectedBus}
+          operators={operators}
+          role={role}
         />
       </div>
     </div>

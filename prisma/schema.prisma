@@ -127,8 +127,8 @@ model OperatorsSessions {
 model Busses {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   tickets      Tickets[]
-  operatorIds  String[]  @db.ObjectId
-  operators    Operators @relation(fields: [operatorIds], references: [id], onDelete: Cascade)
+  operatorId   String    @db.ObjectId
+  operators    Operators @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   name         String
   busID        String
   registration String
@@ -139,6 +139,7 @@ model Busses {
   comments     String
   isLive       Boolean   @default(true)
   Routes       Routes[]
+  createdAt    DateTime? @default(now())
 }
 
 model Routes {

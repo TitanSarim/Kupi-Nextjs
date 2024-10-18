@@ -251,12 +251,20 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
   // actual table
   return (
     <div className="w-full mt-8">
-      <TableComponent
-        paginationData={paginationData}
-        setPagination={setPagination}
-        pagination={pagination}
-        tableData={table}
-      />
+      {transactionData.length === 0 ? (
+        <div>
+          <p className="text-center text-gray-500 text-lg">
+            No transactions found. Please check the search criteria.
+          </p>
+        </div>
+      ) : (
+        <TableComponent
+          paginationData={paginationData}
+          setPagination={setPagination}
+          pagination={pagination}
+          tableData={table}
+        />
+      )}
       {/* Dialogue */}
       <div className="w-full">
         <UpdateTreansactionDialogue

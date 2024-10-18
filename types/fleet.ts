@@ -1,6 +1,7 @@
 import { Busses } from "@prisma/client";
 
 export type createFormData = {
+  busOperator?: string;
   name: string;
   iden: string;
   regNumber: string;
@@ -8,10 +9,11 @@ export type createFormData = {
   busClass: string;
   location: string;
   driver: string;
-  comments: string;
+  comments?: string;
 };
 
 export type updateFormData = {
+  busOperator?: string;
   name: string;
   iden: string;
   regNumber: string;
@@ -67,3 +69,8 @@ export interface FilterProps {
     mode?: "insensitive";
   };
 }
+
+export type errorType = {
+  name: string;
+  error: string;
+};

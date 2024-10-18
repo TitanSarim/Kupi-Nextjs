@@ -247,12 +247,20 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
 
   return (
     <div className="w-full mt-8">
-      <TableComponent
-        paginationData={paginationData}
-        setPagination={setPagination}
-        pagination={pagination}
-        tableData={table}
-      />
+      {discounts.length === 0 ? (
+        <div>
+          <p className="text-center text-gray-500 text-lg">
+            No discounts found. Please check the search criteria.
+          </p>
+        </div>
+      ) : (
+        <TableComponent
+          paginationData={paginationData}
+          setPagination={setPagination}
+          pagination={pagination}
+          tableData={table}
+        />
+      )}
 
       {/* Dialogue */}
       <div className="w-full">

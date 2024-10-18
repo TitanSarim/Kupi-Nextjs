@@ -174,7 +174,7 @@ const TicketTable: React.FC<TicketsReturn> = ({
           {row.original.tickets.status === "CONFIRMED" ? (
             <p className="text-green-600">Confirmed</p>
           ) : row.original.tickets.status === "CANCELED" ? (
-            <p className="text-orange-500">Canceled </p>
+            <p className="text-orange-500">Cancelled </p>
           ) : (
             <p className="text-kupi-yellow">{row.original.tickets.status}</p>
           )}
@@ -253,12 +253,20 @@ const TicketTable: React.FC<TicketsReturn> = ({
 
   return (
     <div className="w-full mt-8">
-      <TableComponent
-        paginationData={paginationData}
-        setPagination={setPagination}
-        pagination={pagination}
-        tableData={table}
-      />
+      {ticketData.length === 0 ? (
+        <div>
+          <p className="text-center text-gray-500 text-lg">
+            No tickets found. Please check the search criteria.
+          </p>
+        </div>
+      ) : (
+        <TableComponent
+          paginationData={paginationData}
+          setPagination={setPagination}
+          pagination={pagination}
+          tableData={table}
+        />
+      )}
 
       {/* Dialogue */}
       <div className="w-full">
