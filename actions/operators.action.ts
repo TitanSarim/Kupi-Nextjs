@@ -431,15 +431,15 @@ export async function SyncBusOperators() {
 
     const newOperators: OperatorLookupModel[] = jsonResponse.filter(
       (operator: OperatorLookupModel) =>
-        !existingOperatorNames.includes(operator.STDescription.toUpperCase())
+        !existingOperatorNames.includes(operator.STDescription)
     );
 
     let results;
     if (newOperators.length > 0) {
       results = await db.operators.createMany({
         data: newOperators.map((operator) => ({
-          name: operator.STDescription.toUpperCase(),
-          carmaCode: operator.STCarrier.toUpperCase(),
+          name: operator.STDescription,
+          carmaCode: operator.STCarrier,
           status: "REGISTERED",
           description: "",
           source: "CARMA",

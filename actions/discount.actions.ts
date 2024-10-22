@@ -180,6 +180,7 @@ export async function getAllDiscount(searchParams: {
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
     const cities = await db.cities.findMany();
+    const operators = await db.operators.findMany();
     const discounts = await db.discounts.findMany({
       where: {
         ...filter,
@@ -209,8 +210,13 @@ export async function getAllDiscount(searchParams: {
         discount.departureCityIds.includes(city.id)
       );
 
+      const operatorsMap = operators.filter((operator) =>
+        discount.operatorIds.includes(operator.id)
+      );
+
       return {
         discount: discount,
+        operators: operatorsMap,
         arrivalCities: arrivalCitiesMap.map((city) => ({
           id: city.id,
           name: city.name,

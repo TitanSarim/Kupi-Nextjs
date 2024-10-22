@@ -50,10 +50,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     let value = event.target.value;
 
     let numericValue = value.replace(/[^0-9]/g, "");
-    if (numericValue.length > 3) {
-      numericValue = numericValue.substring(0, 3);
+    if (numericValue.length > 5) {
+      numericValue = numericValue.substring(0, 5);
     }
-    const exchangeRate = Math.min(Number(numericValue), 999);
+    const exchangeRate = Math.min(Number(numericValue), 99999);
     setExchangeRate(exchangeRate);
     setFormChanged(true);
   };
@@ -222,6 +222,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
       const response = await adminSetting(formData);
       if (response === true) {
         toast.success("Settings updated successfully");
+        // DIALOUEBOX SHULD TRIGGER
       }
     } catch (error) {
       setError(true);
@@ -403,7 +404,9 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="ZiG20"
-                value={exchangeRate > 0 ? `ZiG${exchangeRate.toFixed(0)}` : ""}
+                value={
+                  exchangeRate >= 0 ? `ZiG${" "}${exchangeRate.toFixed(0)}` : ""
+                }
                 onChange={handleExchangeRateChange}
                 required
               />
@@ -417,7 +420,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="10%"
-                value={commission > 0 ? `${commission.toFixed(0)}%` : ""}
+                value={commission >= 0 ? `${commission.toFixed(0)}%` : ""}
                 onChange={handleCommissionChange}
                 required
               />
@@ -431,7 +434,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="10%"
                 value={
-                  salesCommission > 0 ? `${salesCommission.toFixed(0)}%` : ""
+                  salesCommission >= 0 ? `${salesCommission.toFixed(0)}%` : ""
                 }
                 onChange={handleSalesCommissionChange}
                 required
@@ -448,7 +451,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="$10"
-                value={kupiMarkup > 0 ? `${kupiMarkup.toFixed(0)}%` : ""}
+                value={kupiMarkup >= 0 ? `${kupiMarkup.toFixed(0)}%` : ""}
                 onChange={handleKupiCommissionChange}
                 required
               />
@@ -462,7 +465,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="1.3%"
                 value={
-                  carmaCommission > 0 ? `${carmaCommission.toFixed(0)}%` : ""
+                  carmaCommission >= 0 ? `${carmaCommission.toFixed(0)}%` : ""
                 }
                 onChange={handleCarmaCommissionChange}
                 required
@@ -552,7 +555,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="Duration days"
-                value={reminder > 0 ? `${reminder.toFixed(0)}` : ""}
+                value={reminder >= 0 ? `${reminder.toFixed(0)}` : ""}
                 onChange={handleReminderChange}
                 required
               />

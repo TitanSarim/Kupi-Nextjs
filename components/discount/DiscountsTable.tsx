@@ -14,6 +14,12 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { discountDataType, DiscountReturn } from "@/types/discount";
 import UpdateDiscount from "./UpdateDiscount";
 import TableComponent from "../Table/Table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 const DiscountsTable: React.FC<DiscountReturn> = ({
   discounts,
@@ -127,11 +133,60 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
               "NA"
             ) : (
               <span>
-                [{source && source.length > 0 ? source?.[0]?.charAt(0) : ""}
-                {source && source.length > 1
-                  ? `, ${source?.[1]?.charAt(0)}`
-                  : ""}
-                ] Operator
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    >
+                      {row.original.operators &&
+                        row.original.operators
+                          .filter((operator) => operator.name.length > 1)
+                          .slice(0, 2)
+                          .map((operator, index) => {
+                            let name = operator.name;
+                            if (name.length > 8) {
+                              name = name.slice(0, 8) + "...";
+                            }
+                            if (index === 0) {
+                              return (
+                                <span key={operator.id}>
+                                  [{operator.source?.charAt(0).toUpperCase()}]{" "}
+                                  {name}
+                                </span>
+                              );
+                            } else {
+                              const halfName = name.slice(
+                                0,
+                                Math.ceil(name.length / 2)
+                              );
+                              return (
+                                <span key={operator.id}>
+                                  , [{operator.source?.charAt(0).toUpperCase()}]{" "}
+                                  {halfName}...
+                                </span>
+                              );
+                            }
+                          })}
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-white border-2 px-2 py-2 w-32">
+                      <div className="flex flex-wrap ">
+                        {row.original.operators &&
+                          row.original.operators?.map((operator) => (
+                            <span key={operator.id}>
+                              [{operator.source?.charAt(0).toUpperCase()}]{" "}
+                              {operator.name}
+                              {row.original.operators &&
+                                row.original.operators?.length > 1 &&
+                                ","}{" "}
+                            </span>
+                          ))}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </span>
             )}
           </>

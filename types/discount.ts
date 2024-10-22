@@ -23,6 +23,7 @@ export type CitiesType = {
 };
 export type discountDataType = {
   discount: Discounts;
+  operators?: OperatorsType[] | null;
   sourceCities?: CitiesType[] | null;
   arrivalCities?: CitiesType[] | null;
 };

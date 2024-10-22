@@ -25,6 +25,7 @@ model Users {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   Session       Session[]
+  isBlocked     Boolean?   @default(false)
 }
 
 model UserRoles {
@@ -102,6 +103,7 @@ model Operators {
   status            OperatorStatus      @default(INVITED)
   isLive            Boolean             @default(true)
   joiningDate       DateTime            @default(now())
+  tickets           Tickets[]
   setting           Settings[]
   users             Users[]
   discounts         Discounts[]
@@ -188,6 +190,8 @@ model Tickets {
   ticketId         String             @unique
   busId            String?            @db.ObjectId
   bus              Busses?            @relation(fields: [busId], references: [id], onDelete: Cascade)
+  operatorId       String             @db.ObjectId
+  operator         Operators          @relation(fields: [operatorId], references: [id], onDelete: Cascade)
   conversationId   String             @db.ObjectId
   discountId       String?            @db.ObjectId
   discount         Discounts?         @relation(fields: [discountId], references: [id], onDelete: Cascade)
