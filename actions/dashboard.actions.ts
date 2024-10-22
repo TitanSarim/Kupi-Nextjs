@@ -5,7 +5,11 @@ import { auth } from "@/auth";
 import { IncomeChartStats, RoutesChartData, Stats } from "@/types/dashboard";
 import { format } from "date-fns";
 
-export async function getStats(): Promise<Stats | null | undefined> {
+export async function getStats(searchParams: {
+  operator?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<Stats | null | undefined> {
   try {
     const session = await auth();
 
@@ -13,7 +17,26 @@ export async function getStats(): Promise<Stats | null | undefined> {
       return null;
     }
 
-    const tickets = await db.tickets.findMany();
+    const { startDate, endDate } = searchParams;
+
+    const start = startDate
+      ? new Date(parseInt(startDate))
+      : (() => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - 2);
+          return date;
+        })();
+
+    const end = endDate ? new Date(parseInt(endDate)) : new Date();
+
+    const tickets = await db.tickets.findMany({
+      where: {
+        reservedAt: {
+          gte: start,
+          lte: end,
+        },
+      },
+    });
 
     const totalIncome = tickets.reduce(
       (sum, ticket) => sum + ticket.priceDetails.totalPrice,
@@ -53,9 +76,11 @@ export async function getStats(): Promise<Stats | null | undefined> {
   }
 }
 
-export async function getIncomeChartStats(): Promise<
-  IncomeChartStats | null | undefined
-> {
+export async function getIncomeChartStats(searchParams: {
+  operator?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<IncomeChartStats | null | undefined> {
   try {
     const session = await auth();
 
@@ -63,10 +88,24 @@ export async function getIncomeChartStats(): Promise<
       return null;
     }
 
+    const { startDate, endDate } = searchParams;
+
+    const start = startDate
+      ? new Date(parseInt(startDate))
+      : (() => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - 2);
+          return date;
+        })();
+
+    const end = endDate ? new Date(parseInt(endDate)) : new Date();
+
     const transactions = await db.transactions.findMany({
       where: {
         paidAt: {
           not: null,
+          gte: start,
+          lte: end,
         },
       },
     });
@@ -96,9 +135,11 @@ export async function getIncomeChartStats(): Promise<
   }
 }
 
-export async function getRoutesChartStats(): Promise<
-  RoutesChartData | null | undefined
-> {
+export async function getRoutesChartStats(searchParams: {
+  operator?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<RoutesChartData | null | undefined> {
   try {
     const session = await auth();
 
@@ -106,7 +147,25 @@ export async function getRoutesChartStats(): Promise<
       return null;
     }
 
+    const { startDate, endDate } = searchParams;
+
+    const start = startDate
+      ? new Date(parseInt(startDate))
+      : (() => {
+          const date = new Date();
+          date.setMonth(date.getMonth() - 2);
+          return date;
+        })();
+
+    const end = endDate ? new Date(parseInt(endDate)) : new Date();
+
     const tickets = await db.tickets.findMany({
+      where: {
+        reservedAt: {
+          gte: start,
+          lte: end,
+        },
+      },
       include: {
         sourceCity: true,
         arrivalCity: true,

@@ -339,7 +339,8 @@ export async function updateOperatorSettings(
 }
 
 export async function underMaintainance(
-  maintainance: boolean
+  maintainance: boolean,
+  formData: SettingsFormData
 ): Promise<true | null> {
   try {
     const session = await auth();
@@ -354,23 +355,40 @@ export async function underMaintainance(
       },
     });
 
-    if (!settings) {
-      await db.settings.create({
-        data: {
-          key: "underMaintainance",
-          value: maintainance,
-        },
-      });
-    } else {
-      await db.settings.update({
+    const maintainanceArray = [
+      {
+        key: "underMaintainance",
+        value: maintainance,
+      },
+      {
+        key: formData.key,
+        value: formData.value,
+      },
+    ];
+
+    for (const setting of maintainanceArray) {
+      const existingSetting = await db.settings.findFirst({
         where: {
-          id: settings.id,
-          key: "underMaintainance",
-        },
-        data: {
-          value: maintainance,
+          key: setting.key,
         },
       });
+      if (!existingSetting) {
+        await db.settings.create({
+          data: {
+            key: setting.key,
+            value: setting.value,
+          },
+        });
+      } else {
+        await db.settings.update({
+          where: {
+            id: existingSetting.id,
+          },
+          data: {
+            value: setting.value,
+          },
+        });
+      }
     }
 
     return true;

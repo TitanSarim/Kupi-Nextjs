@@ -36,8 +36,9 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2">
-                    How many tickets per route you want to add
+                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                    Total number of tickets that have been generated or
+                    initiated in the system.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -79,8 +80,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2">
-                    How many tickets per route you want to add
+                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                    Total number of tickets that are reserved but not yet sold.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -122,8 +123,9 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2">
-                    How many tickets per route you want to add
+                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                    Total number of tickets that have been initiated but not
+                    converted into actual sales.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -164,8 +166,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2">
-                    How many tickets per route you want to add
+                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                    Total number of tickets that remain available and unsold.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -207,8 +209,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2">
-                    How many tickets per route you want to add
+                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                    Total number of tickets that have been successfully sold.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

@@ -163,14 +163,7 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
       maxSize: 70,
       minSize: 70,
       accessorKey: "operator",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Operator One
-          <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
+      header: ({ column }) => <span>Operator One</span>,
       cell: ({ row }) => {
         const operator1 = Array.isArray(row.original.carmaDetails)
           ? row.original.carmaDetails[0]?.selectedAvailability?.carrier || ""
@@ -180,19 +173,13 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
 
         return <span className="uppercase">{limitedName}</span>;
       },
+      enableSorting: false,
     },
     {
       maxSize: 70,
       minSize: 70,
       accessorKey: "operator2",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Operator Two
-          <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
+      header: ({ column }) => <span>Operator Two</span>,
       cell: ({ row }) => {
         const operator2 = Array.isArray(row.original.carmaDetails)
           ? row.original.carmaDetails[1]?.selectedAvailability?.carrier || "NA"
@@ -202,6 +189,7 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
 
         return <span className="uppercase">{limitedName}</span>;
       },
+      enableSorting: false,
     },
     {
       maxSize: 50,

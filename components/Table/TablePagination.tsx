@@ -1,7 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import React from "react";
 
@@ -34,16 +34,41 @@ const TablePagination: React.FC<PaginationComponentProps> = ({
 }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const { pageIndex, pageSize } = pagination;
   const totalCount = paginationData.totalCount;
   const pageCount = Math.ceil(totalCount / pageSize);
+
+  useEffect(() => {
+    const currentPageIndex = parseInt(searchParams.get("pageIndex") || "0", 10);
+    const currentPageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+
+    setPagination({
+      pageIndex: currentPageIndex,
+      pageSize: currentPageSize,
+    });
+  }, [searchParams, setPagination]);
+
+  const updateUrl = (newPageIndex?: number, newPageSize?: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (newPageIndex !== undefined) {
+      params.set("pageIndex", newPageIndex.toString());
+    }
+    if (newPageSize !== undefined) {
+      params.set("pageSize", newPageSize.toString());
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   const handlePageChange = (newPageIndex: number) => {
     setPagination((prev) => ({
       ...prev,
       pageIndex: newPageIndex,
     }));
+    updateUrl(newPageIndex, pageSize);
   };
 
   const range = (start: number, end: number): number[] => {

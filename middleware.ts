@@ -17,12 +17,20 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (path.startsWith("/app/bus-operators") && role !== RolesEnum.SuperAdmin) {
+  if (
+    path.startsWith("/app/bus-operators") &&
+    role !== RolesEnum.SuperAdmin &&
+    role !== RolesEnum.KupiUser
+  ) {
     url.pathname = "/app/profile";
     return NextResponse.redirect(url);
   }
 
-  if (path.startsWith("/app/settings/admin") && role !== RolesEnum.SuperAdmin) {
+  if (
+    path.startsWith("/app/settings/admin") &&
+    role !== RolesEnum.SuperAdmin &&
+    role !== RolesEnum.KupiUser
+  ) {
     url.pathname = "/app/settings/operator";
     return NextResponse.redirect(url);
   }

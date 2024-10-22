@@ -12,14 +12,13 @@ const Expired = () => {
         width={100}
         height={100}
       />
-      <div className="py-2 px-6 relative z-10 w-full sm:py-6">
-        <div className="grid grid-cols-1">
+      <div className="py-2 px-6 relative z-10 w-full sm:py-6 sm:px-0">
+        <div>
           <Image
-            className="w-1/6"
             src="/img/auth-screens/logo.svg"
             alt="Logo"
-            width={100}
-            height={100}
+            width={210}
+            height={210}
           />
         </div>
         <div className="w-full flex flex-col items-center gap-5 mt-10 justify-center">

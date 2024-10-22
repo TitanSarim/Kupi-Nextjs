@@ -59,6 +59,10 @@ const FleetList: React.FC<fleetOptions> = ({
   };
 
   useEffect(() => {
+    updateSearchParams();
+  }, [busOperator, busClass]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       updateSearchParams();
     }, 500);
@@ -66,7 +70,7 @@ const FleetList: React.FC<fleetOptions> = ({
     return () => {
       clearTimeout(timer);
     };
-  }, [busOperator, busNumber, busRegistration, busClass]);
+  }, [busNumber, busRegistration]);
 
   return (
     <div className="w-full mt-10 h-fit flex items-center justify-center">
@@ -74,14 +78,18 @@ const FleetList: React.FC<fleetOptions> = ({
         <div className="w-full flex flex-row items-start justify-between">
           <p className="text-lg text-black font-semibold">Fleet List</p>
           <div className="flex flex-row gap-5">
-            <button
-              className="bg-kupi-yellow bg-kupi-yellow px-4 py-2 rounded-lg"
-              onClick={() => {
-                handleShowDetail();
-              }}
-            >
-              Add Bus
-            </button>
+            {data &&
+              (data.role === RolesEnum.SuperAdmin ||
+                data.role === RolesEnum.BusCompanyAdmin) && (
+                <button
+                  className="bg-kupi-yellow bg-kupi-yellow px-4 py-2 rounded-lg"
+                  onClick={() => {
+                    handleShowDetail();
+                  }}
+                >
+                  Add Bus
+                </button>
+              )}
           </div>
         </div>
 

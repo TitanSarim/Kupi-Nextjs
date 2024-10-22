@@ -19,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 const OperatorsList: React.FC<OperatorsData> = ({
   operators,
@@ -29,6 +31,7 @@ const OperatorsList: React.FC<OperatorsData> = ({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [status, setSatus] = useState("");
+  const { data } = useSession();
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
@@ -58,6 +61,10 @@ const OperatorsList: React.FC<OperatorsData> = ({
   };
 
   useEffect(() => {
+    updateSearchParams();
+  }, [status, source]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       updateSearchParams();
     }, 500);
@@ -65,7 +72,7 @@ const OperatorsList: React.FC<OperatorsData> = ({
     return () => {
       clearTimeout(timer);
     };
-  }, [name, email, status, source]);
+  }, [name, email]);
 
   return (
     <div className="w-full flex flex-col items-center justify-start">
@@ -107,14 +114,16 @@ const OperatorsList: React.FC<OperatorsData> = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <button
-              className="bg-kupi-yellow px-4 py-2 rounded-lg"
-              onClick={() => {
-                handleShowDetail();
-              }}
-            >
-              Invite Bus Operator
-            </button>
+            {data?.role === RolesEnum.SuperAdmin && (
+              <button
+                className="bg-kupi-yellow px-4 py-2 rounded-lg"
+                onClick={() => {
+                  handleShowDetail();
+                }}
+              >
+                Invite Bus Operator
+              </button>
+            )}
           </div>
         </div>
 

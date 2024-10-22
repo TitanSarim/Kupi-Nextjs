@@ -54,7 +54,7 @@ const SideBar: React.FC<SideBarProps> = ({ role }) => {
           Dashboard
         </Link>
 
-        {role === "SuperAdmin" && (
+        {(role === RolesEnum.SuperAdmin || role === RolesEnum.KupiUser) && (
           <Link
             href={"/app/bus-operators"}
             className={`relative flex flex-row items-center justify-start gap-3 py-3 px-3 rounded-lg transition-all duration-500 text-base 

@@ -14,6 +14,7 @@ import Rates from "@/libs/Rates";
 import { Settings } from "@prisma/client";
 import { SyncBusOperators } from "@/actions/operators.action";
 import toast from "react-hot-toast";
+import MaintainanceDialogue from "./MaintainanceDialogue";
 
 interface AdminSettingsProps {
   settings: Settings[];
@@ -37,7 +38,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [fetchLoading, setFetchLoading] = useState<boolean>(false);
   const [maintainanace, setMaintainanace] = useState<boolean>(false);
+  const [maintanaceMessage, setMaintanaceMessage] = useState<string>(
+    "Thanks for your message! We’re currently working hard to bring you an even better ticket booking experience! We’re sorry for the inconvenience but we’ll be back shortly!"
+  );
   const [formChanged, setFormChanged] = useState<boolean>(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleExchangeRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -248,6 +253,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           let carmaCommission = "";
           let kupiMarkup = "";
           let maintenance = false;
+          let message = "";
 
           settings.settings.forEach((setting: any) => {
             switch (setting.key) {
@@ -276,6 +282,8 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 break;
               case "underMaintainance":
                 maintenance = setting.value;
+              case "MAINTAINACE_MESSAGE":
+                message = setting.value;
 
               default:
                 break;
@@ -295,6 +303,13 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           setKupiMarkup(parseInt(kupiMarkup));
           setCarmaCommission(parseInt(carmaCommission));
           setMaintainanace(maintenance);
+          if (message.length <= 0 || message === "" || !message) {
+            setMaintanaceMessage(
+              "Thanks for your message! We’re currently working hard to bring you an even better ticket booking experience! We’re sorry for the inconvenience but we’ll be back shortly!"
+            );
+          } else {
+            setMaintanaceMessage(message);
+          }
         } catch (error) {
           setError(true);
         }
@@ -303,20 +318,12 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     fetchData();
   };
 
-  const handleMaintainace = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const toggle = event.target.checked;
-    setMaintainanace(toggle);
-    localStorage.setItem("maintainance", toggle ? "true" : "false");
-    try {
-      const response = await underMaintainance(toggle);
-      if (response === true) {
-        toast.success("Maintainance status updated successfully");
-      }
-    } catch (error) {
-      console.error("Error");
-    }
+  const handleShowDetail = () => {
+    setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
   };
 
   const loadMaintainanceFromStorage = () => {
@@ -374,7 +381,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 <input
                   type="checkbox"
                   checked={maintainanace}
-                  onChange={handleMaintainace}
+                  onChange={handleShowDetail}
                 />
                 <span className="slider round"></span>
               </label>
@@ -395,8 +402,8 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               <Input
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
-                placeholder="$20"
-                value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
+                placeholder="ZiG20"
+                value={exchangeRate > 0 ? `ZiG${exchangeRate.toFixed(0)}` : ""}
                 onChange={handleExchangeRateChange}
                 required
               />
@@ -576,6 +583,15 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             </button>
           </div>
         </form>
+
+        <MaintainanceDialogue
+          open={dialogOpen}
+          onClose={handleCloseDialog}
+          setMaintainanace={setMaintainanace}
+          maintainanace={maintainanace}
+          setMaintanaceMessage={setMaintanaceMessage}
+          maintanaceMessage={maintanaceMessage}
+        />
       </div>
     </div>
   );

@@ -401,8 +401,8 @@ input:checked+.slider-live:before {
 .passenger_info_dialgue {
   position: relative;
   min-width: 250px !important;
-  height: 67.7vh;
-  max-height: 67.7vh;
+  height: 87vh;
+  max-height: 87vh;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -455,19 +455,15 @@ input:checked+.slider-live:before {
 
 
 
-@media screen and (max-width: 1300px){
+@media screen and (min-width: 1300px){
 
   .select-dropdown_bus_operator {
       width: 900px !important;
   }
   
-  .passenger_info_dialgue {
-    min-height: 102.6vh !important;
-    max-height: 102.6vh !important;
-  }
 }
 
-@media screen and (max-width: 1200px) {
+@media screen and (min-width: 1200px) {
 
 
 .select-dropdown_bus_operator {
@@ -498,8 +494,8 @@ input:checked+.slider-live:before {
   }
 
   .passenger_info_dialgue {
-    min-height: 88.9vh;
-    max-height: 88.9vh;
+    min-height: 100vh;
+    max-height: 100vh;
   }
 
   .transaction_dialguebox-container {
@@ -577,4 +573,11 @@ input:checked+.slider-live:before {
   position: relative;
   width: 1px;
   background-color: #d3d3d38e;
+}
+
+@media screen and (max-height: 730px) {
+    .passenger_info_dialgue {
+        min-height: 112.5vh;
+        max-height: 112.5vh;
+      }
 }

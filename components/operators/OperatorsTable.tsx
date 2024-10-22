@@ -36,6 +36,8 @@ import {
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 import LiveDialogue from "../LiveDialogue";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 interface LiveStatuses {
   [key: string]: boolean;
@@ -45,6 +47,7 @@ const OperatorsTable: React.FC<OperatorsData> = ({
   operators,
   paginationData,
 }) => {
+  const { data } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -437,16 +440,24 @@ const OperatorsTable: React.FC<OperatorsData> = ({
         <>
           <div className="">
             <label className="switch-live">
-              <input
-                type="checkbox"
-                checked={
-                  liveStatuses[row.original.operators.id] ||
-                  row.original.operators.isLive
-                }
-                onChange={(e) => {
-                  handleLiveDialgueOpen(row.original.operators.id);
-                }}
-              />
+              {data?.role === RolesEnum.SuperAdmin ? (
+                <input
+                  type="checkbox"
+                  checked={
+                    liveStatuses[row.original.operators.id] ||
+                    row.original.operators.isLive
+                  }
+                  onChange={(e) => {
+                    handleLiveDialgueOpen(row.original.operators.id);
+                  }}
+                />
+              ) : (
+                <input
+                  type="checkbox"
+                  checked={row.original.operators.isLive}
+                  readOnly
+                />
+              )}
               <span className="slider-live round-live"></span>
             </label>
           </div>
@@ -458,58 +469,59 @@ const OperatorsTable: React.FC<OperatorsData> = ({
       header: "",
       cell: ({ row }) => (
         <div className="flex justify-end">
-          {row.original.operators.source === TicketSources.KUPI && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="p-2 rounded-md hover:bg-gray-100 border-none outline-none"
-                >
-                  <Image
-                    src="/img/icons/actions.svg"
-                    alt="icon"
-                    height={4.5}
-                    width={4.5}
-                  />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-52  px-5 py-2">
-                {row.original.operators.status === "REGISTERED" ? (
-                  ""
-                ) : row.original.operators.status === "SUSPENDED" ? (
-                  ""
-                ) : (
-                  <>
+          {row.original.operators.source === TicketSources.KUPI &&
+            data?.role === RolesEnum.SuperAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="p-2 rounded-md hover:bg-gray-100 border-none outline-none"
+                  >
+                    <Image
+                      src="/img/icons/actions.svg"
+                      alt="icon"
+                      height={4.5}
+                      width={4.5}
+                    />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-52  px-5 py-2">
+                  {row.original.operators.status === "REGISTERED" ? (
+                    ""
+                  ) : row.original.operators.status === "SUSPENDED" ? (
+                    ""
+                  ) : (
+                    <>
+                      <button
+                        className="w-full text-left py-1 text-sm"
+                        onClick={() =>
+                          handleResendInvite(row.original.operators.id)
+                        }
+                      >
+                        Resend Email
+                      </button>
+                    </>
+                  )}
+                  {row.original.operators.status === "INVITED" ? (
+                    ""
+                  ) : (
                     <button
                       className="w-full text-left py-1 text-sm"
                       onClick={() =>
-                        handleResendInvite(row.original.operators.id)
+                        handleSuspendAccount(
+                          row.original.operators.id,
+                          row.original.operators.status
+                        )
                       }
                     >
-                      Resend Email
+                      {row.original.operators.status === "SUSPENDED"
+                        ? "Reactivate Account"
+                        : "Suspend Account"}
                     </button>
-                  </>
-                )}
-                {row.original.operators.status === "INVITED" ? (
-                  ""
-                ) : (
-                  <button
-                    className="w-full text-left py-1 text-sm"
-                    onClick={() =>
-                      handleSuspendAccount(
-                        row.original.operators.id,
-                        row.original.operators.status
-                      )
-                    }
-                  >
-                    {row.original.operators.status === "SUSPENDED"
-                      ? "Reactivate Account"
-                      : "Suspend Account"}
-                  </button>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
         </div>
       ),
       enableSorting: false,

@@ -60,17 +60,12 @@ const TicketList: React.FC<TicketsReturn> = ({
       setArrivalCity("");
     }
     if (onlyPending) params.set("onlyPending", String(onlyPending));
+
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      updateSearchParams();
-    }, 500);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    updateSearchParams();
   }, [busOperator, source, destinationCity, arrivalCity, onlyPending]);
 
   return (

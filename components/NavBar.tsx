@@ -9,13 +9,15 @@ import Image from "next/image";
 import { signOut } from "@/auth";
 import NavDropDown from "./NavDropDown";
 import { cookies } from "next/headers";
+import { RolesEnum } from "@/types/auth";
 
 type NavProps = {
   profileImage: string;
   name?: string | null;
+  role?: string | null;
 };
 
-const NavBar: React.FC<NavProps> = ({ profileImage, name }) => {
+const NavBar: React.FC<NavProps> = ({ profileImage, name, role }) => {
   return (
     <div className="sticky top-0 z-10 h-16 w-full bg-white flex justify-end items-center shadow-sm">
       <div className="pr-10">
@@ -37,8 +39,16 @@ const NavBar: React.FC<NavProps> = ({ profileImage, name }) => {
                 <p className="text-black text-base	font-medium mb-0 capitalize">
                   {name}
                 </p>
-                <span className=" text-slate-700	 text-sm font-light	capitalize">
-                  Admin
+                <span className="text-slate-700 text-sm font-light capitalize">
+                  {role === RolesEnum.SuperAdmin
+                    ? "Super Admin"
+                    : role === RolesEnum.KupiUser
+                    ? "Kupi User"
+                    : role === RolesEnum.BusCompanyAdmin
+                    ? "Operator Admin"
+                    : role === RolesEnum.BusCompanyUser
+                    ? "Operator User"
+                    : "Unknown Role"}
                 </span>
               </div>
             </div>

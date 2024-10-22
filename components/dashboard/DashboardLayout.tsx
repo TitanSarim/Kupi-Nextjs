@@ -1,6 +1,6 @@
 "use client";
 import { OperatorsType } from "@/types/transactions";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -21,6 +21,7 @@ import TicketsCards from "./TicketsCards";
 import TicketStatusCard from "./TicketStatusCard";
 import { CommonRoutes, IncomeChart } from "./Charts";
 import { IncomeChartStats, RoutesChartData, Stats } from "@/types/dashboard";
+import { useRouter } from "next/navigation";
 
 interface Dashboard {
   operators: OperatorsType[];
@@ -41,9 +42,16 @@ const DashboardLayout: React.FC<Dashboard> = ({
     startDate: Date | null;
     endDate: Date | null;
   }>({
-    startDate: null,
-    endDate: null,
+    startDate: (() => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - 2);
+      return date;
+    })(),
+    endDate: new Date(),
   });
+
+  const router = useRouter();
+  const params = new URLSearchParams();
 
   const selectedOperator = operators.find(
     (operator) => operator.id === busOperator
@@ -67,6 +75,41 @@ const DashboardLayout: React.FC<Dashboard> = ({
       });
     }
   };
+
+  const updateSearchParams = () => {
+    if (busOperator) params.set("carrier", busOperator);
+    if (value.startDate) {
+      params.set("startDate", value.startDate.getTime().toString());
+    } else {
+      params.delete("startDate");
+    }
+    if (value.endDate) {
+      params.set("endDate", value.endDate.getTime().toString());
+    } else {
+      params.delete("endDate");
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateSearchParams();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [busOperator]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateSearchParams();
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [value.endDate, value.startDate]);
 
   return (
     <div className="w-full h-full px-8 py-8 mb-5 flex flex-col">

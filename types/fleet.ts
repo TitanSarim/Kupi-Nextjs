@@ -64,10 +64,7 @@ export interface FilterProps {
     mode?: "insensitive";
   };
   busClass?: BusClass;
-  registration?: {
-    contains?: string;
-    mode?: "insensitive";
-  };
+  registration?: string;
 }
 
 export type errorType = {

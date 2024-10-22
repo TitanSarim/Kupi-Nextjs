@@ -95,13 +95,7 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      updateSearchParams();
-    }, 500);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    updateSearchParams();
   }, [
     busOperator,
     destinationCity,
@@ -111,13 +105,7 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
   ]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      updateSearchParams();
-    }, 200);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    updateSearchParams();
   }, [value.endDate, value.startDate]);
 
   return (

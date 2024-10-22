@@ -73,14 +73,18 @@ const DiscountList: React.FC<DiscountReturn> = ({
   };
 
   useEffect(() => {
+    updateSearchParams();
+  }, [busOperator, destinationCity, arrivalCity, onlyExpiring]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       updateSearchParams();
-    }, 500);
+    }, 300);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [busOperator, name, destinationCity, arrivalCity, onlyExpiring]);
+  }, [name]);
 
   return (
     <div className="w-full mt-10 h-fit flex items-center justify-center">

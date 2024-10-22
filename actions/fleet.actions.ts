@@ -136,7 +136,7 @@ export async function getAllFleet(searchParams: {
       filter.busID = { contains: busID, mode: "insensitive" };
     }
     if (registration) {
-      filter.registration = { contains: registration, mode: "insensitive" };
+      filter.registration = registration;
     }
     if (busClass) {
       filter.busClass = busClass;

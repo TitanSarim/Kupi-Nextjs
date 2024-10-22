@@ -27,7 +27,11 @@ export default async function RootLayout({
       <div className="flex flex-col w-full">
         <Toaster />
         <NextTopLoader color="#FFC107" />
-        <NavBar profileImage={profileImage} name={session?.user?.name} />
+        <NavBar
+          profileImage={profileImage}
+          name={session?.user?.name}
+          role={session.role}
+        />
         <div className="h-full">{children}</div>
       </div>
     </div>

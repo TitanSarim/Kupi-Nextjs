@@ -66,23 +66,11 @@ const ManualTransactionList: React.FC<ManualTransactionReturn> = ({
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      updateSearchParams();
-    }, 500);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    updateSearchParams();
   }, [busOperator, id, period, value.endDate, value.startDate]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      updateSearchDateParams();
-    }, 200);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    updateSearchDateParams();
   }, [value.endDate, value.startDate]);
 
   return (

@@ -26,6 +26,8 @@ import toast from "react-hot-toast";
 import { updateBusStatus } from "@/actions/fleet.actions";
 import { OperatorsType } from "@/types/transactions";
 import LiveDialogue from "../LiveDialogue";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 interface fleetOptions {
   busses: Busses[];
@@ -47,6 +49,7 @@ const FleetTable: React.FC<fleetOptions> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const { data } = useSession();
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -156,6 +159,7 @@ const FleetTable: React.FC<fleetOptions> = ({
         </button>
       ),
       cell: ({ row }) => <div>{row.original.busID}</div>,
+      enableSorting: false,
     },
     {
       accessorKey: "driverName",
@@ -167,6 +171,7 @@ const FleetTable: React.FC<fleetOptions> = ({
         </button>
       ),
       cell: ({ row }) => <span>{row.original.driverName}</span>,
+      enableSorting: false,
     },
     {
       accessorKey: "registration",
@@ -201,6 +206,7 @@ const FleetTable: React.FC<fleetOptions> = ({
           </TooltipProvider>
         );
       },
+      enableSorting: false,
     },
     {
       accessorKey: "capacity",
@@ -212,6 +218,7 @@ const FleetTable: React.FC<fleetOptions> = ({
         </button>
       ),
       cell: ({ row }) => <div>{row.original.capacity} Seats</div>,
+      enableSorting: false,
     },
     {
       accessorKey: "busClass",
@@ -223,6 +230,7 @@ const FleetTable: React.FC<fleetOptions> = ({
         </button>
       ),
       cell: ({ row }) => <div>{row.original.busClass}</div>,
+      enableSorting: false,
     },
     {
       accessorKey: "isLive",
@@ -237,36 +245,49 @@ const FleetTable: React.FC<fleetOptions> = ({
         <>
           <div className="">
             <label className="switch-live">
-              <input
-                type="checkbox"
-                checked={liveStatuses[row.original.id] || row.original.isLive}
-                onChange={(e) => {
-                  handleLiveDialgueOpen(row.original.id);
-                }}
-              />
+              {data &&
+              (data.role === RolesEnum.SuperAdmin ||
+                data.role === RolesEnum.BusCompanyAdmin) ? (
+                <input
+                  type="checkbox"
+                  checked={liveStatuses[row.original.id] || row.original.isLive}
+                  onChange={() => {
+                    handleLiveDialgueOpen(row.original.id);
+                  }}
+                />
+              ) : data &&
+                (data.role === RolesEnum.KupiUser ||
+                  data.role === RolesEnum.BusCompanyUser) ? (
+                <input type="checkbox" checked={row.original.isLive} readOnly />
+              ) : null}
               <span className="slider-live round-live"></span>
             </label>
           </div>
         </>
       ),
+      enableSorting: false,
     },
     {
       accessorKey: "action",
       header: "",
       cell: ({ row }) => (
-        <button
-          className="flex justify-end"
-          onClick={() => {
-            handleShowDetail(row.original.id);
-          }}
-        >
-          <Image
-            src="/img/icons/actions.svg"
-            alt="icon"
-            height={4.5}
-            width={4.5}
-          />
-        </button>
+        <>
+          {data && data.role === RolesEnum.SuperAdmin && (
+            <button
+              className="flex justify-end"
+              onClick={() => {
+                handleShowDetail(row.original.id);
+              }}
+            >
+              <Image
+                src="/img/icons/actions.svg"
+                alt="icon"
+                height={4.5}
+                width={4.5}
+              />
+            </button>
+          )}
+        </>
       ),
       enableSorting: false,
     },

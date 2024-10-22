@@ -7,13 +7,18 @@ import {
   getRoutesChartStats,
   getStats,
 } from "@/actions/dashboard.actions";
+import { DashboardQuery } from "@/types/dashboard";
 
-const Dashboard = async () => {
+const Dashboard = async ({
+  searchParams,
+}: {
+  searchParams: DashboardQuery["searchParams"];
+}) => {
   const operators = await getAllOperators();
 
-  const stats = await getStats();
-  const IncomeChartStats = await getIncomeChartStats();
-  const RoutesChartStats = await getRoutesChartStats();
+  const stats = await getStats(searchParams);
+  const IncomeChartStats = await getIncomeChartStats(searchParams);
+  const RoutesChartStats = await getRoutesChartStats(searchParams);
   if (!operators) {
     return null;
   }

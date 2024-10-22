@@ -54,14 +54,16 @@ const LiveDialogue: React.FC<DialogProps> = ({
         </div>
         <div className="relative w-full flex flex-col items-center justify-center">
           <Image
-            src="/img/icons/isLive.svg"
+            src="/img/icons/Live.svg"
             alt="delete"
             width={130}
             height={130}
             className="flex justify-center items-center"
           />
           <p className="mb-3 font-semibold text-xl text-black">Are you sure?</p>
-          <span className="mb-3 font-light">You want to block this {name}</span>
+          <span className="mb-3 font-light">
+            You want to uodate the status of this {name}
+          </span>
           <div className="flex flex-row gap-10 mt-4">
             <button
               onClick={handleClose}

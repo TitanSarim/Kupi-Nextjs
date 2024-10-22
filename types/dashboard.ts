@@ -17,3 +17,11 @@ export type RoutesChartData = {
   labels: string[];
   counts: number[];
 };
+
+export type DashboardQuery = {
+  searchParams: {
+    operator?: string;
+    startDate: string;
+    endDate: string;
+  };
+};
