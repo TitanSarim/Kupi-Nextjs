@@ -39,6 +39,7 @@ export interface UserRolesType {
 export interface UserDataType {
   user: Users;
   role?: UserRolesType;
+  operatorName?: string;
 }
 
 export type UserQuery = {
@@ -80,9 +81,10 @@ export interface FilterProps {
   };
   operatorsId?: null | { not: null } | { equals: string };
   OR?: Array<{
-    name?: { contains: string; mode: "insensitive" };
-    email?: { contains: string; mode: "insensitive" };
+    name?: { contains?: string; mode?: "insensitive" };
+    email?: { contains?: string; mode?: "insensitive" };
   }>;
+  AND?: Array<FilterProps>;
 }
 
 export interface SortOrderProps {

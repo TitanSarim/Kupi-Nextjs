@@ -34,6 +34,7 @@ export interface RouteDataType {
   operatorName: string;
   stops: StopDataType[];
   pricing: RoutePricing;
+  exceptionDates: Date[];
 }
 
 export interface PaginationDataType {

@@ -124,7 +124,9 @@ const EditUserModal: React.FC<EditUserProps> = ({ onClose, user, roles }) => {
       ? roles.filter(
           (role) =>
             role.roleName === RolesEnum.SuperAdmin ||
-            role.roleName === RolesEnum.KupiUser
+            role.roleName === RolesEnum.KupiUser ||
+            role.roleName === RolesEnum.BusCompanyAdmin ||
+            role.roleName === RolesEnum.BusCompanyUser
         )
       : roles.filter(
           (role) =>
@@ -289,7 +291,7 @@ const EditUserModal: React.FC<EditUserProps> = ({ onClose, user, roles }) => {
                 name="email"
                 id="email"
                 placeholder="Enter email"
-                value={email}
+                value={email.toLowerCase()}
                 onChange={handleEmailChange}
                 className="block px-5 py-3 text-dark-grey border border-gray-500 w-full rounded-lg"
               />

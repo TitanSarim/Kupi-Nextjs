@@ -2,7 +2,9 @@
 
 import React, { startTransition, useEffect, useState } from "react";
 import {
+  Column,
   ColumnDef,
+  Row,
   SortingState,
   getCoreRowModel,
   getPaginationRowModel,
@@ -10,6 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { UserDataType, UserRolesType, UpdateUserFormData } from "@/types/user";
 import EditUserModal from "./EditUserModal";
@@ -62,6 +65,7 @@ const UserTable: React.FC<UserTableProps> = ({
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const session = useSession();
+  const currentUserId = session.data?.userId;
 
   const updateUrl = () => {
     const sortingParam = sorting
@@ -88,11 +92,19 @@ const UserTable: React.FC<UserTableProps> = ({
   };
 
   const handleDeleteUser = (user: UserDataType) => {
+    if (user.user.id === currentUserId) {
+      toast.error("You cannot delete yourself.");
+      return;
+    }
     setSelectedUser(user);
     setShowDeleteModal(true);
   };
 
   const handleBlockUnblockUser = (user: UserDataType) => {
+    if (user.user.id === currentUserId) {
+      toast.error("You cannot block/unblock yourself.");
+      return;
+    }
     setSelectedUser(user);
     setShowBlockModal(true);
   };
@@ -217,6 +229,23 @@ const UserTable: React.FC<UserTableProps> = ({
       ),
       cell: ({ row }) => row.original.user.email,
     },
+    ...(session.data?.role === RolesEnum.SuperAdmin ||
+    session.data?.role === RolesEnum.KupiUser
+      ? [
+          {
+            accessorKey: "user.operatorName",
+            header: ({ column }: { column: Column<UserDataType> }) => (
+              <button>
+                Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+              </button>
+            ),
+            cell: ({ row }: { row: Row<UserDataType> }) => (
+              <span>{row.original.operatorName || "Unknown"}</span>
+            ),
+          },
+        ]
+      : []),
+
     {
       accessorKey: "role.roleName",
       header: ({ column }) => (
@@ -248,19 +277,40 @@ const UserTable: React.FC<UserTableProps> = ({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
+                        className="gap-2"
                         onClick={() => handleEditUser(row.original)}
                       >
-                        Edit User
+                        <Image
+                          src="/img/edit.svg"
+                          alt="Edit Route"
+                          width={20}
+                          height={20}
+                        />
+                        Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        className="gap-2"
                         onClick={() => handleDeleteUser(row.original)}
                       >
-                        Delete User
+                        <Image
+                          src="/img/delete.svg"
+                          alt="Edit Route"
+                          width={20}
+                          height={20}
+                        />
+                        Delete
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        className="gap-2"
                         onClick={() => handleBlockUnblockUser(row.original)}
                       >
-                        {isBlocked ? "Unblock User" : "Block User"}
+                        <Image
+                          src="/img/block.svg"
+                          alt="Edit Route"
+                          width={20}
+                          height={20}
+                        />
+                        {isBlocked ? "Unblock" : "Block"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </>
@@ -309,6 +359,7 @@ const UserTable: React.FC<UserTableProps> = ({
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleConfirmDelete}
           message={`Are you sure you want to delete ${selectedUser.user.name}?`}
+          imageSrc="/img/delete-user.svg"
         />
       )}
       {showBlockModal && selectedUser && (
@@ -319,6 +370,7 @@ const UserTable: React.FC<UserTableProps> = ({
           message={`Are you sure you want to ${
             selectedUser.user.isBlocked ? "unblock" : "block"
           } ${selectedUser.user.name}?`}
+          imageSrc="/img/blockUser.svg"
         />
       )}
     </div>

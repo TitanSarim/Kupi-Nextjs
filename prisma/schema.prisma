@@ -164,6 +164,7 @@ model Routes {
   arrivalCity       String
   isLive            Boolean      @default(false)
   createdAt         DateTime?    @default(now())
+  exceptionDates    DateTime[]   @default([])
 }
 
 model Transactions {

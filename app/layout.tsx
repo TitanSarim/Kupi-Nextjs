@@ -34,10 +34,39 @@ export default async function RootLayout({
     },
   });
 
+  const userSession = await db.users.findFirst({
+    where: {
+      id: session?.userId,
+    },
+  });
+
+  const userRole = await db.users.findFirst({
+    where: {
+      id: session?.userId,
+    },
+    include: {
+      role: true,
+    },
+  });
+
   return (
     <SessionProvider session={session}>
       <html lang="en">
-        {operatorSession?.operator?.status === "SUSPENDED" ? (
+        {userSession?.isBlocked ? (
+          <body className={inter.className}>
+            <div>
+              <p>Your account has been blocked</p>
+              <SignOut />
+            </div>
+          </body>
+        ) : session && userRole?.role?.roleName != session?.role ? (
+          <body className={inter.className}>
+            <div>
+              <p>Your Session has expired, Login again to continue.</p>
+              <SignOut />
+            </div>
+          </body>
+        ) : operatorSession?.operator?.status === "SUSPENDED" ? (
           <body className={inter.className}>
             <div>
               <p>Your account has been suspended</p>

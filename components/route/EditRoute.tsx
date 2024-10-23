@@ -63,6 +63,7 @@ import ErrorMessage from "@/components/ErrorMessage";
 import Switch from "@/components/ui/switch";
 import { useSession } from "next-auth/react";
 import { RolesEnum } from "@/types/auth";
+import Datepicker from "react-tailwindcss-datepicker";
 
 interface EditRouteProps {
   cities: Cities[];
@@ -98,6 +99,13 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
   const [isApproved, setIsApproved] = useState<boolean>(false);
   const [initialLocationData, setInitialLocationData] =
     useState<Location | null>(null);
+  const [exceptionDates, setExceptionDates] = useState<{
+    startDate: Date | null;
+    endDate: Date | null;
+  }>({
+    startDate: null,
+    endDate: null,
+  });
 
   const daysEnum = Object.values(DAYS) as DAYS[];
 
@@ -153,11 +161,20 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
                   }
                 : null
             );
+            if (
+              fetchedRoute.exceptionDates &&
+              fetchedRoute.exceptionDates.length > 0
+            ) {
+              const startDate = new Date(fetchedRoute.exceptionDates[0]);
+              setExceptionDates({
+                startDate: startDate,
+                endDate: startDate,
+              });
+            }
           }
         }
       } catch (error) {}
     };
-
     fetchRoute();
   }, [routeId]);
 
@@ -189,6 +206,25 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
   const handleEditStop = (index: number) => {
     const stop = stops[index];
     openAddLocationModal(index, stop.location);
+  };
+
+  const handleExceptionDatesChange = (
+    newValue: { startDate: Date | null; endDate: Date | null } | null
+  ) => {
+    if (
+      newValue === null ||
+      (newValue.startDate === null && newValue.endDate === null)
+    ) {
+      setExceptionDates({
+        startDate: null,
+        endDate: null,
+      });
+    } else {
+      setExceptionDates({
+        startDate: newValue.startDate,
+        endDate: newValue.endDate,
+      });
+    }
   };
 
   // Handle changes to stop fields
@@ -246,7 +282,6 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
       newErrors.stops = "Please provide valid times for all stops.";
     }
 
-    // Set the errors if any exist, else proceed with the API call
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -288,6 +323,9 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
         busId: selectedBus ? selectedBus.id : null,
         departureCityId: departureLocation ? departureLocation.cityId : null,
         arrivalCityId: arrivalLocation ? arrivalLocation.cityId : null,
+        exceptionDates: exceptionDates.startDate
+          ? [exceptionDates.startDate]
+          : [], // Add exception dates if available
       };
 
       if (routeId) {
@@ -297,7 +335,7 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
         if (result) {
           // Trigger a re-fetch of the route data
           startTransition(() => {
-            router.refresh(); // Ensures the table re-renders with updated data
+            router.refresh();
           });
           router.push("/app/routes"); // This will redirect back to the routes list
         } else {
@@ -595,6 +633,39 @@ const EditRoute: React.FC<EditRouteProps> = ({ cities, route, countries }) => {
                 </Popover>
               </div>
               <ErrorMessage message={errors.selectedBus} />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Exception section*/}
+      <div className="card border-0 shadow-lg mt-5">
+        <div className="card-body">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-xl text-dark-grey">
+              Add Route Exception
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
+            {/* Add Route Exception Date */}
+            <div className="w-full">
+              <label
+                htmlFor="route-exception"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
+              >
+                Add Route Exception Date
+              </label>
+              <div className="mt-2">
+                <Datepicker
+                  primaryColor={"yellow"}
+                  useRange={false}
+                  value={exceptionDates}
+                  onChange={handleExceptionDatesChange}
+                  showShortcuts={false}
+                  inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg datePlaceHolder"
+                  popoverDirection="down"
+                />
+              </div>
             </div>
           </div>
         </div>

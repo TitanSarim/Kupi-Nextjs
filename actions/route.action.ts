@@ -181,6 +181,7 @@ export async function createRoute(routeData: any): Promise<Routes | null> {
       pricing = {},
       status,
       busId,
+      exceptionDates,
     } = routeData;
 
     const operatorIds = session.operatorId ? [session.operatorId] : [];
@@ -214,6 +215,7 @@ export async function createRoute(routeData: any): Promise<Routes | null> {
         operatorIds,
         busId,
         status,
+        exceptionDates: exceptionDates?.length ? exceptionDates : [],
       },
     });
 
@@ -232,9 +234,6 @@ export async function updateRoute(
     if (!session || !session.userId) {
       return null;
     }
-
-    // Use the operatorId from the session
-    const operatorIds = session.operatorId ? [session.operatorId] : [];
 
     // Sanitize locations and pricing data
     const sanitizedDepartureLocation = { ...routeData.departureLocation };
@@ -301,11 +300,15 @@ export async function updateRoute(
         },
         busId: routeData.busId,
         status: routeData.status,
+        exceptionDates: routeData.exceptionDates?.length
+          ? routeData.exceptionDates
+          : undefined, // Add exception dates if provided
       },
     });
 
     return updatedRoute;
   } catch (error) {
+    console.error("Error updating route:", error);
     return null;
   }
 }

@@ -59,6 +59,7 @@ import {
   validateTicketPrices,
   validateStops,
 } from "@/libs/ClientSideHelpers";
+import Datepicker from "react-tailwindcss-datepicker";
 import { count } from "console";
 
 interface AddRouteProps {
@@ -93,7 +94,13 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
   const [selectedBus, setSelectedBus] = useState<Busses | null>(null);
   const [busSearch, setBusSearch] = useState("");
   const [openBusPopover, setOpenBusPopover] = useState(false);
-
+  const [exceptionDates, setExceptionDates] = useState<{
+    startDate: Date | null;
+    endDate: Date | null;
+  }>({
+    startDate: null,
+    endDate: null,
+  });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   //Router
@@ -121,6 +128,25 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
       setRouteDays(routeDays.filter((d) => d !== day));
     } else {
       setRouteDays([...routeDays, day]);
+    }
+  };
+
+  const handleExceptionDatesChange = (
+    newValue: { startDate: Date | null; endDate: Date | null } | null
+  ) => {
+    if (
+      newValue === null ||
+      (newValue.startDate === null && newValue.endDate === null)
+    ) {
+      setExceptionDates({
+        startDate: null,
+        endDate: null,
+      });
+    } else {
+      setExceptionDates({
+        startDate: newValue.startDate,
+        endDate: newValue.endDate,
+      });
     }
   };
 
@@ -253,6 +279,9 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
           ? cities.find((city) => city.id === arrivalLocation.cityId)?.name ||
             ""
           : "",
+        exceptionDates: exceptionDates.startDate
+          ? [exceptionDates.startDate]
+          : [], // Optional field for exception dates
       };
 
       const result = await createRoute(routeData);
@@ -262,7 +291,9 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
         });
         router.push("/app/routes");
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error creating route:", error);
+    }
   };
 
   return (
@@ -496,6 +527,39 @@ const AddRoute: React.FC<AddRouteProps> = ({ cities, countries }) => {
                 </Popover>
               </div>
               <ErrorMessage message={errors.selectedBus} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card border-0 shadow-lg mt-5">
+        <div className="card-body">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-xl text-dark-grey">
+              Add Route Exception
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 xl:grid-cols-1">
+            {/* Add Route Exception Date */}
+            <div className="w-full">
+              <label
+                htmlFor="route-exception"
+                className="text-md font-medium leading-6 text-dark-grey flex items-center gap-2"
+              >
+                Add Route Exception Date
+              </label>
+              <div className="mt-2">
+                <Datepicker
+                  primaryColor={"yellow"}
+                  useRange={false}
+                  value={exceptionDates}
+                  onChange={handleExceptionDatesChange}
+                  showShortcuts={false}
+                  inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg datePlaceHolder"
+                  popoverDirection="down"
+                />
+              </div>
             </div>
           </div>
         </div>

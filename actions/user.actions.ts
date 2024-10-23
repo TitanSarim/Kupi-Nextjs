@@ -53,20 +53,24 @@ export async function getAllUsers(searchParams: {
 
     const filter: FilterProps = {};
 
+    // Apply filtering by name or email
     if (name) {
-      filter.OR = [
-        { name: { contains: name, mode: "insensitive" } },
-        { email: { contains: name, mode: "insensitive" } },
-      ];
+      const nameParts = name.split(" ").filter(Boolean);
+      filter.OR = nameParts.flatMap((part) => [
+        { name: { contains: part, mode: "insensitive" } },
+        { surname: { contains: part, mode: "insensitive" } },
+        { email: { contains: part, mode: "insensitive" } },
+      ]);
     }
 
-    // Apply filters for roleName or specific role conditions
+    // Apply filters for specific roles
     if (onlyAdmins) {
-      filter.operatorsId = null; // Show users with no operator ID (Admins)
+      filter.operatorsId = null;
     } else if (onlyOperators) {
-      filter.operatorsId = { not: null }; // Show users with an operator ID (Operators)
+      filter.operatorsId = { not: null };
     }
 
+    // Apply filtering based on session role
     if (
       session.role === RolesEnum.BusCompanyAdmin ||
       session.role === RolesEnum.BusCompanyUser
@@ -76,11 +80,10 @@ export async function getAllUsers(searchParams: {
         : undefined;
     }
 
-    // Apply sorting logic
+    // Handle sorting logic
     const sortOrder: SortOrderProps[] = [];
     if (sort) {
       const [field, order] = sort.split("_");
-
       if (
         field === "name" ||
         field === "email" ||
@@ -97,7 +100,7 @@ export async function getAllUsers(searchParams: {
       sortOrder.push({ createdAt: "desc" });
     }
 
-    // Apply pagination
+    // Pagination settings
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
 
@@ -116,19 +119,36 @@ export async function getAllUsers(searchParams: {
       return null;
     }
 
-    // Wrap the user data and ensure roles are handled correctly
-    const wrappedUsers: UserDataType[] = userData.map((user) => ({
-      user: user,
-      role: user.role
-        ? {
-            id: user.role.id,
-            roleName: user.role.roleName,
-            permissions: user.role.permissions,
-          }
-        : undefined,
-    }));
+    // Fetch operator names for users with an `operatorsId`
+    const wrappedUsers: UserDataType[] = await Promise.all(
+      userData.map(async (user) => {
+        let operatorName = "Unknown";
 
-    // Get the total count of users for pagination
+        if (user.operatorsId) {
+          const operator = await db.operators.findUnique({
+            where: { id: user.operatorsId },
+            select: { name: true },
+          });
+          operatorName = operator ? operator.name : "Unknown";
+        }
+
+        return {
+          user: {
+            ...user,
+          },
+          role: user.role
+            ? {
+                id: user.role.id,
+                roleName: user.role.roleName,
+                permissions: user.role.permissions,
+              }
+            : undefined,
+          operatorName,
+        };
+      })
+    );
+
+    // Get total count of users for pagination
     const totalCount = await db.users.count({ where: filter });
 
     return {
@@ -237,7 +257,7 @@ export async function createUser(
         password: hashedPassword,
         roleId: formData.roleId,
         number: formData.number,
-        operatorsId: formData.operatorsId,
+        operatorsId: formData.operatorsId ? formData.operatorsId : null,
       },
     });
 
@@ -261,6 +281,7 @@ export async function updateUser(
     const updateData: Partial<Users> = {};
     if (formData.name !== undefined) updateData.name = formData.name;
     if (formData.surname !== undefined) updateData.surname = formData.surname;
+    if (formData.number !== undefined) updateData.number = formData.number;
     if (formData.email !== undefined) updateData.email = formData.email;
     if (formData.roleId !== undefined) updateData.roleId = formData.roleId;
     if (formData.password !== undefined && formData.password.trim() !== "") {

@@ -572,9 +572,8 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
       return;
     }
 
-    const exportData = dataToExport.map((transaction) => {
+    const exportData = dataToExport.flatMap((transaction) => {
       // Transaction Datetime
-
       const transactionDateTime = transaction.transactions?.paidAt
         ? new Date(transaction.transactions.paidAt)
             .toISOString()
@@ -587,65 +586,68 @@ const TransactionTable: React.FC<TransactionReturnWithDateRange> = ({
       // Transaction Type
       const transactionType = "SALE";
 
-      // Reference Number (INTrace)
-      const referenceNumber = transaction.tickets?.[0]?.ticketId || "N/A";
-
       // Implementation ID
       const implementationId = "KPI";
 
       // Terminal ID
       const terminalId = "INTERNET";
 
-      // Ticket Number
-      const ticketNumber = transaction.tickets?.[0]?.ticketId || "N/A";
-
-      // Amount (in cents)
-      const amountCents =
-        typeof transaction.tickets?.[0]?.carmaDetails?.selectedAvailability ===
-        "object"
-          ? Math.round(
-              (transaction.tickets[0].carmaDetails.selectedAvailability as any)
-                .price * 100
-            )
-          : "N/A";
-
       // Admin (in cents)
       const adminCents = 0;
 
-      // Service Number
-      let serviceNumber = "N/A";
-      if (Array.isArray(transaction.carmaDetails)) {
-        serviceNumber =
-          transaction.carmaDetails?.[0]?.selectedAvailability?.serviceNumber ||
-          "N/A";
-      } else if (
-        transaction.carmaDetails &&
-        typeof transaction.carmaDetails === "object"
-      ) {
-        serviceNumber =
-          transaction.carmaDetails?.selectedAvailability?.serviceNumber ||
-          "N/A";
-      }
-      // Departure Date
-      const departureDate = transaction.tickets?.[0]?.departureTime
-        ? new Date(transaction.tickets[0].departureTime)
-            .toISOString()
-            .slice(0, 10)
-            .replace(/-/g, "")
-        : "N/A";
+      return (
+        transaction.tickets?.map((ticket, index) => {
+          // Reference Number (INTrace)
+          const referenceNumber = ticket.ticketId || "N/A";
 
-      return {
-        "TRANSACTION DATETIME": transactionDateTime,
-        "TRANSACTION TYPE": transactionType,
-        "REFERENCE NUMBER (INTrace)": referenceNumber,
-        "IMPLEMENTATION ID": implementationId,
-        "TERMINAL ID": terminalId,
-        "TICKET NUMBER": ticketNumber,
-        "AMOUNT (CENTS)": amountCents,
-        "ADMIN (CENTS)": adminCents,
-        "SERVICE NUMBER": serviceNumber,
-        "DEPARTURE DATE": departureDate,
-      };
+          // Ticket Number
+          const ticketNumber = ticket.ticketId || "N/A";
+
+          // Amount (in cents)
+          const amountCents =
+            typeof ticket.carmaDetails?.selectedAvailability === "object"
+              ? Math.round(
+                  (ticket.carmaDetails.selectedAvailability as any).price * 100
+                )
+              : "N/A";
+
+          // Service Number
+          let serviceNumber = "N/A";
+          if (Array.isArray(transaction.carmaDetails)) {
+            serviceNumber =
+              transaction.carmaDetails[index]?.selectedAvailability
+                ?.serviceNumber || "N/A";
+          } else if (
+            transaction.carmaDetails &&
+            typeof transaction.carmaDetails === "object"
+          ) {
+            serviceNumber =
+              transaction.carmaDetails?.selectedAvailability?.serviceNumber ||
+              "N/A";
+          }
+
+          // Departure Date
+          const departureDate = ticket.departureTime
+            ? new Date(ticket.departureTime)
+                .toISOString()
+                .slice(0, 10)
+                .replace(/-/g, "")
+            : "N/A";
+
+          return {
+            "TRANSACTION DATETIME": transactionDateTime,
+            "TRANSACTION TYPE": transactionType,
+            "REFERENCE NUMBER (INTrace)": referenceNumber,
+            "IMPLEMENTATION ID": implementationId,
+            "TERMINAL ID": terminalId,
+            "TICKET NUMBER": ticketNumber,
+            "AMOUNT (CENTS)": amountCents,
+            "ADMIN (CENTS)": adminCents,
+            "SERVICE NUMBER": serviceNumber,
+            "DEPARTURE DATE": departureDate,
+          };
+        }) || []
+      );
     });
 
     // Convert data to CSV

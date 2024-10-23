@@ -9,6 +9,7 @@ import UserTable from "./UserTable";
 import AddUserModal from "./AddUserModal";
 import { useSession } from "next-auth/react";
 import { RolesEnum } from "@/types/auth";
+import { OperatorsType } from "@/types/transactions";
 import toast from "react-hot-toast";
 
 interface UserListProps {
@@ -19,12 +20,14 @@ interface UserListProps {
     pageIndex: number;
   };
   roles: UserRolesType[];
+  operators?: OperatorsType[];
 }
 
 const UserList: React.FC<UserListProps> = ({
   userData,
   paginationData,
   roles,
+  operators,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [onlyAdmins, setOnlyAdmins] = useState(false);
@@ -36,7 +39,19 @@ const UserList: React.FC<UserListProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Update userDataState when userData prop changes
+  // Load the selected state from localStorage when the component mounts
+  useEffect(() => {
+    const savedView = localStorage.getItem("selectedView");
+    if (savedView === "admins") {
+      setOnlyAdmins(true);
+      setOnlyOperators(false);
+    } else if (savedView === "operators") {
+      setOnlyAdmins(false);
+      setOnlyOperators(true);
+    }
+  }, []);
+
+  // Update the user data state when userData prop changes
   useEffect(() => {
     setUserDataState(userData);
   }, [userData]);
@@ -73,6 +88,19 @@ const UserList: React.FC<UserListProps> = ({
     };
   }, [searchTerm, onlyAdmins, onlyOperators]);
 
+  // Save the selected view to localStorage
+  const handleViewChange = (view: "admins" | "operators") => {
+    if (view === "admins") {
+      setOnlyAdmins(true);
+      setOnlyOperators(false);
+      localStorage.setItem("selectedView", "admins");
+    } else if (view === "operators") {
+      setOnlyAdmins(false);
+      setOnlyOperators(true);
+      localStorage.setItem("selectedView", "operators");
+    }
+  };
+
   const handleAddUser = (newUser: CreateUserFormData) => {
     const newUserData: UserDataType = {
       user: {
@@ -97,54 +125,50 @@ const UserList: React.FC<UserListProps> = ({
     setUserDataState([...userDataState, newUserData]);
     setShowAddUserModal(false);
   };
-  console.log("Current Users Role: ", session.data?.role);
 
   return (
     <div className="w-full mt-10 flex items-center justify-center">
       <div className="h-fit w-full bg-white shadow-sm rounded-md px-8 py-8 mb-5">
         <div className="w-full flex items-center justify-between mb-4">
           <h2 className="text-lg text-black font-semibold">Users List</h2>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center bg-gray-100 border-gray-300 border rounded-lg px-4 py-2">
-              <input
-                type="radio"
-                id="viewOperators"
-                name="userRole"
-                checked={onlyOperators}
-                onChange={() => {
-                  setOnlyAdmins(false);
-                  setOnlyOperators(true);
-                }}
-                className="h-4 w-4 text-dark-grey"
-              />
-              <label
-                htmlFor="viewOperators"
-                className="ml-3 text-sm font-medium"
-              >
-                View Operators
-              </label>
-            </div>
-            <div className="flex items-center bg-gray-100 border-gray-300 border rounded-lg px-4 py-2">
-              <input
-                type="radio"
-                id="viewAdmins"
-                name="userRole"
-                checked={onlyAdmins}
-                disabled={
-                  session.data?.role === RolesEnum.BusCompanyAdmin ||
-                  session.data?.role === RolesEnum.BusCompanyUser
-                }
-                onChange={() => {
-                  setOnlyAdmins(true);
-                  setOnlyOperators(false);
-                }}
-                className="h-4 w-4 text-dark-grey"
-              />
-              <label htmlFor="viewAdmins" className="ml-3 text-sm font-medium">
-                View Admins
-              </label>
-            </div>
-          </div>
+          {session &&
+            (session.data?.role === RolesEnum.SuperAdmin ||
+              session.data?.role === RolesEnum.KupiUser) && (
+              <div className="flex items-center gap-4">
+                <div className="flex items-center bg-gray-100 border-gray-300 border rounded-lg px-4 py-2">
+                  <input
+                    type="radio"
+                    id="viewOperators"
+                    name="userRole"
+                    checked={onlyOperators}
+                    onChange={() => handleViewChange("operators")}
+                    className="h-4 w-4 text-dark-grey"
+                  />
+                  <label
+                    htmlFor="viewOperators"
+                    className="ml-3 text-sm font-medium"
+                  >
+                    View Operators
+                  </label>
+                </div>
+                <div className="flex items-center bg-gray-100 border-gray-300 border rounded-lg px-4 py-2">
+                  <input
+                    type="radio"
+                    id="viewAdmins"
+                    name="userRole"
+                    checked={onlyAdmins}
+                    onChange={() => handleViewChange("admins")}
+                    className="h-4 w-4 text-dark-grey"
+                  />
+                  <label
+                    htmlFor="viewAdmins"
+                    className="ml-3 text-sm font-medium"
+                  >
+                    View Admins
+                  </label>
+                </div>
+              </div>
+            )}
         </div>
 
         {session &&
@@ -192,6 +216,7 @@ const UserList: React.FC<UserListProps> = ({
             onClose={() => setShowAddUserModal(false)}
             onAddUser={handleAddUser}
             roles={roles}
+            operators={operators ? operators : []}
           />
         )}
       </div>

@@ -22,22 +22,23 @@ import { CreateUserFormData, UserRolesType } from "@/types/user";
 import { useRouter } from "next/navigation";
 import { RolesEnum } from "@/types/auth";
 import { useSession } from "next-auth/react";
-import {
-  validateFields,
-  validateWhatsAppNumber,
-  validatePassword,
-} from "@/libs/ClientSideHelpers";
+import { validateFields } from "@/libs/ClientSideHelpers";
 import ErrorMessage from "@/components/ErrorMessage";
 import { checkEmailExists } from "@/actions/user.actions";
-import { ToastBar } from "react-hot-toast";
+import { OperatorsType } from "@/types/transactions";
 
 interface AddUserProps {
   onClose: () => void;
   onAddUser: (newUser: CreateUserFormData) => void;
   roles: UserRolesType[];
+  operators: OperatorsType[];
 }
 
-const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
+const AddUserModal: React.FC<AddUserProps> = ({
+  onClose,
+  roles,
+  operators,
+}) => {
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -45,9 +46,12 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
     number: "",
     password: "",
     roleId: "",
+    operatorsId: "",
   });
   const [roleName, setRoleName] = useState("");
+  const [operatorName, setOperatorName] = useState("");
   const [openRole, setOpenRole] = useState(false);
+  const [openOperator, setOpenOperator] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitted, setSubmitted] = useState(false);
@@ -63,8 +67,10 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
       number: "",
       password: "",
       roleId: "",
+      operatorsId: "",
     });
     setRoleName("");
+    setOperatorName("");
     setErrors({});
     setLoading(false);
   }, []);
@@ -89,6 +95,13 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
     setErrors((prevErrors) => ({ ...prevErrors, roleId: "" }));
   };
 
+  const handleOperatorSelect = (operator: OperatorsType) => {
+    setFormData((prevData) => ({ ...prevData, operatorsId: operator.id }));
+    setOperatorName(operator.name);
+    setOpenOperator(false);
+    setErrors((prevErrors) => ({ ...prevErrors, operatorsId: "" }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
@@ -100,7 +113,6 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
       if (error) newErrors[field] = error;
     });
 
-    // Check if email is already registered
     if (!newErrors.email) {
       const emailExists = await checkEmailExists(formData.email);
       if (emailExists) {
@@ -120,16 +132,11 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
     setLoading(true);
 
     const newUser: CreateUserFormData = {
-      name: formData.name,
-      surname: formData.surname,
-      email: formData.email,
-      number: formData.number,
-      password: formData.password,
-      roleId: formData.roleId,
+      ...formData,
       operatorsId:
         session.data?.role === RolesEnum.BusCompanyAdmin
           ? session.data?.operatorId
-          : undefined,
+          : formData.operatorsId,
     };
 
     try {
@@ -155,24 +162,26 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
     setShowPassword((prev) => !prev);
   };
 
-  const roleOptions =
-    session.data?.role === RolesEnum.SuperAdmin
-      ? roles.filter(
-          (role) =>
-            role.roleName === RolesEnum.SuperAdmin ||
-            role.roleName === RolesEnum.KupiUser
-        )
-      : roles.filter(
-          (role) =>
-            role.roleName === RolesEnum.BusCompanyAdmin ||
-            role.roleName === RolesEnum.BusCompanyUser
-        );
+  // Role options logic based on whether an operator is selected
+  const roleOptions = operatorName
+    ? roles.filter(
+        (role) =>
+          role.roleName === RolesEnum.BusCompanyAdmin ||
+          role.roleName === RolesEnum.BusCompanyUser
+      )
+    : session.data?.role === RolesEnum.SuperAdmin
+    ? roles.filter(
+        (role) =>
+          role.roleName === RolesEnum.SuperAdmin ||
+          role.roleName === RolesEnum.KupiUser
+      )
+    : [];
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 dialguebox-container ">
       <div className="bg-dim-grey py-6 px-8 rounded-lg shadow-lg w-full max-w-lg h-[80vh] overflow-y-auto dialguebox">
-        <div className="w-full flex justify-between items-center">
-          <h2 className="text-dark-grey text-xl font-semibold">Add User</h2>
+        <div className="w-full flex flex-row justify-between">
+          <p className="text-lg text-black font-semibold">Add User</p>
           <button
             onClick={onClose}
             className="text-gray-600 hover:text-gray-800"
@@ -240,7 +249,7 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
               name="email"
               id="email"
               placeholder="Enter email"
-              value={formData.email}
+              value={formData.email.toLowerCase()}
               onChange={handleChange}
               className="block px-5 py-3 text-dark-grey border border-gray-500 w-full rounded-lg"
             />
@@ -266,6 +275,59 @@ const AddUserModal: React.FC<AddUserProps> = ({ onClose, roles }) => {
             />
             <ErrorMessage message={errors.number} />
           </div>
+
+          {/* Operator Selection (Visible only to SuperAdmin) */}
+          {session.data?.role === RolesEnum.SuperAdmin && (
+            <div className="w-full mb-3">
+              <label
+                htmlFor="operator"
+                className="block text-md font-medium text-dark-grey"
+              >
+                Operator
+              </label>
+              <Popover open={openOperator} onOpenChange={setOpenOperator}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openOperator}
+                    className="w-full justify-between px-5 py-3 text-dark-grey border border-gray-500 rounded-lg"
+                  >
+                    {operatorName || "Please select if required"}
+                    <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search operator..." />
+                    <CommandList className="w-full">
+                      <CommandEmpty>No operator found.</CommandEmpty>
+                      <CommandGroup>
+                        {operators.map((operator) => (
+                          <CommandItem
+                            key={operator.id}
+                            value={operator.name}
+                            onSelect={() => handleOperatorSelect(operator)}
+                            className="cursor-pointer w-full"
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                operator.id === formData.operatorsId
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {operator.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <ErrorMessage message={errors.operatorsId} />
+            </div>
+          )}
 
           {/* Role Selection */}
           <div className="w-full mb-3">

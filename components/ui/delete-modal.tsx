@@ -5,6 +5,7 @@ interface DeleteModalProps {
   onClose: () => void;
   onConfirm: () => void;
   message: string;
+  imageSrc?: string;
 }
 
 const DeleteModal: React.FC<DeleteModalProps> = ({
@@ -12,6 +13,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   onClose,
   onConfirm,
   message,
+  imageSrc,
 }) => {
   if (!isOpen) return null;
 
@@ -38,11 +40,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
           </button>
         </div>
         <div className="text-center">
-          <img
-            src="/img/delete-user.svg"
-            alt="Delete Icon"
-            className="mx-auto"
-          />
+          <img src={imageSrc} alt="Delete Icon" className="mx-auto" />
           <h2 className="text-dark-grey font-semibold text-2xl mt-4">
             Are you sure?
           </h2>
