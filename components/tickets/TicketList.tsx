@@ -26,24 +26,43 @@ import {
 } from "@/components/ui/command";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { operatorSettingsReturn } from "@/types/settings";
 
 const TicketList: React.FC<TicketsReturn> = ({
   ticketData,
   paginationData,
   cities,
+  operators,
 }) => {
   const [busOperator, setBusOperator] = useState("");
+  const [busOperatorId, setBusOperatorId] = useState("");
   const [source, setSource] = useState("");
   const [destinationCity, setDestinationCity] = useState("");
   const [arrivalCity, setArrivalCity] = useState("");
   const [onlyPending, setOnlyPending] = useState(false);
   const [open, setOpen] = React.useState(false);
+  const [operatorOpen, setoperatorOpen] = React.useState(false);
   const [openArrival, setOpenArrival] = React.useState(false);
   const router = useRouter();
   const params = new URLSearchParams();
 
+  const handleOperatorChange = async (value: string, id: string) => {
+    if (value === "") {
+      setBusOperator("");
+    } else {
+      setBusOperator(value);
+      setBusOperatorId(id);
+    }
+    setOpen(false);
+  };
+
   const updateSearchParams = () => {
-    if (busOperator) params.set("carrier", busOperator);
+    if (busOperator !== "" && busOperator !== "Clear") {
+      params.set("operator", busOperatorId);
+    } else {
+      setBusOperator("");
+      setBusOperatorId("");
+    }
     if (source !== "Clear") {
       params.set("source", source);
     } else {
@@ -59,6 +78,7 @@ const TicketList: React.FC<TicketsReturn> = ({
     } else {
       setArrivalCity("");
     }
+
     if (onlyPending) params.set("onlyPending", String(onlyPending));
 
     router.push(`?${params.toString()}`, { scroll: false });
@@ -86,15 +106,68 @@ const TicketList: React.FC<TicketsReturn> = ({
           </div>
         </div>
 
-        <div>
+        <div className="w-full">
           <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
-          <Input
-            type="text"
-            value={busOperator}
-            onChange={(e) => setBusOperator(e.target.value)}
-            placeholder="Search bus operator"
-            className="h-12 rounded-lg text-gray-500 border-gray-700"
-          />
+          <Popover open={operatorOpen} onOpenChange={setoperatorOpen}>
+            <PopoverTrigger
+              asChild
+              className="w-full  h-12 rounded-lg  text-gray-500 border-gray-700"
+            >
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={operatorOpen}
+                className="w-full justify-between outline-none"
+              >
+                {busOperator || "Select operator..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-full p-0 select-dropdown_bus_operator_tickets text-left left-0">
+              <Command>
+                <CommandInput placeholder="Search operator..." />
+                <CommandList className="w-full text-left">
+                  <CommandEmpty>No operator found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      key="clear"
+                      value=""
+                      onSelect={() => {
+                        handleOperatorChange("", "");
+                      }}
+                      className="cursor-pointer w-full text-left"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${
+                          busOperator === "" ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                      Clear
+                    </CommandItem>
+                    {operators?.map((operator) => (
+                      <CommandItem
+                        key={operator.id}
+                        value={operator.name}
+                        onSelect={(currentValue) =>
+                          handleOperatorChange(currentValue, operator.id)
+                        }
+                        className="cursor-pointer w-full  text-left"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            operator.name === busOperator
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {operator.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="w-full flex flex-wrap justify-between mt-6">
@@ -259,6 +332,7 @@ const TicketList: React.FC<TicketsReturn> = ({
           ticketData={ticketData}
           paginationData={paginationData}
           cities={cities}
+          operators={operators}
         />
       </div>
     </div>

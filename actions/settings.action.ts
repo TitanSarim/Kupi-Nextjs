@@ -116,6 +116,8 @@ export async function createOperatorSettings(
           accountTitle: formData.accountTitle,
           IBAN: formData.ibanNumber,
           swiftCode: formData.swiftNumber,
+          contactEmail: formData.contactEmail,
+          contactNumber: formData.contactNumber,
         },
       });
       await db.operators.update({
@@ -158,6 +160,8 @@ export async function createOperatorSettings(
             accountTitle: formData.accountTitle,
             IBAN: formData.ibanNumber,
             swiftCode: formData.swiftNumber,
+            contactNumber: formData.contactNumber,
+            contactEmail: formData.contactEmail,
           },
         });
       }
@@ -289,6 +293,8 @@ export async function updateOperatorSettings(
           accountTitle: formData.accountTitle,
           IBAN: formData.ibanNumber,
           swiftCode: formData.swiftNumber,
+          contactNumber: formData.contactNumber,
+          contactEmail: formData.contactEmail,
         },
       });
       await db.operators.update({
@@ -326,6 +332,8 @@ export async function updateOperatorSettings(
             accountTitle: formData.accountTitle,
             IBAN: formData.ibanNumber,
             swiftCode: formData.swiftNumber,
+            contactNumber: formData.contactNumber,
+            contactEmail: formData.contactEmail,
           },
         });
       }
@@ -391,6 +399,26 @@ export async function underMaintainance(
       }
     }
 
+    return true;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function GlobalReset(
+  exchangeRate: number
+): Promise<true | null | undefined> {
+  try {
+    const operatorsSettings = await db.operatorSettings.updateMany({
+      data: {
+        exchangeRate: exchangeRate,
+      },
+    });
+
+    if (!operatorsSettings) {
+      return null;
+    }
     return true;
   } catch (error) {
     console.error(error);

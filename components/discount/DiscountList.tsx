@@ -117,16 +117,6 @@ const DiscountList: React.FC<DiscountReturn> = ({
         </div>
 
         {/* Filters */}
-        <div>
-          <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
-          <Input
-            type="text"
-            value={busOperator}
-            onChange={(e) => setBusOperator(e.target.value)}
-            placeholder="Search bus operator"
-            className="h-12 rounded-lg text-gray-500 border-gray-700"
-          />
-        </div>
 
         <div className="w-full flex flex-row justify-between mt-6 gap-4">
           <div className="w-3/12">

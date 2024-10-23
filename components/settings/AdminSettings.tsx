@@ -15,6 +15,7 @@ import { Settings } from "@prisma/client";
 import { SyncBusOperators } from "@/actions/operators.action";
 import toast from "react-hot-toast";
 import MaintainanceDialogue from "./MaintainanceDialogue";
+import GlobalResetDialogue from "./GlobalResetDialogue";
 
 interface AdminSettingsProps {
   settings: Settings[];
@@ -43,6 +44,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   );
   const [formChanged, setFormChanged] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogSecondOpen, setDialogSecondOpen] = useState(false);
 
   const handleExchangeRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -58,7 +60,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     setFormChanged(true);
   };
 
-  const handleKupiCommissionChange = (
+  const handleKupiMarkUpChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = event.target.value;
@@ -174,6 +176,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     setFormChanged(true);
   };
 
+  const handleShowSecondDetail = () => {
+    setDialogSecondOpen(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -222,7 +228,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
       const response = await adminSetting(formData);
       if (response === true) {
         toast.success("Settings updated successfully");
-        // DIALOUEBOX SHULD TRIGGER
+        handleShowSecondDetail();
       }
     } catch (error) {
       setError(true);
@@ -251,7 +257,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           let tickets = "";
           let bookingAt = "";
           let reminder = "";
-          let carmaCommission = "";
+          let carmaCommissionPercentage = "";
           let kupiMarkup = "";
           let maintenance = false;
           let message = "";
@@ -264,11 +270,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               case "KUPI_COMMISSION_PERCENTAGE":
                 commission = setting.value;
                 break;
+              case "CARMA_COMMISSION_PERCENTAGE":
+                carmaCommissionPercentage = setting.value;
+                break;
               case "SALES_COMMISSION_PERCENTAGE":
                 salesCommission = setting.value;
-              case "CARMA_COMMISSION_PERCENTAGE":
-                carmaCommission = setting.value;
-                break;
               case "KUPI_MARKUP_PERCENTAGE":
                 kupiMarkup = setting.value;
                 break;
@@ -297,12 +303,12 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             : formatTime(parsedBookingAt);
           setExchangeRate(parseInt(exchangeRate));
           setCommission(parseInt(commission));
-          setSalesCommission(parseInt(salesCommission));
           setTickets(parseInt(tickets));
           setBookingAt(formattedBookingAt);
           setReminder(parseInt(reminder));
           setKupiMarkup(parseInt(kupiMarkup));
-          setCarmaCommission(parseInt(carmaCommission));
+          setCarmaCommission(parseInt(carmaCommissionPercentage));
+          setSalesCommission(parseInt(salesCommission));
           setMaintainanace(maintenance);
           if (message.length <= 0 || message === "" || !message) {
             setMaintanaceMessage(
@@ -325,6 +331,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
+  };
+
+  const handleCloseDialogSecond = () => {
+    setDialogSecondOpen(false);
   };
 
   const loadMaintainanceFromStorage = () => {
@@ -452,7 +462,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 className="h-12 border-gray-400 rounded-lg"
                 placeholder="$10"
                 value={kupiMarkup >= 0 ? `${kupiMarkup.toFixed(0)}%` : ""}
-                onChange={handleKupiCommissionChange}
+                onChange={handleKupiMarkUpChange}
                 required
               />
             </div>
@@ -594,6 +604,12 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           maintainanace={maintainanace}
           setMaintanaceMessage={setMaintanaceMessage}
           maintanaceMessage={maintanaceMessage}
+        />
+
+        <GlobalResetDialogue
+          open={dialogSecondOpen}
+          onClose={handleCloseDialogSecond}
+          exchangeRate={exchangeRate}
         />
       </div>
     </div>

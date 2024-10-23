@@ -64,6 +64,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   const [exchangeRate, setExchangeRate] = useState<number>(0);
   const [company, setCompany] = useState("");
   const [description, setDescription] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [bankName, setBankName] = useState(
     operatorSettings?.operatorSettings?.bankName || ""
   );
@@ -152,6 +154,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
         setBookingAt(formattedBookingAt);
       }
       setExchangeRate(operatorsData?.operatorSettings?.exchangeRate || 0);
+      setContactEmail(operatorsData?.operatorSettings?.contactEmail || "");
+      setContactNumber(operatorsData?.operatorSettings?.contactNumber || "");
       setBankName(operatorsData?.operatorSettings?.bankName || "");
       setAccountTitle(operatorsData?.operatorSettings?.accountTitle || "");
       setIbanNumber(operatorsData?.operatorSettings?.IBAN || "");
@@ -437,6 +441,20 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
+  const handleChnageContactNumber = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+    setContactNumber(value);
+    setFormChanged(true);
+  };
+
+  const handleChnageContactEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setContactEmail(value);
+    setFormChanged(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -452,9 +470,13 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       accountTitle,
       ibanNumber,
       swiftNumber,
+      contactEmail,
+      contactNumber,
     };
     try {
       for (const [key, value] of Object.entries(formData)) {
+        if (key === "contactEmail") continue;
+        if (key === "contactNumber") continue;
         if (!value || (Array.isArray(value) && value.length === 0)) {
           const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
           setErrorState({
@@ -483,7 +505,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   };
 
   return (
-    <div className="w-full h-fit min-h-screen">
+    <div className="w-full h-fit operatorsSession-screen">
       {role === RolesEnum.SuperAdmin || role === RolesEnum.KupiUser ? (
         <div className="w-full">
           <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
@@ -838,13 +860,50 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                   type="text"
                   className="h-12 border-gray-700 rounded-lg"
                   placeholder="$20"
-                  value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
+                  value={
+                    exchangeRate > 0
+                      ? `ZiG${" "}${exchangeRate.toFixed(0)}`
+                      : ""
+                  }
                   onChange={handleExchangeRateChange}
                   required
                 />
                 {errorState?.field === "exchangeRate" && (
                   <p className="text-red-500 ">Exchange rate required</p>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Support Contact Details */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">
+              Support Contact Details
+            </p>
+            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Contact Number
+                </p>
+                <Input
+                  type="text"
+                  value={contactNumber}
+                  onChange={handleChnageContactNumber}
+                  placeholder="Enter contact numbers"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Contact Email
+                </p>
+                <Input
+                  type="text"
+                  value={contactEmail}
+                  onChange={handleChnageContactEmail}
+                  placeholder="Enter contact emails"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
               </div>
             </div>
           </div>
@@ -1248,13 +1307,50 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                   type="text"
                   className="h-12 border-gray-700 rounded-lg"
                   placeholder="$20"
-                  value={exchangeRate > 0 ? `$${exchangeRate.toFixed(0)}` : ""}
+                  value={
+                    exchangeRate > 0
+                      ? `ZiG${" "}${exchangeRate.toFixed(0)}`
+                      : ""
+                  }
                   onChange={handleExchangeRateChange}
                   required
                 />
                 {errorState?.field === "exchangeRate" && (
                   <p className="text-red-500 ">Exchange rate required</p>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Support Contact Details */}
+          <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
+            <p className="text-lg text-black font-semibold">
+              Support Contact Details
+            </p>
+            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Contact Number
+                </p>
+                <Input
+                  type="text"
+                  value={contactNumber}
+                  onChange={handleChnageContactNumber}
+                  placeholder="Enter contact numbers"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
+              </div>
+              <div className="w-5/12 mb-2">
+                <p className="mb-1 darkGray-text font-normal text-sm">
+                  Contact Email
+                </p>
+                <Input
+                  type="text"
+                  value={contactEmail}
+                  onChange={handleChnageContactEmail}
+                  placeholder="Enter contact emails"
+                  className="h-12 rounded-lg text-gray-500 border-gray-700"
+                />
               </div>
             </div>
           </div>

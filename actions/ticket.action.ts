@@ -12,7 +12,7 @@ import {
 } from "@/types/ticket";
 
 export async function getAllTickets(searchParams: {
-  carrier?: string;
+  operator?: string;
   source?: string;
   destinationCity?: string;
   arrivalCity?: string;
@@ -29,7 +29,7 @@ export async function getAllTickets(searchParams: {
     }
 
     const {
-      carrier,
+      operator,
       source,
       destinationCity,
       arrivalCity,
@@ -43,10 +43,7 @@ export async function getAllTickets(searchParams: {
     const pageIndexNumber = Number(pageIndex);
 
     const filter: FilterProps = {};
-    if (carrier)
-      filter.carmaDetails = {
-        selectedAvailability: { contains: carrier, mode: "insensitive" },
-      };
+    if (operator) filter.operatorId = operator;
     if (source) filter.source = convertToTicketSources(source);
     if (destinationCity)
       filter.sourceCity = {
@@ -79,6 +76,8 @@ export async function getAllTickets(searchParams: {
           customer: { name: order === "asc" ? "asc" : "desc" },
         });
       }
+
+      console.log("filter", filter);
 
       if (
         field === "busIdentifier" ||

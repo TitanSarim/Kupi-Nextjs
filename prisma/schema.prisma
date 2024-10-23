@@ -249,18 +249,20 @@ model Settings {
 }
 
 model OperatorSettings {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
-  emails       String[]
-  numbers      String[]
-  exchangeRate Int
-  tickets      Int
-  closeBooking String
-  bankName     String
-  accountTitle String
-  IBAN         String
-  swiftCode    String
-  operatorsId  String    @db.ObjectId
-  operator     Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  emails        String[]
+  numbers       String[]
+  contactNumber String?
+  contactEmail  String?
+  exchangeRate  Int
+  tickets       Int
+  closeBooking  String
+  bankName      String
+  accountTitle  String
+  IBAN          String
+  swiftCode     String
+  operatorsId   String    @db.ObjectId
+  operator      Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
 }
 
 model Conversations {

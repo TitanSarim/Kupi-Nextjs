@@ -45,7 +45,10 @@
   top: 320px;
   right: 145px;
 }
-
+/* screen heighs */
+.operatorsSession-screen{
+  min-height: 80vh;
+}
 
 /* From Uiverse.io by JaydipPrajapati1910 */
 .radio-input {
@@ -251,7 +254,13 @@ input:checked+.slider-live:before {
   z-index: 50;
   max-height: 16.7rem;
   overflow-y: hidden;
-  width: 100%;
+}
+
+.select-dropdown_bus_operator_tickets{
+  width: 1100px !important;
+  z-index: 50;
+    max-height: 16.7rem;
+    overflow-y: hidden;
 }
 
 

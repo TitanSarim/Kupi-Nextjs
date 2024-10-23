@@ -118,13 +118,7 @@ const DiscountsTable: React.FC<DiscountReturn> = ({
     },
     {
       accessorKey: "source",
-      header: ({ column }) => (
-        <button
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Operator <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-        </button>
-      ),
+      header: ({ column }) => <div>Operator</div>,
       cell: ({ row }) => {
         const source = row.original.discount.source;
         return (

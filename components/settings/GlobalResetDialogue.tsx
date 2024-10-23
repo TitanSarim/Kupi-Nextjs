@@ -3,25 +3,19 @@ import Image from "next/image";
 import React, { startTransition, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { underMaintainance } from "@/actions/settings.action";
+import { GlobalReset, underMaintainance } from "@/actions/settings.action";
 import { SettingsFormData } from "@/types/settings";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  setMaintainanace: (value: boolean) => void;
-  maintainanace: boolean;
-  setMaintanaceMessage: (value: string) => void;
-  maintanaceMessage: string;
+  exchangeRate: number;
 }
 
 const GlobalResetDialogue: React.FC<DialogProps> = ({
   open,
   onClose,
-  setMaintainanace,
-  maintainanace,
-  setMaintanaceMessage,
-  maintanaceMessage,
+  exchangeRate,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,53 +24,19 @@ const GlobalResetDialogue: React.FC<DialogProps> = ({
     onClose();
   };
 
-  const handleMaintainace = async () => {
-    let maintain = maintainanace;
-
-    if (maintainanace === true) {
-      maintain = false;
-      setMaintainanace(false);
-    } else if (maintainanace === false) {
-      maintain = true;
-      setMaintainanace(true);
-    }
-
-    localStorage.setItem("maintainance", maintain ? "true" : "false");
+  const handleGlobalReset = async () => {
     try {
-      const formData: SettingsFormData = {
-        key: "MAINTAINACE_MESSAGE",
-        value: maintanaceMessage,
-      };
-      const response = await underMaintainance(maintain, formData);
+      setLoading(true);
+      const response = await GlobalReset(exchangeRate);
       if (response === true) {
-        toast.success("Maintainance status updated successfully");
+        toast.success("Exchange Rate updated globally");
       }
     } catch (error) {
-      console.error("Error");
+      console.error(error);
     } finally {
-      onClose();
-      setMaintanaceMessage("");
+      setLoading(false);
+      handleClose();
     }
-  };
-
-  const handleMaintainanceMessage = (
-    event: React.ChangeEvent<HTMLTextAreaElement>
-  ) => {
-    const message = event.target.value;
-    setMaintanaceMessage(message);
-
-    if (!message.trim()) {
-      setError("Message cannot be empty.");
-      return;
-    }
-
-    const wordCount = message.trim().split(/\s+/).length;
-    if (wordCount > 200) {
-      setError("Message cannot exceed 200 words.");
-      return;
-    }
-
-    setError(null);
   };
 
   if (!open) return null;
@@ -99,27 +59,34 @@ const GlobalResetDialogue: React.FC<DialogProps> = ({
         </div>
         <div className="relative w-full flex flex-col items-center justify-center">
           <Image
-            src="/img/icons/isLive.svg"
+            src="/img/icons/GlobalReset.svg"
             alt="delete"
             width={130}
             height={130}
             className="flex justify-center items-center"
           />
+          <p className="text-black text-2xl font-semibold mb-2">
+            Are you sure?
+          </p>
+          <span className="text-gray-700 text-lg font-medium mb-2 text-center">
+            You want to apply global exchange rate for all operators
+          </span>
 
           <div className="flex flex-row gap-10 mt-4">
             <button
               onClick={handleClose}
               className="border-gray-600 py-1 px-8 bg-transparent border-2 rounded-lg text-gray-600"
             >
-              Cancel
+              No
             </button>
             <button
               disabled={loading || error !== null}
+              onClick={handleGlobalReset}
               className={`${
                 loading || error !== null ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
             >
-              {loading ? "Please wait..." : "Save"}
+              {loading ? "Please wait..." : "Yes"}
             </button>
           </div>
         </div>

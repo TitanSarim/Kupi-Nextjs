@@ -32,6 +32,8 @@ export interface operatorSettingsFormData {
   accountTitle: string;
   ibanNumber: string;
   swiftNumber: string;
+  contactEmail?: string;
+  contactNumber?: string;
 }
 
 export interface operatorSettingsReturn {

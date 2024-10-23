@@ -2,9 +2,11 @@ import {
   Busses,
   Cities,
   Customers,
+  Operators,
   Tickets,
   Transactions,
 } from "@prisma/client";
+import { OperatorsType } from "./transactions";
 
 export enum TicketStatus {
   CONFIRMED = "CONFIRMED",
@@ -47,6 +49,7 @@ export type TicketsReturn = {
   };
   urlParamName?: string;
   cities: Cities[];
+  operators: OperatorsType[];
 };
 
 export type TicketsActionReturn = {
@@ -65,6 +68,7 @@ enum TicketSources {
 }
 
 export interface FilterProps {
+  operatorId?: string;
   carmaDetails?: {
     selectedAvailability?: {
       contains?: string;

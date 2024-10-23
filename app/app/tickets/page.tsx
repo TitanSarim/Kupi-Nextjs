@@ -2,7 +2,7 @@ import { getAllTickets } from "@/actions/ticket.action";
 import TicketList from "@/components/tickets/TicketList";
 import React, { Suspense } from "react";
 import { TicketQuery } from "@/types/ticket";
-import { getAllMatchedCity } from "@/actions/search.action";
+import { getAlKupiOperators, getAllMatchedCity } from "@/actions/search.action";
 
 const Tickets = async ({
   searchParams,
@@ -10,8 +10,9 @@ const Tickets = async ({
   searchParams: TicketQuery["searchParams"];
 }) => {
   const data = await getAllTickets(searchParams);
+  const operators = await getAlKupiOperators();
   const cities = await getAllMatchedCity();
-  if (!data || !cities) {
+  if (!data || !cities || !operators) {
     return (
       <div className="bg-page-backgound flex items-start justify-center h-screen w-full">
         <div className="mt-32">
@@ -27,6 +28,7 @@ const Tickets = async ({
         <TicketList
           ticketData={data?.ticketData}
           cities={cities}
+          operators={operators}
           paginationData={data.paginationData}
         />
       </div>

@@ -81,7 +81,6 @@ export async function getAlKupiOperators(): Promise<OperatorsType[] | null> {
 
     const operatorsData = await db.operators.findMany({
       where: {
-        source: "KUPI",
         status: "REGISTERED",
       },
     });
