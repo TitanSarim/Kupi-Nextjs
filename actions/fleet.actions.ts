@@ -133,7 +133,7 @@ export async function getAllFleet(searchParams: {
 
     const filter: FilterProps = {};
     if (busID) {
-      filter.busID = { contains: busID, mode: "insensitive" };
+      filter.busID = busID;
     }
     if (registration) {
       filter.registration = registration;

@@ -14,11 +14,7 @@ const Transactions = async ({
   const data = await getAllManualTransactions(searchParams);
   const operators = await getBusOperators();
 
-  if (!operators) {
-    return null;
-  }
-
-  if (!data) {
+  if (!data || !operators) {
     return (
       <div className="bg-page-backgound flex items-start justify-center h-screen w-full">
         <div className="mt-32">

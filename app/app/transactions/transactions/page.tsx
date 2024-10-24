@@ -1,5 +1,8 @@
 import { getAllMatchedCity } from "@/actions/search.action";
-import { getAllTransactions } from "@/actions/transactions.actions";
+import {
+  getAllTransactions,
+  getBusOperators,
+} from "@/actions/transactions.actions";
 import TransactionList from "@/components/transactions/TransactionList";
 import { TransactionQuery } from "@/types/transactions";
 import React, { Suspense } from "react";
@@ -11,13 +14,14 @@ const Transactions = async ({
 }) => {
   const data = await getAllTransactions(searchParams, false);
   const allData = await getAllTransactions(searchParams, true);
+  const operators = await getBusOperators();
   const cities = await getAllMatchedCity();
   const dateRange = {
     startDate: null,
     endDate: null,
   };
 
-  if (!data || !cities) {
+  if (!data || !cities || !operators) {
     return (
       <div className="bg-page-backgound flex items-start justify-center h-screen w-full">
         <div className="mt-32">
@@ -36,6 +40,7 @@ const Transactions = async ({
           paginationData={data.paginationData}
           dateRange={dateRange}
           allTransactionData={allData?.transactionData || []}
+          operators={operators}
         />
       </div>
     </div>

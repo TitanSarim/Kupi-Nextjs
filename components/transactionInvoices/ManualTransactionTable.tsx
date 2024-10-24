@@ -18,6 +18,7 @@ import {
 import { openPdf } from "@/actions/transactions.actions";
 import UpdateTreansactionDialogue from "./UpdateTreansactionDialogue";
 import TableComponent from "../Table/Table";
+import toast from "react-hot-toast";
 
 const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
   transactionData,
@@ -99,19 +100,23 @@ const ManualTransactionTable: React.FC<ManualTransactionReturn> = ({
       ),
       cell: ({ row }) => {
         const transactionId = row.original.transactions.paymentRef;
-        const isFullIdVisible = expandedId === transactionId;
-
+        const handleCopy = (id: string) => {
+          navigator.clipboard
+            .writeText(id)
+            .then(() => {
+              toast.success("Copied to clipboard!");
+            })
+            .catch((err) => {
+              console.error("Failed to copy: ", err);
+            });
+        };
         return (
           <div className="relative inline-block">
             <button
               className="bg-yellow-300 px-3 p-1 rounded-md"
-              onClick={() =>
-                setExpandedId(isFullIdVisible ? null : transactionId)
-              }
+              onClick={() => handleCopy(row.original.transactions.paymentRef)}
             >
-              {isFullIdVisible
-                ? transactionId
-                : transactionId.slice(4, 8) + "..."}
+              {transactionId.slice(4, 8) + "..."}
             </button>
           </div>
         );

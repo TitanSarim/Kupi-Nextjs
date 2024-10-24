@@ -112,10 +112,7 @@ export async function createOperatorSettings(
           exchangeRate: formData.exchangeRate,
           tickets: formData.tickets,
           closeBooking: String(formData.bookingAt),
-          bankName: formData.bankName,
-          accountTitle: formData.accountTitle,
-          IBAN: formData.ibanNumber,
-          swiftCode: formData.swiftNumber,
+          bankDetails: formData.bankDetails,
           contactEmail: formData.contactEmail,
           contactNumber: formData.contactNumber,
         },
@@ -156,10 +153,7 @@ export async function createOperatorSettings(
             exchangeRate: formData.exchangeRate,
             tickets: formData.tickets,
             closeBooking: String(formData.bookingAt),
-            bankName: formData.bankName,
-            accountTitle: formData.accountTitle,
-            IBAN: formData.ibanNumber,
-            swiftCode: formData.swiftNumber,
+            bankDetails: formData.bankDetails,
             contactNumber: formData.contactNumber,
             contactEmail: formData.contactEmail,
           },
@@ -218,9 +212,9 @@ export async function getOperatorSettings(): Promise<
   }
 }
 
-export async function getSelectedOperatorSettings(
-  name: string
-): Promise<operatorSettingsReturn | null | undefined> {
+export async function getSelectedOperatorSettings(searchParams: {
+  operatorId?: string;
+}): Promise<operatorSettingsReturn | null | undefined> {
   try {
     const session = await auth();
 
@@ -228,12 +222,21 @@ export async function getSelectedOperatorSettings(
       return null;
     }
 
+    const { operatorId } = searchParams;
+
+    if (!operatorId) {
+      return null;
+    }
+
     const operator = await db.operators.findFirst({
       where: {
-        name: name,
+        id: operatorId,
       },
     });
 
+    if (!operator) {
+      return null;
+    }
     const operatorSettings = await db.operatorSettings.findFirst({
       where: {
         operatorsId: operator?.id,
@@ -289,10 +292,7 @@ export async function updateOperatorSettings(
           exchangeRate: formData.exchangeRate,
           tickets: formData.tickets,
           closeBooking: String(formData.bookingAt),
-          bankName: formData.bankName,
-          accountTitle: formData.accountTitle,
-          IBAN: formData.ibanNumber,
-          swiftCode: formData.swiftNumber,
+          bankDetails: formData.bankDetails,
           contactNumber: formData.contactNumber,
           contactEmail: formData.contactEmail,
         },
@@ -328,10 +328,7 @@ export async function updateOperatorSettings(
             exchangeRate: formData.exchangeRate,
             tickets: formData.tickets,
             closeBooking: String(formData.bookingAt),
-            bankName: formData.bankName,
-            accountTitle: formData.accountTitle,
-            IBAN: formData.ibanNumber,
-            swiftCode: formData.swiftNumber,
+            bankDetails: formData.bankDetails,
             contactNumber: formData.contactNumber,
             contactEmail: formData.contactEmail,
           },

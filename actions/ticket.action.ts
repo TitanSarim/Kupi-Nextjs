@@ -77,8 +77,6 @@ export async function getAllTickets(searchParams: {
         });
       }
 
-      console.log("filter", filter);
-
       if (
         field === "busIdentifier" ||
         field === "ticketId" ||

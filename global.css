@@ -178,6 +178,11 @@ input:checked+.slider:before {
   }
 }
 
+.bank-details-textarea{
+  max-height: 8rem;
+  min-height: 8rem;
+}
+
 /* toggle switch */
 .switch-live {
   position: relative;

@@ -38,22 +38,28 @@ import { OperatorsType } from "@/types/transactions";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RolesEnum } from "@/types/auth";
+import { useRouter } from "next/navigation";
 
 interface OperatorSettingsProps {
   operatorSettings?: operatorSettingsReturn | null | undefined;
+  operator?: operatorSettingsReturn | null | undefined;
   operators?: OperatorsType[] | null;
   role?: string;
 }
 
 const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   operatorSettings,
+  operator,
   operators,
   role,
 }) => {
+  const router = useRouter();
+  const params = new URLSearchParams();
   const { currency, amount, equivalent, unit } = Rates.globalExchangeRate;
   const [open, setOpen] = React.useState(false);
   const [busOperator, setBusOperator] = useState<string | null>(null);
-  const [operatorsData, setoperatorsData] =
+  const [busOperatorId, setBusOperatorId] = useState("");
+  const [operatorsData, setOperatorsData] =
     useState<operatorSettingsReturn | null>(null);
   const [numbers, setNumbers] = useState<string[]>([]);
   const [numberInput, setNumberInput] = useState("");
@@ -66,24 +72,29 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   const [description, setDescription] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
-  const [bankName, setBankName] = useState(
-    operatorSettings?.operatorSettings?.bankName || ""
-  );
-  const [accountTitle, setAccountTitle] = useState("");
-  const [ibanNumber, setIbanNumber] = useState("");
-  const [swiftNumber, setSwiftNumber] = useState("");
-  const [bankNameError, setBankNameError] = useState<string | null>(null);
-  const [accountTitleError, setAccountTitleError] = useState<string | null>(
-    null
-  );
-  const [ibanNumberError, setIbanNumberError] = useState<string | null>(null);
-  const [swiftCodeError, setSwiftCodeError] = useState<string | null>(null);
+  const [bankDetails, setBankDetails] = useState("");
   const [formChanged, setFormChanged] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [errorState, setErrorState] = useState<{
     field: string;
     message: string;
   } | null>(null);
+
+  const updateSearchParams = () => {
+    if (
+      busOperator !== "Clear" &&
+      busOperator !== null &&
+      busOperator.length > 0
+    ) {
+      params.set("operatorId", busOperatorId);
+    } else {
+      setBusOperator("");
+    }
+
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  useEffect(() => updateSearchParams(), [busOperator, busOperatorId]);
 
   const handleData = () => {
     if (operatorSettings) {
@@ -98,10 +109,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
           : formatTime(parseInt(parsedBookingAt));
         setBookingAt(formattedBookingAt);
         setExchangeRate(operatorSettings?.operatorSettings?.exchangeRate);
-        setBankName(operatorSettings?.operatorSettings?.bankName || "");
-        setAccountTitle(operatorSettings?.operatorSettings?.accountTitle || "");
-        setIbanNumber(operatorSettings?.operatorSettings?.IBAN || "");
-        setSwiftNumber(operatorSettings?.operatorSettings?.swiftCode || "");
+        setBankDetails(operatorSettings?.operatorSettings?.bankDetails || "");
       }
       if (operatorSettings?.operator) {
         setCompany(operatorSettings?.operator.name || "");
@@ -111,19 +119,13 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
-  const handleOperatorChange = async (value: string) => {
-    if (value === "") {
+  const handleOperatorChange = async (value: string, id: string) => {
+    if (value === "" || value.length <= 0) {
       setBusOperator("");
+      setBusOperatorId("");
     } else {
       setBusOperator(value);
-      try {
-        const operator = await getSelectedOperatorSettings(value);
-        if (operator) {
-          setoperatorsData(operator);
-        }
-      } catch (error) {
-        console.error(error);
-      }
+      setBusOperatorId(id);
     }
     setOpen(false);
   };
@@ -134,8 +136,19 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
 
   const handleReset = () => {
     handleData();
+    setErrorState(null);
     setFormChanged(false);
   };
+
+  useEffect(() => {
+    if (operator) {
+      setOperatorsData(operator);
+      handleAdminData();
+    }
+    if (operator === null) {
+      setOperatorsData(null);
+    }
+  }, [operatorsData, operator]);
 
   const handleAdminData = () => {
     if (operatorsData) {
@@ -156,10 +169,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       setExchangeRate(operatorsData?.operatorSettings?.exchangeRate || 0);
       setContactEmail(operatorsData?.operatorSettings?.contactEmail || "");
       setContactNumber(operatorsData?.operatorSettings?.contactNumber || "");
-      setBankName(operatorsData?.operatorSettings?.bankName || "");
-      setAccountTitle(operatorsData?.operatorSettings?.accountTitle || "");
-      setIbanNumber(operatorsData?.operatorSettings?.IBAN || "");
-      setSwiftNumber(operatorsData?.operatorSettings?.swiftCode || "");
+      setBankDetails(operatorsData?.operatorSettings?.bankDetails || "");
     }
     if (operatorsData?.operator) {
       setCompany(operatorsData?.operator.name || "");
@@ -167,12 +177,9 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (operatorsData) {
-      handleAdminData();
-    }
-  }, [operatorsData]);
   const handleAdminReset = async () => {
+    setErrorState(null);
+    setFormChanged(false);
     handleAdminData();
   };
 
@@ -182,7 +189,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     let value = event.target.value;
 
     let numericValue = value.replace(/[^0-9]/g, "");
-    if (numericValue.length > 3) {
+    if (numericValue.length > 5) {
       numericValue = numericValue.substring(0, 3);
     }
     const exchangeRate = Math.min(Number(numericValue), 999);
@@ -358,69 +365,6 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
-  const validateFieldLength = (value: string, min: number, max: number) => {
-    if (value.length < min) {
-      return `Minimum ${min} characters required.`;
-    }
-    if (value.length > max) {
-      return `Maximum ${max} characters allowed.`;
-    }
-    return null;
-  };
-
-  const handleBankChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/[^a-zA-Z0-9 ]/g, "");
-    value = value.replace(/^\s+|\s+(?=\s)/g, "");
-
-    if (value.length <= 40) {
-      setBankName(value);
-      setBankNameError(validateFieldLength(value, 2, 40));
-      setErrorState(null);
-    } else {
-      setBankNameError("Name cannot exceed 50 characters.");
-    }
-    setFormChanged(true);
-  };
-
-  const handleAccountTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/[^a-zA-Z0-9 ]/g, "");
-    value = value.replace(/^\s+|\s+(?=\s)/g, "");
-
-    if (value.length <= 50) {
-      setAccountTitle(value);
-      setAccountTitleError(validateFieldLength(value, 3, 50));
-      setErrorState(null);
-    } else {
-      setAccountTitleError("Title cannot exceed 50 characters.");
-    }
-
-    setFormChanged(true);
-  };
-
-  const handleIbanNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/[^a-zA-Z0-9]/g, "");
-    if (value.length <= 34) {
-      setIbanNumber(value);
-      setErrorState(null);
-      setIbanNumberError(validateFieldLength(value, 15, 34));
-      setFormChanged(true);
-    }
-  };
-
-  const handleSwiftCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/[^a-zA-Z0-9]/g, "");
-    if (value.length <= 11) {
-      setSwiftNumber(value);
-      setErrorState(null);
-      setSwiftCodeError(validateFieldLength(value, 8, 11));
-      setFormChanged(true);
-    }
-  };
-
   const handleCompanyNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase();
     if (value.length <= 20) {
@@ -455,6 +399,22 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     setFormChanged(true);
   };
 
+  const handleBankDetails = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setBankDetails(value);
+
+    if (value.length >= 1) {
+      setFormChanged(true);
+      setErrorState(null);
+    } else if (value.length <= 0) {
+      setFormChanged(true);
+      setErrorState({
+        field: "BankDetails",
+        message: "Bank details cannot be empty",
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -466,10 +426,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
       exchangeRate,
       tickets,
       bookingAt,
-      bankName,
-      accountTitle,
-      ibanNumber,
-      swiftNumber,
+      bankDetails,
       contactEmail,
       contactNumber,
     };
@@ -534,8 +491,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                       key="clear"
                       value=""
                       onSelect={() => {
-                        handleOperatorChange("");
-                        setoperatorsData(null);
+                        handleOperatorChange("", "");
+                        setOperatorsData(null);
                       }}
                       className="cursor-pointer w-full text-left"
                     >
@@ -551,7 +508,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                         key={operator.id}
                         value={operator.name}
                         onSelect={(currentValue) =>
-                          handleOperatorChange(currentValue)
+                          handleOperatorChange(currentValue, operator.id)
                         }
                         className="cursor-pointer w-full  text-left"
                       >
@@ -859,7 +816,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                 <Input
                   type="text"
                   className="h-12 border-gray-700 rounded-lg"
-                  placeholder="$20"
+                  placeholder="ZiG 20"
                   value={
                     exchangeRate > 0
                       ? `ZiG${" "}${exchangeRate.toFixed(0)}`
@@ -913,78 +870,16 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
             <p className="text-lg text-black font-semibold">
               Bank Account Detail
             </p>
-            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal text-sm">
-                  Bank Name
-                </p>
-                <Input
-                  type="text"
-                  value={bankName}
-                  onChange={handleBankChange}
-                  placeholder="Enter bank name"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {bankNameError && (
-                  <p className="text-red-500 text-sm">{bankNameError}</p>
-                )}
-                {errorState?.field === "bankName" && (
-                  <p className="text-red-500 ">Bank name is required</p>
-                )}
-              </div>
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal text-sm">
-                  Account Title
-                </p>
-                <Input
-                  type="text"
-                  value={accountTitle}
-                  onChange={handleAccountTitleChange}
-                  placeholder="Enter account title"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {accountTitleError && (
-                  <p className="text-red-500 text-sm">{accountTitleError}</p>
-                )}
-                {errorState?.field === "accountTitle" && (
-                  <p className="text-red-500 ">Account title is required</p>
-                )}
-              </div>
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal">IBAN Number</p>
-                <Input
-                  type="text"
-                  value={ibanNumber}
-                  onChange={handleIbanNumberChange}
-                  placeholder="Enter IBAN Number"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {ibanNumberError && (
-                  <p className="text-red-500">{ibanNumberError}</p>
-                )}
-                {errorState?.field === "ibanNumber" && (
-                  <p className="text-red-500 ">IBAN is required</p>
-                )}
-              </div>
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal text-sm">
-                  Swift Code
-                </p>
-                <Input
-                  type="text"
-                  value={swiftNumber}
-                  onChange={handleSwiftCodeChange}
-                  placeholder="Enter code"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {swiftCodeError && (
-                  <p className="text-red-500">{swiftCodeError}</p>
-                )}
-                {errorState?.field === "swiftNumber" && (
-                  <p className="text-red-500 ">Swift is required</p>
-                )}
-              </div>
-            </div>
+
+            <Textarea
+              value={bankDetails}
+              onChange={handleBankDetails}
+              placeholder="Please provide your bank details, including the Account Name, Branch Code, Account Number, and Bank Name."
+              className="h-32 bank-details-textarea mt-4 rounded-lg text-gray-500 border-gray-700"
+            />
+            {errorState?.field === "BankDetails" && (
+              <p className="text-red-500">Please enter bank details</p>
+            )}
           </div>
 
           <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
@@ -1001,21 +896,23 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
             <button
               className={`${
                 loading ||
-                accountTitleError !== null ||
-                swiftCodeError !== null ||
-                ibanNumberError !== null ||
                 errorState !== null ||
-                formChanged === false
+                formChanged === false ||
+                description.length <= 0 ||
+                !tickets ||
+                bookingAt === "00:00" ||
+                exchangeRate <= 0
                   ? "opacity-50"
                   : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
               disabled={
                 loading ||
-                accountTitleError !== null ||
-                ibanNumberError !== null ||
-                swiftCodeError !== null ||
                 errorState !== null ||
-                formChanged === false
+                formChanged === false ||
+                description.length <= 0 ||
+                !tickets ||
+                bookingAt === "00:00" ||
+                exchangeRate <= 0
               }
             >
               {loading ? "Please Wait" : "Save"}
@@ -1306,7 +1203,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
                 <Input
                   type="text"
                   className="h-12 border-gray-700 rounded-lg"
-                  placeholder="$20"
+                  placeholder="ZiG 20"
                   value={
                     exchangeRate > 0
                       ? `ZiG${" "}${exchangeRate.toFixed(0)}`
@@ -1360,78 +1257,15 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
             <p className="text-lg text-black font-semibold">
               Bank Account Detail
             </p>
-            <div className="w-full flex flex-wrap items-start justify-between gap-3 mt-5">
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal text-sm">
-                  Bank Name
-                </p>
-                <Input
-                  type="text"
-                  value={bankName}
-                  onChange={handleBankChange}
-                  placeholder="Enter bank name"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {bankNameError && (
-                  <p className="text-red-500 text-sm">{bankNameError}</p>
-                )}
-                {errorState?.field === "bankName" && (
-                  <p className="text-red-500 ">Bank name is required</p>
-                )}
-              </div>
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal text-sm">
-                  Account Title
-                </p>
-                <Input
-                  type="text"
-                  value={accountTitle}
-                  onChange={handleAccountTitleChange}
-                  placeholder="Enter account title"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {accountTitleError && (
-                  <p className="text-red-500 text-sm">{accountTitleError}</p>
-                )}
-                {errorState?.field === "accountTitle" && (
-                  <p className="text-red-500 ">Account title is required</p>
-                )}
-              </div>
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal">IBAN Number</p>
-                <Input
-                  type="text"
-                  value={ibanNumber}
-                  onChange={handleIbanNumberChange}
-                  placeholder="Enter IBAN Number"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {ibanNumberError && (
-                  <p className="text-red-500">{ibanNumberError}</p>
-                )}
-                {errorState?.field === "ibanNumber" && (
-                  <p className="text-red-500 ">IBAN is required</p>
-                )}
-              </div>
-              <div className="w-5/12 mb-2">
-                <p className="mb-1 darkGray-text font-normal text-sm">
-                  Swift Code
-                </p>
-                <Input
-                  type="text"
-                  value={swiftNumber}
-                  onChange={handleSwiftCodeChange}
-                  placeholder="Enter code"
-                  className="h-12 rounded-lg text-gray-500 border-gray-700"
-                />
-                {swiftCodeError && (
-                  <p className="text-red-500">{swiftCodeError}</p>
-                )}
-                {errorState?.field === "swiftNumber" && (
-                  <p className="text-red-500 ">Swift is required</p>
-                )}
-              </div>
-            </div>
+            <Textarea
+              value={bankDetails}
+              placeholder="Please provide your bank details, including the Account Name, Branch Code, Account Number, and Bank Name."
+              onChange={handleBankDetails}
+              className="h-32 bank-details-textarea mt-4 rounded-lg text-gray-500 border-gray-700"
+            />
+            {errorState?.field === "BankDetails" && (
+              <p className="text-red-500">Please enter bank details</p>
+            )}
           </div>
 
           <div className='className="w-full mt-5 flex flex-row items-center justify-end gap-5'>
@@ -1447,21 +1281,23 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
             <button
               className={`${
                 loading ||
-                accountTitleError !== null ||
-                swiftCodeError !== null ||
-                ibanNumberError !== null ||
                 errorState !== null ||
-                formChanged === false
+                formChanged === false ||
+                description.length <= 0 ||
+                !tickets ||
+                bookingAt === "00:00" ||
+                exchangeRate <= 0
                   ? "opacity-50"
                   : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
               disabled={
                 loading ||
-                accountTitleError !== null ||
-                ibanNumberError !== null ||
-                swiftCodeError !== null ||
                 errorState !== null ||
-                formChanged === false
+                formChanged === false ||
+                description.length <= 0 ||
+                !tickets ||
+                bookingAt === "00:00" ||
+                exchangeRate <= 0
               }
             >
               {loading ? "Please Wait" : "Save"}

@@ -15,6 +15,8 @@ export enum TransactionStatus {
 
 export type TransactionQuery = {
   searchParams: {
+    ticketId?: string;
+    operator?: string;
     busId?: string;
     source?: string;
     destinationCity?: string;
@@ -92,6 +94,7 @@ export type TransactionReturn = {
   transactionData: TransactionsType[];
   allTransactionData: TransactionsType[];
   cities: Cities[];
+  operators: OperatorsType[];
   paginationData: {
     totalCount: number;
     pageSize: number;
@@ -143,6 +146,7 @@ export interface TransactionSortOrderProps {
 }
 
 export interface FilterProps {
+  operatorId?: string;
   selectedAvailability?: {
     carrier?: {
       contains?: string;
@@ -171,7 +175,15 @@ export interface FilterProps {
   paymentPeriod?: number;
 }
 
+export interface FilterPropsTickets {
+  ticketId?: {
+    contains?: string;
+    mode?: "insensitive";
+  };
+}
+
 export interface ManualFilterProps {
+  operatorId?: string;
   selectedAvailability?: {
     carrier?: {
       contains?: string;

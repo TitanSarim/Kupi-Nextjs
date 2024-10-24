@@ -28,10 +28,7 @@ export interface operatorSettingsFormData {
   exchangeRate: number;
   company: string;
   description: string;
-  bankName: string;
-  accountTitle: string;
-  ibanNumber: string;
-  swiftNumber: string;
+  bankDetails: string;
   contactEmail?: string;
   contactNumber?: string;
 }
@@ -40,3 +37,9 @@ export interface operatorSettingsReturn {
   operator?: Operators | null;
   operatorSettings?: OperatorSettings | null;
 }
+
+export type SettingsQuery = {
+  searchParams: {
+    operatorId?: string;
+  };
+};

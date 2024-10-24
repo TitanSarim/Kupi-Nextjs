@@ -187,7 +187,7 @@ const DashboardLayout: React.FC<Dashboard> = ({
               useRange={false}
               value={value}
               onChange={handleValueChange}
-              showShortcuts={false}
+              showShortcuts={true}
               inputClassName="h-12 w-full border text-gray-500 px-2 border-gray-700 rounded-lg datePlaceHolder"
               popoverDirection="down"
             />

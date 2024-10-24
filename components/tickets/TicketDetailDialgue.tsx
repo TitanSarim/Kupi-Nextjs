@@ -23,8 +23,20 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
         TicketData?.tickets.priceDetails.kupiProfit -
         TicketData?.tickets.priceDetails.kupiMarkup) ||
     0;
+
   const ticketPrice =
     busCompanyAmount + (TicketData?.tickets?.priceDetails?.carmaProfit || 0);
+
+  const kupiPercentage =
+    TicketData?.tickets &&
+    TicketData.tickets.priceDetails.totalPrice -
+      ticketPrice -
+      TicketData.tickets.priceDetails.kupiMarkup;
+
+  const totalPrice =
+    TicketData?.tickets &&
+    kupiPercentage &&
+    kupiPercentage + TicketData.tickets.priceDetails.kupiMarkup;
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex dialguebox-container items-center justify-center z-50 duration-700 ease-out">
@@ -191,8 +203,9 @@ const TicketDetailDialgue: React.FC<DialogProps> = ({
                   {0}%
                 </div>
                 <div className="w-5/12">
-                  <p className="text-gray-600 font-light">Kupi Amount</p>
-                  {TicketData?.tickets.priceDetails.kupiProfit}
+                  <p className="text-gray-600 font-light">Kupi Amount</p>[
+                  {TicketData?.tickets.priceDetails.kupiMarkup} +{" "}
+                  {kupiPercentage?.toFixed(1)}] = ${totalPrice?.toFixed(1)}
                 </div>
               </div>
               <div className="w-full hrGap bg-gray-500"></div>

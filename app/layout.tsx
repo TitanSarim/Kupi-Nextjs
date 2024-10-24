@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import { db } from "@/db";
 import Link from "next/link";
 import { SignOut } from "@/components/signOut";
+import Suspended from "@/components/Suspended";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -55,8 +56,7 @@ export default async function RootLayout({
         {userSession?.isBlocked ? (
           <body className={inter.className}>
             <div>
-              <p>Your account has been blocked</p>
-              <SignOut />
+              <Suspended />
             </div>
           </body>
         ) : session && userRole?.role?.roleName != session?.role ? (
@@ -69,8 +69,7 @@ export default async function RootLayout({
         ) : operatorSession?.operator?.status === "SUSPENDED" ? (
           <body className={inter.className}>
             <div>
-              <p>Your account has been suspended</p>
-              <SignOut />
+              <Suspended />
             </div>
           </body>
         ) : (

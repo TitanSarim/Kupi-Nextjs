@@ -59,10 +59,7 @@ export interface FilterProps {
     contains?: string;
     mode?: "insensitive";
   };
-  busID?: {
-    contains?: string;
-    mode?: "insensitive";
-  };
+  busID?: string;
   busClass?: BusClass;
   registration?: string;
 }

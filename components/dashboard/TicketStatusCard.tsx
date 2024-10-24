@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +14,14 @@ interface TicketsCardsInterface {
 }
 
 const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+
+  const handleTooltipClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setTooltipOpen((prev) => !prev);
+  };
+
   return (
     <div className="w-full flex flex-row mt-6 justify-between">
       <div className="w-full bg-white flex rounded-lg flex-row justify-between shadow-sm px-2 py-5">
@@ -22,13 +30,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
             Tickets Initiate{" "}
             <span className="mt-1">
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                    }}
-                  >
+                <Tooltip open={tooltipOpen}>
+                  <TooltipTrigger onClick={handleTooltipClick}>
                     <Image
                       src="/img/settings/question-icon.svg"
                       alt="toot tip"
@@ -36,10 +39,12 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
-                    Total number of tickets that have been generated or
-                    initiated in the system.
-                  </TooltipContent>
+                  {tooltipOpen && (
+                    <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                      Total number of tickets that have been generated or
+                      initiated in the system.
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </TooltipProvider>
             </span>
@@ -66,13 +71,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
             Tickets Reserved{" "}
             <span className="mt-1">
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                    }}
-                  >
+                <Tooltip open={tooltipOpen}>
+                  <TooltipTrigger onClick={handleTooltipClick}>
                     <Image
                       src="/img/settings/question-icon.svg"
                       alt="toot tip"
@@ -80,9 +80,12 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
-                    Total number of tickets that are reserved but not yet sold.
-                  </TooltipContent>
+                  {tooltipOpen && (
+                    <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                      Total number of tickets that are reserved but not yet
+                      sold.
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </TooltipProvider>
             </span>
@@ -109,13 +112,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
             Tickets Unconverted
             <span className="mt-1">
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                    }}
-                  >
+                <Tooltip open={tooltipOpen}>
+                  <TooltipTrigger onClick={handleTooltipClick}>
                     <Image
                       src="/img/settings/question-icon.svg"
                       alt="toot tip"
@@ -123,10 +121,12 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
-                    Total number of tickets that have been initiated but not
-                    converted into actual sales.
-                  </TooltipContent>
+                  {tooltipOpen && (
+                    <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                      Total number of tickets that have been initiated but not
+                      converted into actual sales.
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </TooltipProvider>
             </span>
@@ -152,13 +152,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
             Tickets Unsold
             <span className="mt-1">
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                    }}
-                  >
+                <Tooltip open={tooltipOpen}>
+                  <TooltipTrigger onClick={handleTooltipClick}>
                     <Image
                       src="/img/settings/question-icon.svg"
                       alt="toot tip"
@@ -166,9 +161,11 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
-                    Total number of tickets that remain available and unsold.
-                  </TooltipContent>
+                  {tooltipOpen && (
+                    <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                      Total number of tickets that remain available and unsold.
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </TooltipProvider>
             </span>
@@ -195,13 +192,8 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
             Tickets Sold{" "}
             <span className="mt-1">
               <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                    }}
-                  >
+                <Tooltip open={tooltipOpen}>
+                  <TooltipTrigger onClick={handleTooltipClick}>
                     <Image
                       src="/img/settings/question-icon.svg"
                       alt="toot tip"
@@ -209,9 +201,11 @@ const TicketStatusCard: React.FC<TicketsCardsInterface> = (stats) => {
                       height={20}
                     />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
-                    Total number of tickets that have been successfully sold.
-                  </TooltipContent>
+                  {tooltipOpen && (
+                    <TooltipContent className="bg-white border-2 px-2 py-2 w-48 max-w-48">
+                      Total number of tickets that have been successfully sold.
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </TooltipProvider>
             </span>

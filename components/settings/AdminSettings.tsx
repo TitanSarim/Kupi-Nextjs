@@ -16,6 +16,7 @@ import { SyncBusOperators } from "@/actions/operators.action";
 import toast from "react-hot-toast";
 import MaintainanceDialogue from "./MaintainanceDialogue";
 import GlobalResetDialogue from "./GlobalResetDialogue";
+import MaintainanceConfirm from "./MaintainanceConfirm";
 
 interface AdminSettingsProps {
   settings: Settings[];
@@ -42,9 +43,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
   const [maintanaceMessage, setMaintanaceMessage] = useState<string>(
     "Thanks for your message! We’re currently working hard to bring you an even better ticket booking experience! We’re sorry for the inconvenience but we’ll be back shortly!"
   );
+  const [tooltipOpen, setTooltipOpen] = useState(false);
   const [formChanged, setFormChanged] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogSecondOpen, setDialogSecondOpen] = useState(false);
+  const [dialogThirdOpen, setDialogThirdOpen] = useState(false);
 
   const handleExchangeRateChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -180,6 +183,16 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     setDialogSecondOpen(true);
   };
 
+  const handleShowThirdDetail = () => {
+    setDialogThirdOpen(true);
+  };
+
+  const handleTooltipClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setTooltipOpen((prev) => !prev);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -262,38 +275,23 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
           let maintenance = false;
           let message = "";
 
-          settings.settings.forEach((setting: any) => {
-            switch (setting.key) {
-              case "EXCHANGE_RATE":
-                exchangeRate = setting.value;
-                break;
-              case "KUPI_COMMISSION_PERCENTAGE":
-                commission = setting.value;
-                break;
-              case "CARMA_COMMISSION_PERCENTAGE":
-                carmaCommissionPercentage = setting.value;
-                break;
-              case "SALES_COMMISSION_PERCENTAGE":
-                salesCommission = setting.value;
-              case "KUPI_MARKUP_PERCENTAGE":
-                kupiMarkup = setting.value;
-                break;
-              case "NUM_OF_TICKETS":
-                tickets = setting.value;
-                break;
-              case "TIMEOUT_BOOKING":
-                bookingAt = setting.value;
-                break;
-              case "EMAIL_REMINDER":
-                reminder = setting.value;
-                break;
-              case "underMaintainance":
-                maintenance = setting.value;
-              case "MAINTAINACE_MESSAGE":
-                message = setting.value;
+          const keyMapping: { [key: string]: (value: any) => void } = {
+            EXCHANGE_RATE: (value) => (exchangeRate = value),
+            KUPI_COMMISSION_PERCENTAGE: (value) => (commission = value),
+            CARMA_COMMISSION_PERCENTAGE: (value) =>
+              (carmaCommissionPercentage = value),
+            KUPI_MARKUP_PERCENTAGE: (value) => (kupiMarkup = value),
+            SALES_COMMISSION_PERCENTAGE: (value) => (salesCommission = value),
+            NUM_OF_TICKETS: (value) => (tickets = value),
+            TIMEOUT_BOOKING: (value) => (bookingAt = value),
+            EMAIL_REMINDER: (value) => (reminder = value),
+            underMaintainance: (value) => (maintenance = value),
+            MAINTAINACE_MESSAGE: (value) => (message = value),
+          };
 
-              default:
-                break;
+          settings.settings.forEach((setting: any) => {
+            if (keyMapping[setting.key]) {
+              keyMapping[setting.key](setting.value);
             }
           });
 
@@ -337,6 +335,10 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     setDialogSecondOpen(false);
   };
 
+  const handleCloseDialogThord = () => {
+    setDialogThirdOpen(false);
+  };
+
   const loadMaintainanceFromStorage = () => {
     const storedValue = localStorage.getItem("maintainance");
     if (storedValue === "true") {
@@ -365,6 +367,38 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
     setFormChanged(false);
   };
 
+  const handleMaintainace = async () => {
+    let maintain = maintainanace;
+
+    if (maintainanace === true) {
+      maintain = false;
+      setMaintainanace(false);
+    } else if (maintainanace === false) {
+      maintain = true;
+      setMaintainanace(true);
+    }
+
+    localStorage.setItem("maintainance", maintain ? "true" : "false");
+    try {
+      setLoading(true);
+      const formData: SettingsFormData = {
+        key: "MAINTAINACE_MESSAGE",
+        value: maintanaceMessage,
+      };
+      const response = await underMaintainance(maintain, formData);
+      if (response === true) {
+        toast.success("Maintainance status updated successfully");
+      }
+    } catch (error) {
+      console.error("Error");
+    } finally {
+      setLoading(false);
+      handleCloseDialog();
+      handleCloseDialogThord();
+      setMaintanaceMessage("");
+    }
+  };
+
   useEffect(() => {
     loadMaintainanceFromStorage();
     dataHandler();
@@ -389,11 +423,19 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
             <div className="flex flex-row gap-10 border-2 border-gray-400 px-4 py-3 rounded-lg box-bg">
               <p className="darkGray-text font-normal text-sm">Maintenance</p>
               <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={maintainanace}
-                  onChange={handleShowDetail}
-                />
+                {maintainanace === false ? (
+                  <input
+                    type="checkbox"
+                    checked={maintainanace}
+                    onChange={handleShowDetail}
+                  />
+                ) : (
+                  <input
+                    type="checkbox"
+                    checked={maintainanace}
+                    onChange={handleShowThirdDetail}
+                  />
+                )}
                 <span className="slider round"></span>
               </label>
             </div>
@@ -413,7 +455,7 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
               <Input
                 type="text"
                 className="h-12 border-gray-400 rounded-lg"
-                placeholder="ZiG20"
+                placeholder="ZiG 20"
                 value={
                   exchangeRate >= 0 ? `ZiG${" "}${exchangeRate.toFixed(0)}` : ""
                 }
@@ -487,13 +529,8 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 Number of Ticket Per Route
                 <span>
                   <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                      >
+                    <Tooltip open={tooltipOpen}>
+                      <TooltipTrigger onClick={handleTooltipClick}>
                         <Image
                           src="/img/settings/question-icon.svg"
                           alt="toot tip"
@@ -501,9 +538,11 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                           height={20}
                         />
                       </TooltipTrigger>
-                      <TooltipContent className="bg-white border-2 px-2 py-2">
-                        How many tickets per route you want to add
-                      </TooltipContent>
+                      {tooltipOpen && (
+                        <TooltipContent className="bg-white border-2 px-2 py-2">
+                          How many tickets per route you want to add
+                        </TooltipContent>
+                      )}
                     </Tooltip>
                   </TooltipProvider>
                 </span>
@@ -525,13 +564,8 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                 Close Booking at x minutes Before Departure?
                 <span>
                   <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                        }}
-                      >
+                    <Tooltip open={tooltipOpen}>
+                      <TooltipTrigger onClick={handleTooltipClick}>
                         <Image
                           src="/img/settings/question-icon.svg"
                           alt="toot tip"
@@ -539,10 +573,12 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
                           height={20}
                         />
                       </TooltipTrigger>
-                      <TooltipContent className="bg-white border-2 px-2 py-2">
-                        Ensure all bookings are closed 30 minutes prior to the
-                        departure time to avoid last-minute issues.
-                      </TooltipContent>
+                      {tooltipOpen && (
+                        <TooltipContent className="bg-white border-2 px-2 py-2 w-36">
+                          Ensure all bookings are closed 30 minutes prior to the
+                          departure time to avoid last-minute issues.
+                        </TooltipContent>
+                      )}
                     </Tooltip>
                   </TooltipProvider>
                 </span>
@@ -600,10 +636,16 @@ const AdminSettings: React.FC<AdminSettingsProps> = (settings) => {
         <MaintainanceDialogue
           open={dialogOpen}
           onClose={handleCloseDialog}
-          setMaintainanace={setMaintainanace}
-          maintainanace={maintainanace}
           setMaintanaceMessage={setMaintanaceMessage}
           maintanaceMessage={maintanaceMessage}
+          handleOpen={handleShowThirdDetail}
+        />
+
+        <MaintainanceConfirm
+          open={dialogThirdOpen}
+          onClose={handleCloseDialogThord}
+          handleMaintainace={handleMaintainace}
+          loading={loading}
         />
 
         <GlobalResetDialogue

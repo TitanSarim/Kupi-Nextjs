@@ -258,10 +258,7 @@ model OperatorSettings {
   exchangeRate  Int
   tickets       Int
   closeBooking  String
-  bankName      String
-  accountTitle  String
-  IBAN          String
-  swiftCode     String
+  bankDetails   String
   operatorsId   String    @db.ObjectId
   operator      Operators @relation(fields: [operatorsId], references: [id], onDelete: Cascade)
 }

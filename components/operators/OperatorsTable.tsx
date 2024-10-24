@@ -371,7 +371,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
             width={18}
             height={18}
           />
-          <Link href="/app/bus-operators" className="underline text-xs">
+          <Link
+            href={`/app/tickets?operator=${row.original.operators.id}`}
+            className="underline text-xs"
+          >
             Tickets
           </Link>
         </div>
@@ -394,7 +397,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
             width={18}
             height={18}
           />
-          <Link href="/app/bus-operators" className="underline text-xs">
+          <Link
+            href={`/app/transactions/transactions?operator=${row.original.operators.id}`}
+            className="underline text-xs"
+          >
             Transactions
           </Link>
         </div>
@@ -450,6 +456,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                   onChange={(e) => {
                     handleLiveDialgueOpen(row.original.operators.id);
                   }}
+                  disabled={
+                    row.original.operators.status === "SUSPENDED" ||
+                    row.original.operators.status === "INVITED"
+                  }
                 />
               ) : (
                 <input

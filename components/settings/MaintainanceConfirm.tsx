@@ -1,38 +1,22 @@
-import { updateStatus } from "@/actions/operators.action";
 import Image from "next/image";
-import React, { startTransition, useState } from "react";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-
-interface LiveStatuses {
-  [key: string]: boolean;
-}
+import React from "react";
 
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  id?: string;
-  handleChange: () => Promise<void>;
-  status?: boolean;
-  name: string;
+  handleMaintainace: () => void;
+  loading: boolean;
 }
 
-const LiveDialogue: React.FC<DialogProps> = ({
+const MaintainanceConfirm: React.FC<DialogProps> = ({
   open,
   onClose,
-  id,
-  handleChange,
-  name,
+  handleMaintainace,
+  loading,
 }) => {
-  const [loading, setLoading] = useState(false);
-
   const handleClose = () => {
     onClose();
   };
-
-  if (!id) {
-    return;
-  }
 
   if (!open) return null;
 
@@ -60,10 +44,13 @@ const LiveDialogue: React.FC<DialogProps> = ({
             height={130}
             className="flex justify-center items-center"
           />
-          <p className="mb-3 font-semibold text-xl text-black">Are you sure?</p>
-          <span className="mb-3 font-light">
-            You want to update the status of this {name}
+          <p className="text-black text-2xl font-semibold mb-2">
+            Are you sure?
+          </p>
+          <span className="text-gray-700 text-lg font-medium mb-2 text-center">
+            You want to change mantaiance mode
           </span>
+
           <div className="flex flex-row gap-10 mt-4">
             <button
               onClick={handleClose}
@@ -73,7 +60,7 @@ const LiveDialogue: React.FC<DialogProps> = ({
             </button>
             <button
               disabled={loading}
-              onClick={handleChange}
+              onClick={handleMaintainace}
               className={`${
                 loading ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}
@@ -87,4 +74,4 @@ const LiveDialogue: React.FC<DialogProps> = ({
   );
 };
 
-export default LiveDialogue;
+export default MaintainanceConfirm;

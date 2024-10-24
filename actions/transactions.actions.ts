@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { auth } from "@/auth";
 import {
   FilterProps,
+  FilterPropsTickets,
   ManualFilterProps,
   ManualTransactionReturnActions,
   ManualTransactionsType,
@@ -19,7 +20,8 @@ import { revalidatePath } from "next/cache";
 
 export async function getAllTransactions(
   searchParams: {
-    carrier?: string;
+    operator?: string;
+    ticketId?: string;
     source?: string;
     destinationCity?: string;
     arrivalCity?: string;
@@ -40,7 +42,8 @@ export async function getAllTransactions(
     }
 
     const {
-      carrier,
+      operator,
+      ticketId,
       startDate,
       endDate,
       destinationCity,
@@ -58,10 +61,13 @@ export async function getAllTransactions(
 
     const filter: FilterProps = {};
     const Cities: FilterProps = {};
-    if (carrier) {
-      filter.selectedAvailability = {
-        carrier: { contains: carrier, mode: "insensitive" },
-      };
+    let ticketsFilter;
+    let operatorFilter;
+    if (operator) {
+      operatorFilter = operator;
+    }
+    if (ticketId) {
+      ticketsFilter = { contains: ticketId };
     }
     if (destinationCity)
       Cities.sourceCity = {
@@ -136,6 +142,8 @@ export async function getAllTransactions(
         },
         tickets: {
           some: {
+            operatorId: operatorFilter,
+            ticketId: ticketsFilter,
             sourceCity: Cities.sourceCity || undefined,
             arrivalCity: Cities.arrivalCity || undefined,
           },
@@ -207,6 +215,8 @@ export async function getAllTransactions(
         ...filter,
         tickets: {
           some: {
+            operatorId: operatorFilter,
+            ticketId: ticketsFilter,
             sourceCity: Cities.sourceCity || undefined,
             arrivalCity: Cities.arrivalCity || undefined,
           },
@@ -376,7 +386,7 @@ export async function updateInvoice(
 }
 
 export async function getAllManualTransactions(searchParams: {
-  carrier?: string;
+  operator?: string;
   paymentRef?: string;
   period?: string;
   startDate?: string;
@@ -393,7 +403,7 @@ export async function getAllManualTransactions(searchParams: {
     }
 
     const {
-      carrier,
+      operator,
       paymentRef,
       period,
       startDate,
@@ -417,10 +427,8 @@ export async function getAllManualTransactions(searchParams: {
       };
     }
     if (period) filter.paymentPeriod = Number(period);
-    if (carrier) {
-      filter.selectedAvailability = {
-        carrier: { contains: carrier, mode: "insensitive" },
-      };
+    if (operator) {
+      filter.operatorId = operator;
     }
     if (startDate && endDate) {
       filter.paidAt = {

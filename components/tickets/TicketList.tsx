@@ -47,19 +47,20 @@ const TicketList: React.FC<TicketsReturn> = ({
   const params = new URLSearchParams();
 
   const handleOperatorChange = async (value: string, id: string) => {
-    if (value === "") {
+    if (value === "" || value.length <= 0) {
       setBusOperator("");
+      setBusOperatorId("");
     } else {
       setBusOperator(value);
       setBusOperatorId(id);
     }
-    setOpen(false);
+    setoperatorOpen(false);
   };
 
   const updateSearchParams = () => {
     if (busOperator !== "" && busOperator !== "Clear") {
       params.set("operator", busOperatorId);
-    } else {
+    } else if (busOperator.length === 0 || busOperator === "Clear") {
       setBusOperator("");
       setBusOperatorId("");
     }

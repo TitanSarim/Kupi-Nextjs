@@ -23,15 +23,15 @@ const NavBar: React.FC<NavProps> = ({ profileImage, name, role }) => {
       <div className="pr-10">
         <DropdownMenu>
           <DropdownMenuTrigger>
-            <Avatar>
+            <Avatar className="border-2 rounded-full">
               <AvatarImage src={profileImage} alt="@shadcn" />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className="px-6 py-4 w-48 relative">
+          <DropdownMenuContent className="px-6 py-4 w-52 relative">
             <div className="w-[200px] flex flex-row items-center justify-start gap-3">
-              <Avatar>
+              <Avatar className="border-2 rounded-full">
                 <AvatarImage src={profileImage} alt="@shadcn" />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>

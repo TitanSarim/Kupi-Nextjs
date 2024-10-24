@@ -9,8 +9,7 @@ import { SettingsFormData } from "@/types/settings";
 interface DialogProps {
   open: boolean;
   onClose: () => void;
-  setMaintainanace: (value: boolean) => void;
-  maintainanace: boolean;
+  handleOpen: () => void;
   setMaintanaceMessage: (value: string) => void;
   maintanaceMessage: string;
 }
@@ -18,45 +17,15 @@ interface DialogProps {
 const MaintainanceDialogue: React.FC<DialogProps> = ({
   open,
   onClose,
-  setMaintainanace,
-  maintainanace,
   setMaintanaceMessage,
   maintanaceMessage,
+  handleOpen,
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
     onClose();
-  };
-
-  const handleMaintainace = async () => {
-    let maintain = maintainanace;
-
-    if (maintainanace === true) {
-      maintain = false;
-      setMaintainanace(false);
-    } else if (maintainanace === false) {
-      maintain = true;
-      setMaintainanace(true);
-    }
-
-    localStorage.setItem("maintainance", maintain ? "true" : "false");
-    try {
-      const formData: SettingsFormData = {
-        key: "MAINTAINACE_MESSAGE",
-        value: maintanaceMessage,
-      };
-      const response = await underMaintainance(maintain, formData);
-      if (response === true) {
-        toast.success("Maintainance status updated successfully");
-      }
-    } catch (error) {
-      console.error("Error");
-    } finally {
-      onClose();
-      setMaintanaceMessage("");
-    }
   };
 
   const handleMaintainanceMessage = (
@@ -124,7 +93,7 @@ const MaintainanceDialogue: React.FC<DialogProps> = ({
             </button>
             <button
               disabled={loading || error !== null}
-              onClick={handleMaintainace}
+              onClick={handleOpen}
               className={`${
                 loading || error !== null ? "opacity-50" : ""
               } py-2 px-10 bg-kupi-yellow rounded-lg font-semibold`}

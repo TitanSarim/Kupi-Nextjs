@@ -26,11 +26,15 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
   paginationData,
   cities,
   allTransactionData,
+  operators,
 }) => {
   const NEXT_MONTH = new Date();
   NEXT_MONTH.setMonth(NEXT_MONTH.getMonth() + 1);
   const [open, setOpen] = React.useState(false);
   const [busOperator, setBusOperator] = useState("");
+  const [busOperatorId, setBusOperatorId] = useState("");
+  const [operatorOpen, setoperatorOpen] = React.useState(false);
+  const [ticketID, setTicketID] = useState("");
   const [destinationCity, setDestinationCity] = useState("");
   const [arrivalCity, setArrivalCity] = useState("");
   const [openArrival, setOpenArrival] = React.useState(false);
@@ -43,14 +47,31 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
   });
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const updateSearchParams = () => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (busOperator) {
-      params.set("carrier", busOperator);
+  const params = new URLSearchParams();
+  const handleOperatorChange = async (value: string, id: string) => {
+    if (value === "" || value.length <= 0) {
+      setBusOperator("");
+      setBusOperatorId("");
     } else {
-      params.delete("carrier");
+      setBusOperator(value);
+      setBusOperatorId(id);
+    }
+    setoperatorOpen(false);
+  };
+
+  console.log("busOperator", busOperator);
+
+  const updateSearchParams = () => {
+    if (busOperator !== "" && busOperator !== "Clear") {
+      params.set("operator", busOperatorId);
+    } else if (busOperator.length <= 0 || busOperator === "Clear") {
+      setBusOperator("");
+      setBusOperatorId("");
+    }
+    if (ticketID) {
+      params.set("ticketId", ticketID);
+    } else {
+      params.delete("ticketId");
     }
     if (destinationCity) {
       params.set("destinationCity", destinationCity);
@@ -61,16 +82,6 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
       params.set("arrivalCity", arrivalCity);
     } else {
       params.delete("arrivalCity");
-    }
-    if (value.startDate) {
-      params.set("startDate", value.startDate.getTime().toString());
-    } else {
-      params.delete("startDate");
-    }
-    if (value.endDate) {
-      params.set("endDate", value.endDate.getTime().toString());
-    } else {
-      params.delete("endDate");
     }
     router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -94,29 +105,97 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
     }
   };
 
-  useEffect(() => {
-    updateSearchParams();
-  }, [
-    busOperator,
-    destinationCity,
-    arrivalCity,
-    value.endDate,
-    value.startDate,
-  ]);
+  const updateSearchDateParams = () => {
+    if (value.startDate)
+      params.set("startDate", value.startDate.getTime().toString());
+    if (value.endDate)
+      params.set("endDate", value.endDate.getTime().toString());
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     updateSearchParams();
+  }, [busOperator, ticketID, destinationCity, arrivalCity]);
+
+  useEffect(() => {
+    updateSearchDateParams();
   }, [value.endDate, value.startDate]);
 
   return (
     <div className="w-full flex flex-col items-center justify-start">
       <div className="w-full">
         <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
+        <Popover open={operatorOpen} onOpenChange={setoperatorOpen}>
+          <PopoverTrigger
+            asChild
+            className="w-full  h-12 rounded-lg  text-gray-500 border-gray-700"
+          >
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={operatorOpen}
+              className="w-full justify-between outline-none"
+            >
+              {busOperator || "Select operator..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-full p-0 select-dropdown_bus_operator_tickets text-left left-0">
+            <Command>
+              <CommandInput placeholder="Search operator..." />
+              <CommandList className="w-full text-left">
+                <CommandEmpty>No operator found.</CommandEmpty>
+                <CommandGroup>
+                  <CommandItem
+                    key="clear"
+                    value=""
+                    onSelect={() => {
+                      handleOperatorChange("", "");
+                    }}
+                    className="cursor-pointer w-full text-left"
+                  >
+                    <Check
+                      className={`mr-2 h-4 w-4 ${
+                        busOperator === "" ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                    Clear
+                  </CommandItem>
+                  {operators?.map((operator) => (
+                    <CommandItem
+                      key={operator.id}
+                      value={operator.name}
+                      onSelect={(currentValue) =>
+                        handleOperatorChange(currentValue, operator.id)
+                      }
+                      className="cursor-pointer w-full  text-left"
+                    >
+                      <Check
+                        className={`mr-2 h-4 w-4 ${
+                          operator.name === busOperator
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      />
+                      {operator.name}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="w-full mt-3">
+        <p className="mb-1 darkGray-text font-normal text-sm">
+          Search Ticket ID
+        </p>
         <Input
           type="text"
-          value={busOperator}
-          onChange={(e) => setBusOperator(e.target.value)}
-          placeholder="Search bus operator"
+          value={ticketID}
+          onChange={(e) => setTicketID(e.target.value)}
+          placeholder="Search by ID"
           className="h-12 rounded-lg text-gray-500 border-gray-700"
         />
       </div>
@@ -280,6 +359,7 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
         cities={cities}
         dateRange={value}
         allTransactionData={allTransactionData}
+        operators={operators}
       />
     </div>
   );
