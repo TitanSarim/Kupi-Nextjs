@@ -318,7 +318,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                 width={18}
                 height={18}
               />
-              <Link href="/app/bus-operators" className="underline text-xs">
+              <Link
+                href={`/app/fleet?operator=${row.original.operators.id}`}
+                className="underline text-xs"
+              >
                 Fleet
               </Link>
             </div>
@@ -425,7 +428,10 @@ const OperatorsTable: React.FC<OperatorsData> = ({
                 width={18}
                 height={18}
               />
-              <Link href="/app/bus-operators" className="underline text-xs">
+              <Link
+                href={`/app/settings/operator?operatorId=${row.original.operators.id}`}
+                className="underline text-xs"
+              >
                 Settings
               </Link>
             </div>

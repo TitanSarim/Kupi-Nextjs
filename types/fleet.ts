@@ -55,10 +55,7 @@ export type SortOrderProps = {
 };
 
 export interface FilterProps {
-  carrier?: {
-    contains?: string;
-    mode?: "insensitive";
-  };
+  operatorId?: string;
   busID?: string;
   busClass?: BusClass;
   registration?: string;

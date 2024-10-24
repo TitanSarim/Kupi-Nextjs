@@ -251,6 +251,13 @@ const UpdateBus: React.FC<DialogProps> = ({
       toast.error("Something  went wrong");
       return;
     }
+    if (role === RolesEnum.SuperAdmin && busOperator === "") {
+      setErrorState({
+        field: "busOperator",
+        message: "Please select a bus operator",
+      });
+      return false;
+    }
 
     for (const [field, value] of Object.entries(formData)) {
       if (field === "name") continue;
@@ -265,13 +272,6 @@ const UpdateBus: React.FC<DialogProps> = ({
         });
         return false;
       }
-    }
-    if (role === RolesEnum.SuperAdmin && busOperator === "") {
-      setErrorState({
-        field: "busOperator",
-        message: "Please select a bus operator",
-      });
-      return false;
     }
     setLoading(true);
     setErrorState(null);
@@ -402,7 +402,7 @@ const UpdateBus: React.FC<DialogProps> = ({
                   </PopoverContent>
                 </Popover>
                 {errorState && errorState.field === "busOperator" && (
-                  <p className="text-red-500">{errorState.message}</p>
+                  <p className="text-red-500">Please select bus operator</p>
                 )}
               </div>
             )}
@@ -417,7 +417,7 @@ const UpdateBus: React.FC<DialogProps> = ({
                 onChange={handleIDTNumber}
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />
-              {errorState && errorState.field === "Number" && (
+              {errorState && errorState.field === "iden" && (
                 <p className="text-red-500">{errorState.message}</p>
               )}
               {numberError === true && (

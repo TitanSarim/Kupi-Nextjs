@@ -10,6 +10,7 @@ import {
   TicketsActionReturn,
   TicketsDataType,
 } from "@/types/ticket";
+import { RolesEnum } from "@/types/auth";
 
 export async function getAllTickets(searchParams: {
   operator?: string;
@@ -93,19 +94,42 @@ export async function getAllTickets(searchParams: {
     const skip = pageIndexNumber * pageSizeNumber;
     const take = pageSizeNumber;
 
-    const ticketData = await db.tickets.findMany({
-      where: filter,
-      orderBy: sortOrder.length > 0 ? sortOrder : undefined,
-      skip,
-      take,
-      include: {
-        customer: true,
-        transaction: true,
-        bus: true,
-        sourceCity: true,
-        arrivalCity: true,
-      },
-    });
+    let ticketData;
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      ticketData = await db.tickets.findMany({
+        where: filter,
+        orderBy: sortOrder.length > 0 ? sortOrder : undefined,
+        skip,
+        take,
+        include: {
+          customer: true,
+          transaction: true,
+          bus: true,
+          sourceCity: true,
+          arrivalCity: true,
+        },
+      });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      ticketData = await db.tickets.findMany({
+        where: { ...filter, operatorId: session.operatorId },
+        orderBy: sortOrder.length > 0 ? sortOrder : undefined,
+        skip,
+        take,
+        include: {
+          customer: true,
+          transaction: true,
+          bus: true,
+          sourceCity: true,
+          arrivalCity: true,
+        },
+      });
+    }
 
     if (!ticketData) {
       return null;
@@ -125,7 +149,24 @@ export async function getAllTickets(searchParams: {
         : null,
     }));
 
-    const totalCount = await db.tickets.count({ where: filter });
+    let totalCount;
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      totalCount = await db.tickets.count({ where: filter });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      totalCount = await db.tickets.count({
+        where: { ...filter, operatorId: session.operatorId },
+      });
+    }
+
+    if (!totalCount) {
+      return null;
+    }
 
     return {
       ticketData: wrappedTickets,

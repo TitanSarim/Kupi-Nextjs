@@ -2,8 +2,15 @@
 
 import { db } from "@/db";
 import { auth } from "@/auth";
-import { IncomeChartStats, RoutesChartData, Stats } from "@/types/dashboard";
+import {
+  IncomeChartStats,
+  RoutesChartData,
+  Stats,
+  TicketsDataTypeDashboard,
+} from "@/types/dashboard";
 import { format } from "date-fns";
+import { RolesEnum } from "@/types/auth";
+import { TicketsDataType } from "@/types/ticket";
 
 export async function getStats(searchParams: {
   operator?: string;
@@ -17,7 +24,7 @@ export async function getStats(searchParams: {
       return null;
     }
 
-    const { startDate, endDate } = searchParams;
+    const { operator, startDate, endDate } = searchParams;
 
     const start = startDate
       ? new Date(parseInt(startDate))
@@ -26,38 +33,71 @@ export async function getStats(searchParams: {
           date.setMonth(date.getMonth() - 2);
           return date;
         })();
-
     const end = endDate ? new Date(parseInt(endDate)) : new Date();
+    let operatorFilter;
+    if (operator) {
+      operatorFilter = operator;
+    }
 
-    const tickets = await db.tickets.findMany({
-      where: {
-        reservedAt: {
-          gte: start,
-          lte: end,
+    let tickets;
+
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      tickets = await db.tickets.findMany({
+        where: {
+          operatorId: operatorFilter,
+          reservedAt: {
+            gte: start,
+            lte: end,
+          },
         },
-      },
-    });
+      });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      tickets = await db.tickets.findMany({
+        where: {
+          operatorId: session.operatorId,
+          reservedAt: {
+            gte: start,
+            lte: end,
+          },
+        },
+      });
+    }
 
-    const totalIncome = tickets.reduce(
-      (sum, ticket) => sum + ticket.priceDetails.totalPrice,
-      0
-    );
-    const totalProfit = tickets.reduce(
-      (sum, ticket) =>
-        sum + ticket.priceDetails.kupiProfit + ticket.priceDetails.kupiMarkup,
-      0
-    );
+    const totalIncome =
+      (tickets &&
+        tickets.reduce(
+          (sum, ticket) => sum + ticket.priceDetails.totalPrice,
+          0
+        )) ||
+      0;
+    const totalProfit =
+      tickets?.reduce(
+        (sum, ticket) =>
+          sum +
+          (ticket.priceDetails.kupiProfit || 0) +
+          (ticket.priceDetails.kupiMarkup || 0),
+        0
+      ) || 0;
 
-    const totalTickets = tickets.length;
-    const soldTickets = tickets.filter(
-      (ticket) => ticket.status === "CONFIRMED"
-    ).length;
-    const reservedTickets = tickets.filter(
-      (ticket) => ticket.status === "RESERVED"
-    ).length;
-    const unSoldTickets = tickets.filter(
-      (ticket) => ticket.status === "CANCELED"
-    ).length;
+    const totalTickets = (tickets && tickets.length) || 0;
+    const soldTickets =
+      (tickets &&
+        tickets.filter((ticket) => ticket.status === "CONFIRMED").length) ||
+      0;
+    const reservedTickets =
+      (tickets &&
+        tickets.filter((ticket) => ticket.status === "RESERVED").length) ||
+      0;
+    const unSoldTickets =
+      (tickets &&
+        tickets.filter((ticket) => ticket.status === "CANCELED").length) ||
+      0;
     const unconvertedTickets = 0;
 
     const stats = {
@@ -88,7 +128,7 @@ export async function getIncomeChartStats(searchParams: {
       return null;
     }
 
-    const { startDate, endDate } = searchParams;
+    const { operator, startDate, endDate } = searchParams;
 
     const start = startDate
       ? new Date(parseInt(startDate))
@@ -99,21 +139,58 @@ export async function getIncomeChartStats(searchParams: {
         })();
 
     const end = endDate ? new Date(parseInt(endDate)) : new Date();
+    let operatorFilter;
+    if (operator) {
+      operatorFilter = operator;
+    }
 
-    const transactions = await db.transactions.findMany({
-      where: {
-        paidAt: {
-          not: null,
-          gte: start,
-          lte: end,
+    let tickets;
+
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      tickets = await db.tickets.findMany({
+        where: {
+          operatorId: operatorFilter,
+          reservedAt: {
+            gte: start,
+            lte: end,
+          },
         },
-      },
-    });
+        include: {
+          transaction: true,
+        },
+      });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      tickets = await db.tickets.findMany({
+        where: {
+          operatorId: session.operatorId,
+          reservedAt: {
+            gte: start,
+            lte: end,
+          },
+        },
+        include: {
+          transaction: true,
+        },
+      });
+    }
+
+    const wrappedTickets: TicketsDataTypeDashboard[] =
+      tickets?.map((ticket) => ({
+        tickets: ticket,
+        transaction: ticket.transaction || null,
+      })) || [];
 
     const monthlyTotals: { [key: string]: number } = {};
 
-    transactions.forEach((transaction) => {
-      const paidAt = transaction.paidAt;
+    wrappedTickets.forEach((ticket) => {
+      const transaction = ticket.transaction;
+      const paidAt = transaction?.paidAt;
 
       if (paidAt) {
         const month = format(paidAt, "MMM yyyy");
@@ -122,7 +199,7 @@ export async function getIncomeChartStats(searchParams: {
           monthlyTotals[month] = 0;
         }
 
-        monthlyTotals[month] += transaction.totalAmount;
+        monthlyTotals[month] += transaction.totalAmount || 0;
       }
     });
 
@@ -147,7 +224,7 @@ export async function getRoutesChartStats(searchParams: {
       return null;
     }
 
-    const { startDate, endDate } = searchParams;
+    const { operator, startDate, endDate } = searchParams;
 
     const start = startDate
       ? new Date(parseInt(startDate))
@@ -158,23 +235,52 @@ export async function getRoutesChartStats(searchParams: {
         })();
 
     const end = endDate ? new Date(parseInt(endDate)) : new Date();
+    let operatorFilter;
+    if (operator) {
+      operatorFilter = operator;
+    }
 
-    const tickets = await db.tickets.findMany({
-      where: {
-        reservedAt: {
-          gte: start,
-          lte: end,
+    let tickets;
+
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      tickets = await db.tickets.findMany({
+        where: {
+          operatorId: operatorFilter,
+          reservedAt: {
+            gte: start,
+            lte: end,
+          },
         },
-      },
-      include: {
-        sourceCity: true,
-        arrivalCity: true,
-      },
-    });
+        include: {
+          sourceCity: true,
+          arrivalCity: true,
+        },
+      });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      tickets = await db.tickets.findMany({
+        where: {
+          operatorId: session.operatorId,
+          reservedAt: {
+            gte: start,
+            lte: end,
+          },
+        },
+        include: {
+          sourceCity: true,
+          arrivalCity: true,
+        },
+      });
+    }
 
     const routeCounts: { [key: string]: number } = {};
 
-    tickets.forEach((ticket) => {
+    tickets?.forEach((ticket) => {
       const source = ticket.sourceCity?.name;
       const arrival = ticket.arrivalCity?.name;
 

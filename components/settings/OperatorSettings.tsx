@@ -38,7 +38,7 @@ import { OperatorsType } from "@/types/transactions";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RolesEnum } from "@/types/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface OperatorSettingsProps {
   operatorSettings?: operatorSettingsReturn | null | undefined;
@@ -54,7 +54,8 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
   role,
 }) => {
   const router = useRouter();
-  const params = new URLSearchParams();
+  const searchParams = useSearchParams();
+
   const { currency, amount, equivalent, unit } = Rates.globalExchangeRate;
   const [open, setOpen] = React.useState(false);
   const [busOperator, setBusOperator] = useState<string | null>(null);
@@ -80,21 +81,41 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     message: string;
   } | null>(null);
 
+  useEffect(() => {
+    const operatorId = searchParams.get("operatorId");
+    if (operatorId) {
+      setBusOperatorId(operatorId);
+    }
+  }, [searchParams]);
+
   const updateSearchParams = () => {
-    if (
-      busOperator !== "Clear" &&
-      busOperator !== null &&
-      busOperator.length > 0
-    ) {
-      params.set("operatorId", busOperatorId);
+    const currentParams = new URLSearchParams(window.location.search);
+
+    // Update or delete operatorId in the search params
+    if (busOperator && busOperator !== "Clear" && busOperatorId) {
+      currentParams.set("operatorId", busOperatorId);
     } else {
-      setBusOperator("");
+      currentParams.delete("operatorId");
     }
 
-    router.push(`?${params.toString()}`, { scroll: false });
+    // Push updated URL without losing other params
+    router.push(`?${currentParams.toString()}`, { scroll: false });
   };
 
-  useEffect(() => updateSearchParams(), [busOperator, busOperatorId]);
+  const handleOperatorChange = async (value: string, id: string) => {
+    if (value === "" || value.length <= 0) {
+      setBusOperator("");
+      setBusOperatorId("");
+    } else {
+      setBusOperator(value);
+      setBusOperatorId(id);
+    }
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    updateSearchParams();
+  }, [busOperator, busOperatorId]);
 
   const handleData = () => {
     if (operatorSettings) {
@@ -119,17 +140,6 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     }
   };
 
-  const handleOperatorChange = async (value: string, id: string) => {
-    if (value === "" || value.length <= 0) {
-      setBusOperator("");
-      setBusOperatorId("");
-    } else {
-      setBusOperator(value);
-      setBusOperatorId(id);
-    }
-    setOpen(false);
-  };
-
   useEffect(() => {
     handleData();
   }, [operatorSettings]);
@@ -144,8 +154,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
     if (operator) {
       setOperatorsData(operator);
       handleAdminData();
-    }
-    if (operator === null) {
+    } else if (operator === null) {
       setOperatorsData(null);
     }
   }, [operatorsData, operator]);
@@ -868,7 +877,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
           {/* Bank account detail */}
           <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
             <p className="text-lg text-black font-semibold">
-              Bank Account Detail
+              Bank Account Details
             </p>
 
             <Textarea
@@ -1255,7 +1264,7 @@ const OperatorSettings: React.FC<OperatorSettingsProps> = ({
           {/* Bank account detail */}
           <div className="h-80 w-full bg-white mt-5 shadow-sm rounded-md flex flex-col px-8 py-8">
             <p className="text-lg text-black font-semibold">
-              Bank Account Detail
+              Bank Account Details
             </p>
             <Textarea
               value={bankDetails}

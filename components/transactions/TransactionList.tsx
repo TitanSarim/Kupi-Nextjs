@@ -59,8 +59,6 @@ const TransactionList: React.FC<TransactionReturnWithDateRange> = ({
     setoperatorOpen(false);
   };
 
-  console.log("busOperator", busOperator);
-
   const updateSearchParams = () => {
     if (busOperator !== "" && busOperator !== "Clear") {
       params.set("operator", busOperatorId);

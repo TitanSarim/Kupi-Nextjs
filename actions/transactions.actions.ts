@@ -17,6 +17,7 @@ import { Prisma, Transactions } from "@prisma/client";
 import { getSignedURL, uploadPdfToS3 } from "@/libs/s3";
 import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
+import { RolesEnum } from "@/types/auth";
 
 export async function getAllTransactions(
   searchParams: {
@@ -134,37 +135,78 @@ export async function getAllTransactions(
       }
     }
 
-    const transactionData = await db.transactions.findMany({
-      where: {
-        ...filter,
-        paymentMethod: {
-          not: "manual",
-        },
-        tickets: {
-          some: {
-            operatorId: operatorFilter,
-            ticketId: ticketsFilter,
-            sourceCity: Cities.sourceCity || undefined,
-            arrivalCity: Cities.arrivalCity || undefined,
+    let transactionData;
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      transactionData = await db.transactions.findMany({
+        where: {
+          ...filter,
+          paymentMethod: {
+            not: "manual",
+          },
+          tickets: {
+            some: {
+              operatorId: operatorFilter,
+              ticketId: ticketsFilter,
+              sourceCity: Cities.sourceCity || undefined,
+              arrivalCity: Cities.arrivalCity || undefined,
+            },
           },
         },
-      },
-      orderBy: sortOrder,
-      skip,
-      take,
-      include: {
-        customer: true,
-        tickets: {
-          orderBy: ticketsSortOrder,
-          include: {
-            customer: true,
-            bus: true,
-            sourceCity: true,
-            arrivalCity: true,
+        orderBy: sortOrder,
+        skip,
+        take,
+        include: {
+          customer: true,
+          tickets: {
+            orderBy: ticketsSortOrder,
+            include: {
+              customer: true,
+              bus: true,
+              sourceCity: true,
+              arrivalCity: true,
+            },
           },
         },
-      },
-    });
+      });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      transactionData = await db.transactions.findMany({
+        where: {
+          ...filter,
+          paymentMethod: {
+            not: "manual",
+          },
+          tickets: {
+            some: {
+              operatorId: session.operatorId,
+              ticketId: ticketsFilter,
+              sourceCity: Cities.sourceCity || undefined,
+              arrivalCity: Cities.arrivalCity || undefined,
+            },
+          },
+        },
+        orderBy: sortOrder,
+        skip,
+        take,
+        include: {
+          customer: true,
+          tickets: {
+            orderBy: ticketsSortOrder,
+            include: {
+              customer: true,
+              bus: true,
+              sourceCity: true,
+              arrivalCity: true,
+            },
+          },
+        },
+      });
+    }
 
     if (!transactionData) {
       return null;
@@ -210,19 +252,46 @@ export async function getAllTransactions(
       }
     );
 
-    const totalCount = await db.transactions.count({
-      where: {
-        ...filter,
-        tickets: {
-          some: {
-            operatorId: operatorFilter,
-            ticketId: ticketsFilter,
-            sourceCity: Cities.sourceCity || undefined,
-            arrivalCity: Cities.arrivalCity || undefined,
+    let totalCount;
+    if (
+      session.role === RolesEnum.SuperAdmin ||
+      session.role === RolesEnum.KupiUser
+    ) {
+      totalCount = await db.transactions.count({
+        where: {
+          ...filter,
+          tickets: {
+            some: {
+              operatorId: operatorFilter,
+              ticketId: ticketsFilter,
+              sourceCity: Cities.sourceCity || undefined,
+              arrivalCity: Cities.arrivalCity || undefined,
+            },
           },
         },
-      },
-    });
+      });
+    } else if (
+      session.role === RolesEnum.BusCompanyAdmin ||
+      session.role === RolesEnum.BusCompanyUser
+    ) {
+      totalCount = await db.transactions.count({
+        where: {
+          ...filter,
+          tickets: {
+            some: {
+              operatorId: session.operatorId,
+              ticketId: ticketsFilter,
+              sourceCity: Cities.sourceCity || undefined,
+              arrivalCity: Cities.arrivalCity || undefined,
+            },
+          },
+        },
+      });
+    }
+
+    if (!totalCount) {
+      return null;
+    }
 
     return {
       transactionData: wrappedTransactionData,

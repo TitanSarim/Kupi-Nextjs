@@ -27,6 +27,8 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { operatorSettingsReturn } from "@/types/settings";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 const TicketList: React.FC<TicketsReturn> = ({
   ticketData,
@@ -45,6 +47,7 @@ const TicketList: React.FC<TicketsReturn> = ({
   const [openArrival, setOpenArrival] = React.useState(false);
   const router = useRouter();
   const params = new URLSearchParams();
+  const { data } = useSession();
 
   const handleOperatorChange = async (value: string, id: string) => {
     if (value === "" || value.length <= 0) {
@@ -107,69 +110,74 @@ const TicketList: React.FC<TicketsReturn> = ({
           </div>
         </div>
 
-        <div className="w-full">
-          <p className="mb-1 darkGray-text font-normal text-sm">Bus Operator</p>
-          <Popover open={operatorOpen} onOpenChange={setoperatorOpen}>
-            <PopoverTrigger
-              asChild
-              className="w-full  h-12 rounded-lg  text-gray-500 border-gray-700"
-            >
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={operatorOpen}
-                className="w-full justify-between outline-none"
+        {(data?.role === RolesEnum.SuperAdmin ||
+          data?.role === RolesEnum.KupiUser) && (
+          <div className="w-full">
+            <p className="mb-1 darkGray-text font-normal text-sm">
+              Bus Operator
+            </p>
+            <Popover open={operatorOpen} onOpenChange={setoperatorOpen}>
+              <PopoverTrigger
+                asChild
+                className="w-full  h-12 rounded-lg  text-gray-500 border-gray-700"
               >
-                {busOperator || "Select operator..."}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-full p-0 select-dropdown_bus_operator_tickets text-left left-0">
-              <Command>
-                <CommandInput placeholder="Search operator..." />
-                <CommandList className="w-full text-left">
-                  <CommandEmpty>No operator found.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      key="clear"
-                      value=""
-                      onSelect={() => {
-                        handleOperatorChange("", "");
-                      }}
-                      className="cursor-pointer w-full text-left"
-                    >
-                      <Check
-                        className={`mr-2 h-4 w-4 ${
-                          busOperator === "" ? "opacity-100" : "opacity-0"
-                        }`}
-                      />
-                      Clear
-                    </CommandItem>
-                    {operators?.map((operator) => (
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={operatorOpen}
+                  className="w-full justify-between outline-none"
+                >
+                  {busOperator || "Select operator..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0 select-dropdown_bus_operator_tickets text-left left-0">
+                <Command>
+                  <CommandInput placeholder="Search operator..." />
+                  <CommandList className="w-full text-left">
+                    <CommandEmpty>No operator found.</CommandEmpty>
+                    <CommandGroup>
                       <CommandItem
-                        key={operator.id}
-                        value={operator.name}
-                        onSelect={(currentValue) =>
-                          handleOperatorChange(currentValue, operator.id)
-                        }
-                        className="cursor-pointer w-full  text-left"
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          handleOperatorChange("", "");
+                        }}
+                        className="cursor-pointer w-full text-left"
                       >
                         <Check
                           className={`mr-2 h-4 w-4 ${
-                            operator.name === busOperator
-                              ? "opacity-100"
-                              : "opacity-0"
+                            busOperator === "" ? "opacity-100" : "opacity-0"
                           }`}
                         />
-                        {operator.name}
+                        Clear
                       </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        </div>
+                      {operators?.map((operator) => (
+                        <CommandItem
+                          key={operator.id}
+                          value={operator.name}
+                          onSelect={(currentValue) =>
+                            handleOperatorChange(currentValue, operator.id)
+                          }
+                          className="cursor-pointer w-full  text-left"
+                        >
+                          <Check
+                            className={`mr-2 h-4 w-4 ${
+                              operator.name === busOperator
+                                ? "opacity-100"
+                                : "opacity-0"
+                            }`}
+                          />
+                          {operator.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
 
         <div className="w-full flex flex-wrap justify-between mt-6">
           <div className="w-3/12">

@@ -251,7 +251,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={openOperator}
-                    className="w-full justify-between outline-none"
+                    className="w-full justify-between outline-none overflow-hidden"
                   >
                     {selectedOperators.length > 0
                       ? selectedOperators
@@ -268,6 +268,30 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search operator..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No operator found.</CommandEmpty>
+                      <CommandItem
+                        key="selectAll"
+                        value="Select All"
+                        onSelect={() => {
+                          if (selectedOperators.length === operators.length) {
+                            setSelectedOperators([]);
+                          } else {
+                            setSelectedOperators(operators.map((op) => op.id));
+                          }
+                          setOpenOperator(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            selectedOperators.length === operators.length
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {selectedOperators.length === operators.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </CommandItem>
                       <CommandItem
                         key="clear"
                         value=""
@@ -329,7 +353,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between outline-none"
+                    className="w-full justify-between outline-none overflow-hidden"
                   >
                     {destinationCityIds.length > 0
                       ? destinationCityIds
@@ -344,6 +368,30 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search city..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="selectAll"
+                        value="Select All"
+                        onSelect={() => {
+                          if (destinationCityIds.length === cities.length) {
+                            setDestinationCityIds([]);
+                          } else {
+                            setDestinationCityIds(cities.map((c) => c.id));
+                          }
+                          setOpenDestination(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            destinationCityIds.length === cities.length
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {destinationCityIds.length === cities.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </CommandItem>
                       <CommandItem
                         key="clear"
                         value=""
@@ -404,7 +452,7 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between outline-none"
+                    className="w-full justify-between outline-none overflow-hidden"
                   >
                     {arrivalCityIds.length > 0
                       ? arrivalCityIds
@@ -419,6 +467,30 @@ const UpdateDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search city..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="selectAll"
+                        value="Select All"
+                        onSelect={() => {
+                          if (arrivalCityIds.length === cities.length) {
+                            setArrivalCityIds([]);
+                          } else {
+                            setArrivalCityIds(cities.map((c) => c.id));
+                          }
+                          setOpenArrival(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            arrivalCityIds.length === cities.length
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {arrivalCityIds.length === cities.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </CommandItem>
                       <CommandItem
                         key="clear"
                         value=""

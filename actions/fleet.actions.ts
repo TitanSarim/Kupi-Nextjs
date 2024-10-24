@@ -100,7 +100,7 @@ export async function createbus(
 }
 
 export async function getAllFleet(searchParams: {
-  carrier?: string;
+  operator?: string;
   busID?: string;
   busClass?: BusClass;
   registration?: string;
@@ -116,7 +116,7 @@ export async function getAllFleet(searchParams: {
     }
 
     const {
-      carrier,
+      operator,
       busID,
       busClass,
       registration,
@@ -132,6 +132,9 @@ export async function getAllFleet(searchParams: {
     const take = pageSizeNumber;
 
     const filter: FilterProps = {};
+    if (operator) {
+      filter.operatorId = operator;
+    }
     if (busID) {
       filter.busID = busID;
     }

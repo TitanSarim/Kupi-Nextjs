@@ -237,16 +237,17 @@ const AddDiscount: React.FC<DialogProps> = ({
               <Popover open={openOperator} onOpenChange={setOpenOperator}>
                 <PopoverTrigger
                   asChild
-                  className="w-full h-12 rounded-lg text-gray-500 border-gray-300"
+                  className="w-full h-12 rounded-lg text-gray-500 border-gray-300 overflow-hidden"
                 >
                   <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={openOperator}
-                    className="w-full justify-between outline-none"
+                    className="w-full justify-between outline-none overflow-hidden"
                   >
                     {selectedOperators.length > 0
                       ? selectedOperators
+                          .slice(0, 9)
                           .map(
                             (id) => operators.find((op) => op.id === id)?.name
                           )
@@ -261,10 +262,34 @@ const AddDiscount: React.FC<DialogProps> = ({
                     <CommandList className="w-full">
                       <CommandEmpty>No operator found.</CommandEmpty>
                       <CommandItem
+                        key="selectAll"
+                        value="Select All"
+                        onSelect={() => {
+                          if (selectedOperators.length === operators.length) {
+                            setSelectedOperators([]);
+                          } else {
+                            setSelectedOperators(operators.map((op) => op.id));
+                          }
+                          setOpenOperator(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            selectedOperators.length === operators.length
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {selectedOperators.length === operators.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </CommandItem>
+                      <CommandItem
                         key="clear"
                         value=""
                         onSelect={() => {
-                          setSelectedOperators([]); // Clear all selections
+                          setSelectedOperators([]);
                           setOpenOperator(false);
                         }}
                         className="ml-1 cursor-pointer w-full"
@@ -321,7 +346,7 @@ const AddDiscount: React.FC<DialogProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between outline-none"
+                    className="w-full justify-between outline-none overflow-hidden"
                   >
                     {destinationCityIds.length > 0
                       ? destinationCityIds
@@ -336,6 +361,30 @@ const AddDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search city..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="selectAll"
+                        value="Select All"
+                        onSelect={() => {
+                          if (destinationCityIds.length === cities.length) {
+                            setDestinationCityIds([]);
+                          } else {
+                            setDestinationCityIds(cities.map((c) => c.id));
+                          }
+                          setOpenDestination(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            destinationCityIds.length === cities.length
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {destinationCityIds.length === cities.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </CommandItem>
                       <CommandItem
                         key="clear"
                         value=""
@@ -396,7 +445,7 @@ const AddDiscount: React.FC<DialogProps> = ({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className="w-full justify-between outline-none"
+                    className="w-full justify-between outline-none overflow-hidden"
                   >
                     {arrivalCityIds.length > 0
                       ? arrivalCityIds
@@ -411,6 +460,30 @@ const AddDiscount: React.FC<DialogProps> = ({
                     <CommandInput placeholder="Search city..." />
                     <CommandList className="w-full">
                       <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandItem
+                        key="selectAll"
+                        value="Select All"
+                        onSelect={() => {
+                          if (arrivalCityIds.length === cities.length) {
+                            setArrivalCityIds([]);
+                          } else {
+                            setArrivalCityIds(cities.map((c) => c.id));
+                          }
+                          setOpenArrival(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            arrivalCityIds.length === cities.length
+                              ? "opacity-100"
+                              : "opacity-0"
+                          }`}
+                        />
+                        {arrivalCityIds.length === cities.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </CommandItem>
                       <CommandItem
                         key="clear"
                         value=""

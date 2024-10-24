@@ -29,6 +29,7 @@ import toast from "react-hot-toast";
 import { OperatorsType } from "@/types/transactions";
 import { Button } from "../ui/button";
 import { RolesEnum } from "@/types/auth";
+import { useSession } from "next-auth/react";
 
 interface DialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ interface DialogProps {
 }
 
 const AddBus: React.FC<DialogProps> = ({ open, onClose, operators, role }) => {
+  const { data } = useSession();
   const [name, setName] = useState<string>("");
   const [Number, setNumber] = useState<string>("");
   const [regNumber, setRegNumber] = useState<string>("");
@@ -219,7 +221,16 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose, operators, role }) => {
       driver,
       comments,
     };
+
+    if (role === RolesEnum.SuperAdmin && busOperator === "") {
+      setErrorState({
+        field: "busOperator",
+        message: "Please select a bus operator",
+      });
+      return false;
+    }
     for (const [field, value] of Object.entries(formData)) {
+      console.log("field", field);
       if (field === "name") continue;
       if (field === "comments") continue;
       if (field === "busOperator") continue;
@@ -232,13 +243,6 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose, operators, role }) => {
         });
         return false;
       }
-    }
-    if (role === RolesEnum.SuperAdmin && busOperator === "") {
-      setErrorState({
-        field: "busOperator",
-        message: "Please select a bus operator",
-      });
-      return false;
     }
     setLoading(true);
     setErrorState(null);
@@ -369,7 +373,7 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose, operators, role }) => {
                   </PopoverContent>
                 </Popover>
                 {errorState && errorState.field === "busOperator" && (
-                  <p className="text-red-500">{errorState.message}</p>
+                  <p className="text-red-500">Please select bus operator</p>
                 )}
               </div>
             )}
@@ -385,7 +389,7 @@ const AddBus: React.FC<DialogProps> = ({ open, onClose, operators, role }) => {
                 onChange={handleIDTNumber}
                 className="h-12 rounded-lg text-gray-500 border-gray-300 bg-white"
               />
-              {errorState && errorState.field === "Number" && (
+              {errorState && errorState.field === "iden" && (
                 <p className="text-red-500">{errorState.message}</p>
               )}
               {numberError === true && (

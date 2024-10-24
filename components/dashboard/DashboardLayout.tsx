@@ -22,6 +22,8 @@ import TicketStatusCard from "./TicketStatusCard";
 import { CommonRoutes, IncomeChart } from "./Charts";
 import { IncomeChartStats, RoutesChartData, Stats } from "@/types/dashboard";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { RolesEnum } from "@/types/auth";
 
 interface Dashboard {
   operators: OperatorsType[];
@@ -52,6 +54,7 @@ const DashboardLayout: React.FC<Dashboard> = ({
 
   const router = useRouter();
   const params = new URLSearchParams();
+  const { data } = useSession();
 
   const selectedOperator = operators.find(
     (operator) => operator.id === busOperator
@@ -77,7 +80,7 @@ const DashboardLayout: React.FC<Dashboard> = ({
   };
 
   const updateSearchParams = () => {
-    if (busOperator) params.set("carrier", busOperator);
+    if (busOperator) params.set("operator", busOperator);
     if (value.startDate) {
       params.set("startDate", value.startDate.getTime().toString());
     } else {
@@ -116,70 +119,73 @@ const DashboardLayout: React.FC<Dashboard> = ({
       <div className="w-full flex flex-row items-start justify-between">
         <p className="w-4/12 text-lg text-black font-semibold">Dashboard</p>
         <div className="w-7/12 flex flex-row items-end justify-end gap-8">
-          <div className="w-5/12">
-            <Popover open={openOperator} onOpenChange={setOpenOperator}>
-              <PopoverTrigger
-                asChild
-                className="w-full h-12 rounded-lg text-gray-500 border-gray-700"
-              >
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={openOperator}
-                  className="w-full justify-between outline-none"
+          {(data?.role === RolesEnum.SuperAdmin ||
+            data?.role === RolesEnum.KupiUser) && (
+            <div className="w-5/12">
+              <Popover open={openOperator} onOpenChange={setOpenOperator}>
+                <PopoverTrigger
+                  asChild
+                  className="w-full h-12 rounded-lg text-gray-500 border-gray-700"
                 >
-                  {selectedOperator?.name || "Select Bus Operator"}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-60 max-h-48 min-h-48 h-48 overflow-y-hidden p-0">
-                <Command>
-                  <CommandInput placeholder="Search operator..." />
-                  <CommandList className="w-full">
-                    <CommandEmpty>No operator found.</CommandEmpty>
-                    <CommandItem
-                      key="clear"
-                      value=""
-                      onSelect={() => {
-                        setBusOperator(""); // Clear selection
-                        setOpenOperator(false);
-                      }}
-                      className="ml-1 cursor-pointer w-full"
-                    >
-                      <Check
-                        className={`mr-2 h-4 w-4 ${
-                          busOperator === "" ? "opacity-100" : "opacity-0"
-                        }`}
-                      />
-                      Clear
-                    </CommandItem>
-                    <CommandGroup>
-                      {operators.map((operator) => (
-                        <CommandItem
-                          key={operator.id}
-                          value={operator.name}
-                          onSelect={() => {
-                            setBusOperator(operator.id); // Save operator ID instead of name
-                            setOpenOperator(false);
-                          }}
-                          className="cursor-pointer w-full"
-                        >
-                          <Check
-                            className={`mr-2 h-4 w-4 ${
-                              operator.id === busOperator
-                                ? "opacity-100"
-                                : "opacity-0"
-                            }`}
-                          />
-                          {operator.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openOperator}
+                    className="w-full justify-between outline-none"
+                  >
+                    {selectedOperator?.name || "Select Bus Operator"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-60 max-h-48 min-h-48 h-48 overflow-y-hidden p-0">
+                  <Command>
+                    <CommandInput placeholder="Search operator..." />
+                    <CommandList className="w-full">
+                      <CommandEmpty>No operator found.</CommandEmpty>
+                      <CommandItem
+                        key="clear"
+                        value=""
+                        onSelect={() => {
+                          setBusOperator(""); // Clear selection
+                          setOpenOperator(false);
+                        }}
+                        className="ml-1 cursor-pointer w-full"
+                      >
+                        <Check
+                          className={`mr-2 h-4 w-4 ${
+                            busOperator === "" ? "opacity-100" : "opacity-0"
+                          }`}
+                        />
+                        Clear
+                      </CommandItem>
+                      <CommandGroup>
+                        {operators.map((operator) => (
+                          <CommandItem
+                            key={operator.id}
+                            value={operator.name}
+                            onSelect={() => {
+                              setBusOperator(operator.id); // Save operator ID instead of name
+                              setOpenOperator(false);
+                            }}
+                            className="cursor-pointer w-full"
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${
+                                operator.id === busOperator
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              }`}
+                            />
+                            {operator.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
           <div className="w-5/12">
             <p></p>
             <Datepicker

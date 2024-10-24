@@ -1,3 +1,5 @@
+import { Tickets, Transactions } from "@prisma/client";
+
 export type Stats = {
   totalIncome: number;
   totalProfit: number;
@@ -24,4 +26,9 @@ export type DashboardQuery = {
     startDate: string;
     endDate: string;
   };
+};
+
+export type TicketsDataTypeDashboard = {
+  tickets: Tickets | null;
+  transaction?: Transactions | null;
 };
